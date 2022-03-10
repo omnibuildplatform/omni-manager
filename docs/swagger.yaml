@@ -1,15 +1,21 @@
 definitions:
-  models.Metadata:
+  models.ImageInputData:
     properties:
-      arcName:
+      architecture:
         type: string
-      desc:
+      basePkg:
+        items:
+          type: string
+        type: array
+      customPkg:
+        items:
+          type: string
+        type: array
+      eulerVersion:
         type: string
       id:
         type: integer
-      packageName:
-        type: string
-      projectName:
+      outFormat:
         type: string
     type: object
 info:
@@ -45,11 +51,7 @@ paths:
         type: string
       produces:
       - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
+      responses: {}
       summary: get
       tags:
       - meta Manager
@@ -64,14 +66,10 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/models.Metadata'
+          $ref: '#/definitions/models.ImageInputData'
       produces:
       - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
+      responses: {}
       summary: create
       tags:
       - meta Manager
@@ -108,7 +106,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/models.Metadata'
+          $ref: '#/definitions/models.ImageInputData'
       produces:
       - application/json
       responses: {}

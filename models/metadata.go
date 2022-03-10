@@ -3,19 +3,34 @@ package models
 import (
 	"fmt"
 	"omni-manager/util"
+	"time"
 )
 
+type ImageInputData struct {
+	Id           int      `gorm:"primaryKey"`
+	Architecture string   ` description:"architecture"`
+	EulerVersion string   ` description:"release openEuler Version"`
+	OutFormat    string   ` description:"iso , zip ...."`
+	BasePkg      []string ` description:"default package"`
+	CustomPkg    []string ` description:"custom"`
+}
+
 type Metadata struct {
-	Id          int    `gorm:"primaryKey"`
-	ProjectName string ` description:"项目名称"`
-	PackageName string ` description:"包的名称"`
-	ArcName     string ` description:"架构的名称。"`
-	Desc        string ` description:"简介"`
+	Id           int       `gorm:"primaryKey"`
+	Architecture string    ` description:"architecture"`
+	EulerVersion string    ` description:"release openEuler Version"`
+	OutFormat    string    ` description:"iso , zip ...."`
+	BasePkg      string    ` description:"default package"`
+	CustomPkg    string    ` description:"custom"`
+	UserId       int       `  description:"user id"`
+	UserName     string    `   description:"user name"`
+	CreateTime   time.Time `  description:"create time"`
+	Status       int8      `  description:"current status :1 :submit request   2 build   3finished"`
 }
 
 func (t *Metadata) ToString() string {
 
-	return fmt.Sprintf("id:%d;ProjectName:%s;PackageName:%s;ArcName:%s;Desc:%s;", t.Id, t.ProjectName, t.PackageName, t.ArcName, t.Desc)
+	return fmt.Sprintf("id:%d;Architecture:%s;EulerVersion:%s;OutFormat:%s;UserId:%d;UserName:%s;", t.Id, t.Architecture, t.EulerVersion, t.OutFormat, t.UserId, t.UserName)
 }
 
 // AddMetadata insert a new Metadata into database and returns

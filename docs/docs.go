@@ -63,14 +63,7 @@ const docTemplate = `{
                         "required": true
                     }
                 ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
+                "responses": {}
             }
         },
         "/meta/insert": {
@@ -93,18 +86,11 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Metadata"
+                            "$ref": "#/definitions/models.ImageInputData"
                         }
                     }
                 ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
+                "responses": {}
             }
         },
         "/meta/query": {
@@ -159,7 +145,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Metadata"
+                            "$ref": "#/definitions/models.ImageInputData"
                         }
                     }
                 ],
@@ -168,22 +154,31 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "models.Metadata": {
+        "models.ImageInputData": {
             "type": "object",
             "properties": {
-                "arcName": {
+                "architecture": {
                     "type": "string"
                 },
-                "desc": {
+                "basePkg": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "customPkg": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "eulerVersion": {
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
-                "packageName": {
-                    "type": "string"
-                },
-                "projectName": {
+                "outFormat": {
                     "type": "string"
                 }
             }

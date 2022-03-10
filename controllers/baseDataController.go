@@ -5,6 +5,8 @@ import (
 	"omni-manager/models"
 	"omni-manager/util"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,18 +14,24 @@ import (
 // @Summary create
 // @Description insert single data
 // @Tags  meta Manager
-// @Param	body		body 	models.Metadata	true		"body for Metadata content"
+// @Param	body		body 	models.ImageInputData	true		"body for Metadata content"
 // @Accept json
 // @Produce json
-// @Success 200 {string} Helloworld
 // @Router /meta/insert [post]
 func Insert(c *gin.Context) {
-	var insertData models.Metadata
-	err := c.ShouldBindJSON(&insertData)
+	var imageInputData models.ImageInputData
+	err := c.ShouldBindJSON(&imageInputData)
 	if err != nil {
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, err, nil))
 		return
 	}
+	var insertData models.Metadata
+	insertData.Architecture = imageInputData.Architecture
+	insertData.EulerVersion = imageInputData.EulerVersion
+	insertData.OutFormat = imageInputData.OutFormat
+	insertData.BasePkg = strings.Join(imageInputData.BasePkg, ",")
+	insertData.CustomPkg = strings.Join(imageInputData.CustomPkg, ",")
+	insertData.CreateTime = time.Now()
 	_, err = models.AddMetadata(&insertData)
 	if err != nil {
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusServerError, err, nil))
@@ -38,7 +46,6 @@ func Insert(c *gin.Context) {
 // @Param	id		path 	string	true		"The key for staticblock"
 // @Accept json
 // @Produce json
-// @Success 200 {string} util.JsonData
 // @Router /meta/get/{id} [get]
 func Read(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
@@ -71,7 +78,7 @@ func Query(c *gin.Context) {
 // @Summary update
 // @Description update single data
 // @Tags  meta Manager
-// @Param	body		body 	models.Metadata	true		"body for Metadata content"
+// @Param	body		body 	models.ImageInputData	true		"body for Metadata content"
 // @Accept json
 // @Produce json
 // @Router /meta/update [put]
