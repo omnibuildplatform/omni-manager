@@ -1,0 +1,147 @@
+swagger: "2.0"
+info:
+  title: obs meta 模块API接口文档
+  description: 请在request的header中加上Token
+  version: 1.0.0
+  termsOfService: OmniBuildPlatform
+  contact:
+    email: luonancom@qq.com
+basePath: /api
+paths:
+  /metadata/:
+    get:
+      tags:
+      - metadata
+      description: get Metadata
+      operationId: MetadataController.Get All
+      parameters:
+      - in: query
+        name: query
+        description: Filter. e.g. col1:v1,col2:v2 ...
+        type: string
+      - in: query
+        name: fields
+        description: Fields returned. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: sortby
+        description: Sorted-by fields. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: order
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
+        type: string
+      - in: query
+        name: limit
+        description: Limit the size of result set. Must be an integer
+        type: string
+      - in: query
+        name: offset
+        description: Start position of result set. Must be an integer
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Metadata'
+        "403":
+          description: ""
+    post:
+      tags:
+      - metadata
+      description: create Metadata
+      operationId: MetadataController.Post
+      parameters:
+      - in: body
+        name: body
+        description: body for Metadata content
+        required: true
+        schema:
+          $ref: '#/definitions/models.Metadata'
+      responses:
+        "201":
+          description: '{int} models.Metadata'
+        "403":
+          description: body is empty
+  /metadata/{id}:
+    get:
+      tags:
+      - metadata
+      description: get Metadata by id
+      operationId: MetadataController.Get One
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Metadata'
+        "403":
+          description: :id is empty
+    put:
+      tags:
+      - metadata
+      description: update the Metadata
+      operationId: MetadataController.Put
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to update
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body for Metadata content
+        required: true
+        schema:
+          $ref: '#/definitions/models.Metadata'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Metadata'
+        "403":
+          description: :id is not int
+    delete:
+      tags:
+      - metadata
+      description: delete the Metadata
+      operationId: MetadataController.Delete
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to delete
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{string} delete success!'
+        "403":
+          description: id is empty
+definitions:
+  models.Metadata:
+    title: Metadata
+    type: object
+    properties:
+      ArcName:
+        type: string
+      Desc:
+        type: string
+      Id:
+        type: integer
+        format: int64
+      PackageName:
+        description: 包的名称
+        type: string
+      ProjectName:
+        description: 项目名称
+        type: string
+tags:
+- name: metadata
+  description: |
+    MetadataController operations for Metadata

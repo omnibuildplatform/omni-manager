@@ -1,0 +1,113 @@
+definitions:
+  models.Metadata:
+    properties:
+      arcName:
+        type: string
+      desc:
+        type: string
+      id:
+        type: integer
+      packageName:
+        type: string
+      projectName:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /meta/delete/:id:
+    delete:
+      consumes:
+      - application/json
+      description: update single data
+      parameters:
+      - description: The key for staticblock
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: delete
+      tags:
+      - meta Manager
+  /meta/get/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get single one
+      parameters:
+      - description: The key for staticblock
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: get
+      tags:
+      - meta Manager
+  /meta/insert:
+    post:
+      consumes:
+      - application/json
+      description: insert single data
+      parameters:
+      - description: body for Metadata content
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.Metadata'
+      produces:
+      - application/json
+      responses: {}
+      summary: create
+      tags:
+      - meta Manager
+  /meta/query:
+    get:
+      consumes:
+      - application/json
+      description: use param to query multi datas
+      parameters:
+      - description: project name
+        in: query
+        name: project_name
+        required: true
+        type: string
+      - description: package name
+        in: query
+        name: pkg_name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: query multi datas
+      tags:
+      - meta Manager
+    put:
+      consumes:
+      - application/json
+      description: update single data
+      parameters:
+      - description: body for Metadata content
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.Metadata'
+      produces:
+      - application/json
+      responses: {}
+      summary: update
+      tags:
+      - meta Manager
+swagger: "2.0"

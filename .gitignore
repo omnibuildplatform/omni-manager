@@ -1,10 +1,16 @@
-# Binaries for programs and plugins
+.idea
+.vscode
+.DS_Store
+*.swp
+*.swo 
+*.tmp
 *.exe
 *.exe~
+*.log
+./docs/*
 *.dll
 *.so
 *.dylib
-
 # Test binary, built with `go test -c`
 *.test
 
@@ -13,3 +19,4 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+swagger.zip
