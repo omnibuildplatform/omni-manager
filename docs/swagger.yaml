@@ -67,7 +67,11 @@ paths:
           $ref: '#/definitions/models.Metadata'
       produces:
       - application/json
-      responses: {}
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
       summary: create
       tags:
       - meta Manager
@@ -93,6 +97,7 @@ paths:
       summary: query multi datas
       tags:
       - meta Manager
+  /meta/update:
     put:
       consumes:
       - application/json

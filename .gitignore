@@ -7,7 +7,6 @@
 *.exe
 *.exe~
 *.log
-./docs/*
 *.dll
 *.so
 *.dylib
