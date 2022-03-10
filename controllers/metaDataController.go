@@ -17,7 +17,7 @@ import (
 // @Param	body		body 	models.ImageInputData	true		"body for Metadata content"
 // @Accept json
 // @Produce json
-// @Router /meta/insert [post]
+// @Router /images/insert [post]
 func Insert(c *gin.Context) {
 	var imageInputData models.ImageInputData
 	err := c.ShouldBindJSON(&imageInputData)
@@ -46,7 +46,7 @@ func Insert(c *gin.Context) {
 // @Param	id		path 	string	true		"The key for staticblock"
 // @Accept json
 // @Produce json
-// @Router /meta/get/{id} [get]
+// @Router /images/get/{id} [get]
 func Read(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if id <= 0 || err != nil {
@@ -69,7 +69,7 @@ func Read(c *gin.Context) {
 // @Param	pkg_name		query 	string	true		"package name"
 // @Accept json
 // @Produce json
-// @Router /meta/query [get]
+// @Router /images/query [get]
 func Query(c *gin.Context) {
 	//...... emplty . wait for query param
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, c.Query("project_name"), c.Query("pkg_name")))
@@ -81,7 +81,7 @@ func Query(c *gin.Context) {
 // @Param	body		body 	models.ImageInputData	true		"body for Metadata content"
 // @Accept json
 // @Produce json
-// @Router /meta/update [put]
+// @Router /images/update [put]
 func Update(c *gin.Context) {
 	var updateData models.Metadata
 	err := c.ShouldBindJSON(&updateData)
@@ -104,7 +104,7 @@ func Update(c *gin.Context) {
 // @Param	id		path 	string	true		"The key for staticblock"
 // @Accept json
 // @Produce json
-// @Router /meta/delete/:id [delete]
+// @Router /images/delete/:id [delete]
 func Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if id <= 0 || err != nil {

@@ -19,11 +19,11 @@ func InitRouter() *gin.Engine {
 	//version 1
 	v1 := r.Group(docs.SwaggerInfo.BasePath)
 	{
-		v1.POST("/meta/insert", controllers.Insert)
-		v1.PUT("/meta/update", controllers.Update)
-		v1.GET("/meta/get/:id", controllers.Read)
-		v1.GET("/meta/query", controllers.Query)
-		v1.DELETE("/meta/delete/:id", controllers.Delete)
+		v1.POST("/images/insert", controllers.Insert)
+		v1.PUT("/images/update", controllers.Update)
+		v1.GET("/images/get/:id", controllers.Read)
+		v1.GET("/images/query", controllers.Query)
+		v1.DELETE("/images/delete/:id", controllers.Delete)
 
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))

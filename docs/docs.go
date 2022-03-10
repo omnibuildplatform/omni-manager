@@ -16,7 +16,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/meta/delete/:id": {
+        "/images/delete/:id": {
             "delete": {
                 "description": "update single data",
                 "consumes": [
@@ -41,7 +41,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/meta/get/{id}": {
+        "/images/get/{id}": {
             "get": {
                 "description": "get single one",
                 "consumes": [
@@ -66,7 +66,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/meta/insert": {
+        "/images/insert": {
             "post": {
                 "description": "insert single data",
                 "consumes": [
@@ -93,7 +93,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/meta/query": {
+        "/images/query": {
             "get": {
                 "description": "use param to query multi datas",
                 "consumes": [
@@ -125,7 +125,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/meta/update": {
+        "/images/update": {
             "put": {
                 "description": "update single data",
                 "consumes": [

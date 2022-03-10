@@ -21,7 +21,7 @@ definitions:
 info:
   contact: {}
 paths:
-  /meta/delete/:id:
+  /images/delete/:id:
     delete:
       consumes:
       - application/json
@@ -38,7 +38,7 @@ paths:
       summary: delete
       tags:
       - meta Manager
-  /meta/get/{id}:
+  /images/get/{id}:
     get:
       consumes:
       - application/json
@@ -55,7 +55,7 @@ paths:
       summary: get
       tags:
       - meta Manager
-  /meta/insert:
+  /images/insert:
     post:
       consumes:
       - application/json
@@ -73,7 +73,7 @@ paths:
       summary: create
       tags:
       - meta Manager
-  /meta/query:
+  /images/query:
     get:
       consumes:
       - application/json
@@ -95,7 +95,7 @@ paths:
       summary: query multi datas
       tags:
       - meta Manager
-  /meta/update:
+  /images/update:
     put:
       consumes:
       - application/json
