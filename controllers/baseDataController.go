@@ -15,6 +15,7 @@ import (
 // @Param	body		body 	models.Metadata	true		"body for Metadata content"
 // @Accept json
 // @Produce json
+// @Success 200 {string} Helloworld
 // @Router /meta/insert [post]
 func Insert(c *gin.Context) {
 	var insertData models.Metadata
@@ -37,7 +38,7 @@ func Insert(c *gin.Context) {
 // @Param	id		path 	string	true		"The key for staticblock"
 // @Accept json
 // @Produce json
-// @Success 200 {string} Helloworld
+// @Success 200 {string} util.JsonData
 // @Router /meta/get/{id} [get]
 func Read(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
@@ -73,7 +74,7 @@ func Query(c *gin.Context) {
 // @Param	body		body 	models.Metadata	true		"body for Metadata content"
 // @Accept json
 // @Produce json
-// @Router /meta/query [put]
+// @Router /meta/update [put]
 func Update(c *gin.Context) {
 	var updateData models.Metadata
 	err := c.ShouldBindJSON(&updateData)
@@ -86,7 +87,7 @@ func Update(c *gin.Context) {
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusServerError, err, nil))
 		return
 	}
-	util.Log.Infof("The MetaData of Id (%d) had been update to: %s", updateData.Id, updateData.ToString())
+	util.Log.Warnf("The MetaData of Id (%d) had been update to: %s", updateData.Id, updateData.ToString())
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", nil))
 }
 
@@ -108,6 +109,6 @@ func Delete(c *gin.Context) {
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusServerError, err, nil))
 		return
 	}
-	util.Log.Infof("The  MetaData of Id (%d) had been delete ", id)
+	util.Log.Warnf("The  MetaData of Id (%d) had been delete ", id)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", id))
 }
