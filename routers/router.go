@@ -24,7 +24,6 @@ func InitRouter() *gin.Engine {
 		v1.GET("/images/get/:id", controllers.Read)
 		v1.GET("/images/query", controllers.Query)
 		v1.DELETE("/images/delete/:id", controllers.Delete)
-
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	return r

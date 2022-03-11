@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"omni-manager/image_monitor"
 	"omni-manager/routers"
 	"omni-manager/util"
 )
@@ -20,9 +21,18 @@ func main() {
 	//init database
 	err := util.InitDB()
 	if err != nil {
-		util.Log.Errorf("database startup failed , err:%v\n", err)
+		util.Log.Errorf("database connect failed , err:%v\n", err)
 		return
 	}
+	//init redis
+	err = util.InitRedis()
+	if err != nil {
+		util.Log.Errorf("Redis connect failed , err:%v\n", err)
+		return
+	}
+	//startup images status monitor
+	go image_monitor.StartMonitor(":9999")
+
 	//init router
 	r := routers.InitRouter()
 	util.Log.Infof(" startup meta service at port %s \n", address)

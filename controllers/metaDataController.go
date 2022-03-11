@@ -147,6 +147,6 @@ func Delete(c *gin.Context) {
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusServerError, err, nil))
 		return
 	}
-	util.Log.Warnf("The  MetaData of Id (%d) had been delete ", id)
+	util.Log.Warnf("The  MetaData (Id:%d) had been delete ", id)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", id))
 }

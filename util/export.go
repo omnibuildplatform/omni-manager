@@ -40,7 +40,6 @@ func ExportData(code int, title interface{}, data ...interface{}) *JsonData {
 		} else {
 			Log.Error(data)
 		}
-
 	}
 	return &resultData
 }

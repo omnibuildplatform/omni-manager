@@ -43,7 +43,7 @@ func (t *Metadata) ToString() string {
 // last inserted Id on success.
 func AddMetadata(m *Metadata) (id int64, err error) {
 	o := util.GetDB()
-	result := o.Create(m)
+	result := o.Debug().Create(m)
 	return int64(m.Id), result.Error
 }
 

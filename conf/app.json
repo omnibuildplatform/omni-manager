@@ -2,7 +2,7 @@
     "app_name": "obs_meta",
     "app_model": "dev",
     "app_host": "localhost",
-    "app_port": 8989,
+    "app_port": 8888,
     "database": {
         "driver": "mysql",
         "user": "root",
