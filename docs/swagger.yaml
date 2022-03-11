@@ -5,17 +5,24 @@ definitions:
         type: string
       basePkg:
         items:
-          type: string
+          $ref: '#/definitions/models.pkgData'
         type: array
       customPkg:
         items:
-          type: string
+          $ref: '#/definitions/models.pkgData'
         type: array
       eulerVersion:
         type: string
       id:
         type: integer
       outFormat:
+        type: string
+    type: object
+  models.pkgData:
+    properties:
+      pkgMd5:
+        type: string
+      pkgName:
         type: string
     type: object
 info:

@@ -2,7 +2,7 @@
 
 mysql database __DDL__ file be saved at ./docs folder. you can execute it in mysql client ;
 
-__insert images metadata__
+__post body:images metadata__
 
     {
     "architecture":"X86_64",

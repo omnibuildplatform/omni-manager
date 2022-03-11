@@ -1,11 +1,11 @@
 package controllers
 
 import (
+	"encoding/json"
 	"net/http"
 	"omni-manager/models"
 	"omni-manager/util"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -29,8 +29,19 @@ func Insert(c *gin.Context) {
 	insertData.Architecture = imageInputData.Architecture
 	insertData.EulerVersion = imageInputData.EulerVersion
 	insertData.OutFormat = imageInputData.OutFormat
-	insertData.BasePkg = strings.Join(imageInputData.BasePkg, ",")
-	insertData.CustomPkg = strings.Join(imageInputData.CustomPkg, ",")
+	var temp []byte
+	temp, err = json.Marshal(imageInputData.BasePkg)
+	if err != nil {
+		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, err, nil))
+		return
+	}
+	insertData.BasePkg = string(temp)
+	temp, err = json.Marshal(imageInputData.CustomPkg)
+	if err != nil {
+		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, err, nil))
+		return
+	}
+	insertData.CustomPkg = string(temp)
 	insertData.CreateTime = time.Now()
 	_, err = models.AddMetadata(&insertData)
 	if err != nil {
@@ -83,12 +94,32 @@ func Query(c *gin.Context) {
 // @Produce json
 // @Router /images/update [put]
 func Update(c *gin.Context) {
-	var updateData models.Metadata
-	err := c.ShouldBindJSON(&updateData)
+	var imageInputData models.ImageInputData
+	err := c.ShouldBindJSON(&imageInputData)
 	if err != nil {
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, err, nil))
 		return
 	}
+	var updateData models.Metadata
+	updateData.Architecture = imageInputData.Architecture
+	updateData.EulerVersion = imageInputData.EulerVersion
+	updateData.OutFormat = imageInputData.OutFormat
+	var temp []byte
+	temp, err = json.Marshal(imageInputData.BasePkg)
+	if err != nil {
+		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, err, nil))
+		return
+	}
+	updateData.BasePkg = string(temp)
+	temp, err = json.Marshal(imageInputData.CustomPkg)
+	if err != nil {
+		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, err, nil))
+		return
+	}
+	updateData.CustomPkg = string(temp)
+	//use origin item id
+	updateData.Id = imageInputData.Id
+
 	err = models.UpdateMetadataById(&updateData)
 	if err != nil {
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusServerError, err, nil))

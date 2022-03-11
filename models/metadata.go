@@ -6,13 +6,20 @@ import (
 	"time"
 )
 
+//post this body to backend
 type ImageInputData struct {
-	Id           int      `gorm:"primaryKey"`
-	Architecture string   ` description:"architecture"`
-	EulerVersion string   ` description:"release openEuler Version"`
-	OutFormat    string   ` description:"iso , zip ...."`
-	BasePkg      []string ` description:"default package"`
-	CustomPkg    []string ` description:"custom"`
+	Id           int       `gorm:"primaryKey"`
+	Architecture string    ` description:"architecture"`
+	EulerVersion string    ` description:"release openEuler Version"`
+	OutFormat    string    ` description:"iso , zip ...."`
+	BasePkg      []pkgData ` description:"default package"`
+	CustomPkg    []pkgData ` description:"custom"`
+}
+
+//rpm package
+type pkgData struct {
+	PkgName string
+	PkgMd5  string
 }
 
 type Metadata struct {
@@ -22,14 +29,13 @@ type Metadata struct {
 	OutFormat    string    ` description:"iso , zip ...."`
 	BasePkg      string    ` description:"default package"`
 	CustomPkg    string    ` description:"custom"`
-	UserId       int       `  description:"user id"`
-	UserName     string    `   description:"user name"`
-	CreateTime   time.Time `  description:"create time"`
-	Status       int8      `  description:"current status :1 :submit request   2 build   3finished"`
+	UserId       int       ` description:"user id"`
+	UserName     string    ` description:"user name"`
+	CreateTime   time.Time ` description:"create time"`
+	Status       int8      ` description:"current status :1 :submit request   2 build   3finished"`
 }
 
 func (t *Metadata) ToString() string {
-
 	return fmt.Sprintf("id:%d;Architecture:%s;EulerVersion:%s;OutFormat:%s;UserId:%d;UserName:%s;", t.Id, t.Architecture, t.EulerVersion, t.OutFormat, t.UserId, t.UserName)
 }
 

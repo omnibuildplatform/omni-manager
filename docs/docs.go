@@ -163,13 +163,13 @@ const docTemplate = `{
                 "basePkg": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/models.pkgData"
                     }
                 },
                 "customPkg": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/models.pkgData"
                     }
                 },
                 "eulerVersion": {
@@ -179,6 +179,17 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "outFormat": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.pkgData": {
+            "type": "object",
+            "properties": {
+                "pkgMd5": {
+                    "type": "string"
+                },
+                "pkgName": {
                     "type": "string"
                 }
             }
