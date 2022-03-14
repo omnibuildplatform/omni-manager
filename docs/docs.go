@@ -66,38 +66,6 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/images/getBaseData/": {
-            "get": {
-                "description": "get architecture, release Version, output Format ,and default package name list",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "meta Manager"
-                ],
-                "summary": "GetBaseData",
-                "responses": {}
-            }
-        },
-        "/images/getCustomePkgList/": {
-            "get": {
-                "description": "get default package name list. this list load from https://raw.githubusercontent.com/omnibuildplatform/omni-imager/main/etc/openEuler-minimal.json",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "meta Manager"
-                ],
-                "summary": "GetCustomePkgList",
-                "responses": {}
-            }
-        },
         "/images/insert": {
             "post": {
                 "description": "insert single data",
@@ -122,6 +90,38 @@ const docTemplate = `{
                         }
                     }
                 ],
+                "responses": {}
+            }
+        },
+        "/images/param/getBaseData/": {
+            "get": {
+                "description": "get architecture, release Version, output Format ,and default package name list",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "meta Manager"
+                ],
+                "summary": "GetBaseData param",
+                "responses": {}
+            }
+        },
+        "/images/param/getCustomePkgList/": {
+            "get": {
+                "description": "get default package name list. this list load from https://raw.githubusercontent.com/omnibuildplatform/omni-imager/main/etc/openEuler-minimal.json",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "meta Manager"
+                ],
+                "summary": "GetCustomePkgList param",
                 "responses": {}
             }
         },
