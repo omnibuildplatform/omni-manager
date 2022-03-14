@@ -1,52 +1,150 @@
 package image_monitor
 
 import (
-	"context"
-	"fmt"
+	"flag"
+	"html/template"
 	"log"
-	"omni-manager/util"
+	"net/http"
+	"strconv"
 	"time"
 
-	grpc "google.golang.org/grpc"
+	"github.com/gorilla/websocket"
 )
 
-type monitorServer struct {
-	UnimplementedCallCenterServer
+const (
+	// Time allowed to write the file to the client.
+	writeWait = 10 * time.Second
+
+	// Time allowed to read the next pong message from the client.
+	pongWait = 60 * time.Second
+
+	// Send pings to client with this period. Must be less than pongWait.
+	pingPeriod = (pongWait * 9) / 10
+
+	// Poll file for changes with this period.
+	filePeriod = 10 * time.Second
+)
+
+var (
+	addr      = flag.String("addr", ":8989", "http service address")
+	homeTempl = template.Must(template.New("").Parse(homeHTML))
+
+	upgrader = websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+	}
+)
+
+func reader(ws *websocket.Conn) {
+	defer ws.Close()
+	ws.SetReadLimit(512)
+	ws.SetReadDeadline(time.Now().Add(pongWait))
+	ws.SetPongHandler(func(string) error { ws.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	for {
+		_, _, err := ws.ReadMessage()
+		if err != nil {
+			break
+		}
+	}
 }
-type CallCenterService struct {
+
+func writer(ws *websocket.Conn) {
+
+	pingTicker := time.NewTicker(pingPeriod)
+	fileTicker := time.NewTicker(filePeriod)
+	defer func() {
+		pingTicker.Stop()
+		fileTicker.Stop()
+		ws.Close()
+	}()
+	for {
+		select {
+		case <-fileTicker.C:
+			var p []byte
+
+			p = []byte("阿卜杜" + time.Now().String())
+
+			if p != nil {
+				ws.SetWriteDeadline(time.Now().Add(writeWait))
+				if err := ws.WriteMessage(websocket.TextMessage, p); err != nil {
+					return
+				}
+			}
+		case <-pingTicker.C:
+			ws.SetWriteDeadline(time.Now().Add(writeWait))
+			if err := ws.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+				return
+			}
+		}
+	}
 }
 
-func (centerService *CallCenterService) RegisterService(ctx context.Context, in *ClientRequest) {
-
-}
-
-//start monitor
-func StartMonitor(address string) {
-
-	conn, err := grpc.Dial(address) //, grpc.WithInsecure()
+func serveWs(w http.ResponseWriter, r *http.Request) {
+	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		if _, ok := err.(websocket.HandshakeError); !ok {
+			log.Println(err)
+		}
+		return
 	}
 
-	defer conn.Close()
+	go writer(ws)
+	reader(ws)
+}
 
-	userClient := NewCallCenterClient(conn)
-	// timeout 3s
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-	defer cancel()
-
-	// PullFromDispatcher request
-	PullFromDispatcherReponse, err := userClient.PullFromDispatcher(ctx, &DispatcherRequest{Name: "dfdf"})
-	if err != nil {
-		util.Log.Printf("user index could not greet: %v", err)
+func serveHome(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.Error(w, "Not found", http.StatusNotFound)
+		return
 	}
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	p := []byte("44444444444")
 
-	if PullFromDispatcherReponse.Name == "name" {
-		util.Log.Printf("user index success: %s", PullFromDispatcherReponse.Name)
+	var v = struct {
+		Host    string
+		Data    string
+		LastMod string
+	}{
+		r.Host,
+		string(p),
+		strconv.FormatInt(time.Now().UnixNano(), 16),
+	}
+	homeTempl.Execute(w, &v)
+}
 
-		fmt.Println(PullFromDispatcherReponse.Name)
+func StartMonitor() {
 
-	} else {
-		util.Log.Printf("user index error: %d", PullFromDispatcherReponse.Name)
+	http.HandleFunc("/", serveHome)
+	http.HandleFunc("/ws", serveWs)
+	if err := http.ListenAndServe(*addr, nil); err != nil {
+		log.Fatal(err)
 	}
 }
+
+const homeHTML = `<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>WebSocket Example</title>
+    </head>
+    <body>
+        <pre id="fileData">{{.Data}}</pre>
+        <script type="text/javascript">
+            (function() {
+                var data = document.getElementById("fileData");
+                var conn = new WebSocket("ws://{{.Host}}/ws?lastMod={{.LastMod}}");
+                conn.onclose = function(evt) {
+                    data.textContent = 'Connection closed';
+                }
+                conn.onmessage = function(evt) {
+                    console.log('file updated');
+                    data.textContent = evt.data;
+                }
+            })();
+        </script>
+    </body>
+</html>
+`

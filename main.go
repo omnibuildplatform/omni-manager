@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"omni-manager/image_monitor"
 	"omni-manager/routers"
 	"omni-manager/util"
 )
@@ -30,7 +31,7 @@ func main() {
 		return
 	}
 	//startup images status monitor
-	// go image_monitor.StartMonitor(":9999")
+	go image_monitor.StartMonitor()
 
 	//init router
 	r := routers.InitRouter()
