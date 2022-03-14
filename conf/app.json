@@ -7,16 +7,36 @@
         "driver": "mysql",
         "user": "root",
         "password": "rootpswd",
-        "host": "127.0.0.1",
+        "host": "192.168.1.193",
         "port": "3306",
         "db_name": "obs_meta",
         "charset": "utf8",
         "show_sql": false
     },
     "redis_config": {
-        "addr": "127.0.0.1",
+        "addr": "192.168.1.193",
         "port": "6379",
         "password": "58243586@qq.com",
         "db": 0
+    },
+    "buildParam": {
+        "arch": [
+            "X86_64",
+            "arch64"
+        ],
+        "version": [
+            "openEuler-20.03-LTS",
+            "openEuler-20.03-LTS-SP1",
+            "openEuler-20.03-LTS-SP2",
+            "openEuler-20.03-LTS-SP3",
+            "openEuler-20.09",
+            "openEuler-21.03",
+            "openEuler-21.09"
+        ],
+        "format": [
+            "Installer-CD",
+            "ISO"
+        ],
+        "openeulerMinimal":"https://raw.githubusercontent.com/omnibuildplatform/omni-imager/main/etc/openEuler-minimal.json"
     }
 }

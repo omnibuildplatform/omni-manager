@@ -62,6 +62,29 @@ paths:
       summary: get
       tags:
       - meta Manager
+  /images/getBaseData/:
+    get:
+      consumes:
+      - application/json
+      description: get architecture, release Version, output Format ,and default package
+        name list
+      produces:
+      - application/json
+      responses: {}
+      summary: GetBaseData
+      tags:
+      - meta Manager
+  /images/getCustomePkgList/:
+    get:
+      consumes:
+      - application/json
+      description: get default package name list. this list load from https://raw.githubusercontent.com/omnibuildplatform/omni-imager/main/etc/openEuler-minimal.json
+      produces:
+      - application/json
+      responses: {}
+      summary: GetCustomePkgList
+      tags:
+      - meta Manager
   /images/insert:
     post:
       consumes:

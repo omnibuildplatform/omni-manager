@@ -73,6 +73,26 @@ func Read(c *gin.Context) {
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, id, v))
 }
 
+// @Summary GetBaseData
+// @Description get architecture, release Version, output Format ,and default package name list
+// @Tags  meta Manager
+// @Accept json
+// @Produce json
+// @Router /images/getBaseData/ [get]
+func GetBaseData(c *gin.Context) {
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", util.GetConfig().BuildParam, util.GetConfig().DefaultPkgList))
+}
+
+// @Summary GetCustomePkgList
+// @Description get default package name list. this list load from https://raw.githubusercontent.com/omnibuildplatform/omni-imager/main/etc/openEuler-minimal.json
+// @Tags  meta Manager
+// @Accept json
+// @Produce json
+// @Router /images/getCustomePkgList/ [get]
+func GetCustomePkgList(c *gin.Context) {
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", nil))
+}
+
 // @Summary query multi datas
 // @Description use param to query multi datas
 // @Tags  meta Manager
