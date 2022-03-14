@@ -13,6 +13,7 @@ func main() {
 	flag.IntVar(&httpPort, "p", 0, "Input http port")
 	flag.Parse()
 	if httpPort == 0 {
+		util.InitConfig()
 		//use config port
 		httpPort = util.GetConfig().AppPort
 	}

@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path"
 	"time"
@@ -43,7 +44,7 @@ func initLogger() *logrus.Logger {
 	//new log
 	Log = logrus.New()
 
-	Log.Out = src
+	Log.Out = io.MultiWriter(os.Stdout, src)
 
 	//info level
 	Log.SetLevel(logrus.WarnLevel)

@@ -49,7 +49,6 @@ func reader(ws *websocket.Conn) {
 }
 
 func writer(ws *websocket.Conn) {
-
 	pingTicker := time.NewTicker(pingPeriod)
 	fileTicker := time.NewTicker(filePeriod)
 	defer func() {
