@@ -31,12 +31,11 @@ func StartMonitor(address string) {
 	defer conn.Close()
 
 	userClient := NewCallCenterClient(conn)
-
 	// timeout 3s
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 
-	// UserIndex 请求
+	// PullFromDispatcher request
 	PullFromDispatcherReponse, err := userClient.PullFromDispatcher(ctx, &DispatcherRequest{Name: "dfdf"})
 	if err != nil {
 		util.Log.Printf("user index could not greet: %v", err)
