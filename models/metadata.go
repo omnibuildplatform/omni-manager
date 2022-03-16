@@ -8,12 +8,12 @@ import (
 
 //post this body to backend
 type ImageInputData struct {
-	Id           int       `gorm:"primaryKey"`
-	Architecture string    ` description:"architecture"`
-	EulerVersion string    ` description:"release openEuler Version"`
-	OutFormat    string    ` description:"iso , zip ...."`
-	BasePkg      []pkgData ` description:"default package"`
-	CustomPkg    []pkgData ` description:"custom"`
+	Id        int    `gorm:"primaryKey"`
+	Packages  string ` description:"architecture"`
+	Version   string ` description:"release openEuler Version"`
+	BuildType string ` description:"iso , zip ...."`
+	// BasePkg      []pkgData ` description:"default package"`
+	CustomPkg []string ` description:"custom"`
 }
 
 //rpm package
@@ -23,20 +23,21 @@ type pkgData struct {
 }
 
 type Metadata struct {
-	Id           int       `gorm:"primaryKey"`
-	Architecture string    ` description:"architecture"`
-	EulerVersion string    ` description:"release openEuler Version"`
-	OutFormat    string    ` description:"iso , zip ...."`
-	BasePkg      string    ` description:"default package"`
-	CustomPkg    string    ` description:"custom"`
-	UserId       int       ` description:"user id"`
-	UserName     string    ` description:"user name"`
-	CreateTime   time.Time ` description:"create time"`
-	Status       int8      ` description:"current status :1 :submit request   2 build   3finished"`
+	Id            int       `gorm:"primaryKey"`
+	Packages      string    ` description:"architecture"`
+	Version       string    ` description:"release openEuler Version"`
+	BuildType     string    ` description:"iso , zip ...."`
+	BasePkg       string    ` description:"default package"`
+	CustomPkg     string    ` description:"custom"`
+	UserId        int       ` description:"user id"`
+	UserName      string    ` description:"user name"`
+	CreateTime    time.Time ` description:"create time"`
+	Status        int8      ` description:"current status :1 :submit request   2 build   3finished"`
+	ContainerName string    ` description:"container name"`
 }
 
 func (t *Metadata) ToString() string {
-	return fmt.Sprintf("id:%d;Architecture:%s;EulerVersion:%s;OutFormat:%s;UserId:%d;UserName:%s;", t.Id, t.Architecture, t.EulerVersion, t.OutFormat, t.UserId, t.UserName)
+	return fmt.Sprintf("id:%d;Architecture:%s;EulerVersion:%s;OutFormat:%s;UserId:%d;UserName:%s;ContainerName:%s", t.Id, t.Packages, t.Version, t.BuildType, t.UserId, t.UserName, t.ContainerName)
 }
 
 // AddMetadata insert a new Metadata into database and returns

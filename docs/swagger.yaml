@@ -1,28 +1,18 @@
 definitions:
   models.ImageInputData:
     properties:
-      architecture:
+      buildType:
         type: string
-      basePkg:
-        items:
-          $ref: '#/definitions/models.pkgData'
-        type: array
       customPkg:
+        description: BasePkg      []pkgData ` description:"default package"`
         items:
-          $ref: '#/definitions/models.pkgData'
+          type: string
         type: array
-      eulerVersion:
-        type: string
       id:
         type: integer
-      outFormat:
+      packages:
         type: string
-    type: object
-  models.pkgData:
-    properties:
-      pkgMd5:
-        type: string
-      pkgName:
+      version:
         type: string
     type: object
 info:
@@ -60,24 +50,6 @@ paths:
       - application/json
       responses: {}
       summary: get
-      tags:
-      - meta Manager
-  /images/insert:
-    post:
-      consumes:
-      - application/json
-      description: insert single data
-      parameters:
-      - description: body for Metadata content
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/models.ImageInputData'
-      produces:
-      - application/json
-      responses: {}
-      summary: create
       tags:
       - meta Manager
   /images/param/getBaseData/:
@@ -123,6 +95,41 @@ paths:
       - application/json
       responses: {}
       summary: query multi datas
+      tags:
+      - meta Manager
+  /images/queryJobStatus/{name}:
+    get:
+      consumes:
+      - application/json
+      description: QueryJobStatus for given job name
+      parameters:
+      - description: The name for job
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: QueryJobStatus
+      tags:
+      - meta Manager
+  /images/startBuild:
+    post:
+      consumes:
+      - application/json
+      description: start a image build job
+      parameters:
+      - description: body for Metadata content
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.ImageInputData'
+      produces:
+      - application/json
+      responses: {}
+      summary: StartBuild Job
       tags:
       - meta Manager
   /images/update:

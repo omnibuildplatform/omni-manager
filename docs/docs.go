@@ -66,33 +66,6 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/images/insert": {
-            "post": {
-                "description": "insert single data",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "meta Manager"
-                ],
-                "summary": "create",
-                "parameters": [
-                    {
-                        "description": "body for Metadata content",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.ImageInputData"
-                        }
-                    }
-                ],
-                "responses": {}
-            }
-        },
         "/images/param/getBaseData/": {
             "get": {
                 "description": "get architecture, release Version, output Format ,and default package name list",
@@ -157,6 +130,58 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/images/queryJobStatus/{name}": {
+            "get": {
+                "description": "QueryJobStatus for given job name",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "meta Manager"
+                ],
+                "summary": "QueryJobStatus",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The name for job",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/images/startBuild": {
+            "post": {
+                "description": "start a image build job",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "meta Manager"
+                ],
+                "summary": "StartBuild Job",
+                "parameters": [
+                    {
+                        "description": "body for Metadata content",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ImageInputData"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/images/update": {
             "put": {
                 "description": "update single data",
@@ -189,39 +214,23 @@ const docTemplate = `{
         "models.ImageInputData": {
             "type": "object",
             "properties": {
-                "architecture": {
+                "buildType": {
                     "type": "string"
-                },
-                "basePkg": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.pkgData"
-                    }
                 },
                 "customPkg": {
+                    "description": "BasePkg      []pkgData ` + "`" + ` description:\"default package\"` + "`" + `",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.pkgData"
+                        "type": "string"
                     }
-                },
-                "eulerVersion": {
-                    "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
-                "outFormat": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.pkgData": {
-            "type": "object",
-            "properties": {
-                "pkgMd5": {
+                "packages": {
                     "type": "string"
                 },
-                "pkgName": {
+                "version": {
                     "type": "string"
                 }
             }

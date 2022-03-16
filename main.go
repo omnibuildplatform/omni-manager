@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"omni-manager/image_monitor"
+	"omni-manager/models"
 	"omni-manager/routers"
 	"omni-manager/util"
 )
@@ -12,13 +13,18 @@ func main() {
 	var httpPort int
 	flag.IntVar(&httpPort, "p", 0, "Input http port")
 	flag.Parse()
-	if httpPort == 0 {
-		util.InitConfig()
-		//use config port
+	//load config file
+	util.InitConfig()
+	if httpPort <= 0 {
+		//use flag port first ,if not then use config port
 		httpPort = util.GetConfig().AppPort
 	}
-	address := fmt.Sprintf(":%d", httpPort)
+	if httpPort <= 0 {
+		//if config port not set,then set a default 8080
+		httpPort = 8080
+	}
 
+	address := fmt.Sprintf(":%d", httpPort)
 	//init database
 	err := util.InitDB()
 	if err != nil {
@@ -31,8 +37,11 @@ func main() {
 		util.Log.Errorf("Redis connect failed , err:%v\n", err)
 		return
 	}
-	//startup images status monitor
-	go image_monitor.StartMonitor()
+
+	//init dispatcher monitor
+	models.InitDispatcherMonitor()
+	//startup a webscoket server to wait client ws
+	go image_monitor.Start2ClientServer()
 
 	//init router
 	r := routers.InitRouter()

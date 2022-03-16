@@ -19,10 +19,13 @@
         "password": "58243586@qq.com",
         "db": 0
     },
+    "ws_config": {
+        "port": 8989,
+        "check_origin": true
+    },
     "buildParam": {
-        "arch": [
-            "X86_64",
-            "arch64"
+        "packages": [
+            "openEuler-minimal"
         ],
         "version": [
             "openEuler-20.03-LTS",
@@ -33,10 +36,11 @@
             "openEuler-21.03",
             "openEuler-21.09"
         ],
-        "format": [
-            "Installer-CD",
-            "ISO"
+        "buildType": [
+            "livecd-iso",
+            "installer-iso",
+            "vhd"
         ],
-        "openeulerMinimal":"https://raw.githubusercontent.com/omnibuildplatform/omni-imager/main/etc/openEuler-minimal.json"
+        "openeulerMinimal": "https://raw.githubusercontent.com/omnibuildplatform/omni-imager/main/etc/openEuler-minimal.json"
     }
 }

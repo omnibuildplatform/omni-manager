@@ -19,6 +19,7 @@ type Config struct {
 	BuildParam     BuildParam     `json:"buildParam"`
 	DefaultPkgList PkgList
 	CustomPkgList  PkgList
+	WSConfig       WSConfig `json:"ws_config"`
 }
 
 //sql config
@@ -43,13 +44,19 @@ type RedisConfig struct {
 
 //
 type BuildParam struct {
-	Arch             []string `json:"arch"`
+	Packages         []string `json:"packages"`
 	Version          []string `json:"version"`
-	Format           []string `json:"format"`
+	BuildType        []string `json:"buildType"`
 	OpeneulerMinimal string   `json:"openeulerMinimal"`
 }
 type PkgList struct {
 	Packages []string `json:"packages"`
+}
+
+//websocket config
+type WSConfig struct {
+	Port        int  `json:"port"`
+	CheckOrigin bool `json:"check_origin"`
 }
 
 func InitConfig() {
