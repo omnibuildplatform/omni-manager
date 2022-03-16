@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"omni-manager/image_monitor"
 	"omni-manager/models"
 	"omni-manager/routers"
 	"omni-manager/util"
@@ -37,17 +36,14 @@ func main() {
 		util.Log.Errorf("Redis connect failed , err:%v\n", err)
 		return
 	}
-
 	//init dispatcher monitor
 	models.InitDispatcherMonitor()
 	//startup a webscoket server to wait client ws
-	go image_monitor.Start2ClientServer()
-
+	go models.StartWebSocket()
 	//init router
 	r := routers.InitRouter()
 	util.Log.Infof(" startup meta service at port %s \n", address)
 	if err := r.Run(address); err != nil {
 		util.Log.Errorf("startup meta   service failed, err:%v\n", err)
 	}
-
 }

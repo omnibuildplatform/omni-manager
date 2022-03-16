@@ -1,4 +1,4 @@
-package image_monitor
+package models
 
 import (
 	"fmt"
@@ -96,7 +96,7 @@ func QueryJobStatus(w http.ResponseWriter, r *http.Request) {
 	// reader(ws)
 }
 
-func Start2ClientServer() {
+func StartWebSocket() {
 	http.HandleFunc("/queryJobStatus", QueryJobStatus)
 	addr := fmt.Sprintf(":%d", util.GetConfig().WSConfig.Port)
 	util.Log.Warnf("websocket start at %s port ", addr)

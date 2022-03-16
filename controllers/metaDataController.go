@@ -68,8 +68,7 @@ func StartBuild(c *gin.Context) {
 		return
 	}
 	insertData.CustomPkg = string(temp)
-
-	//----------------------send data to k8s to build--
+	//----------------------send data to k8s to build----
 	var jobID = fmt.Sprintf(`omni-image-%s`, uuid.NewV4().String())
 	var imageName = fmt.Sprintf(`openEuler-%s.iso`, uuid.NewV4().String())
 	controllerID := uuid.NewV4().String()
