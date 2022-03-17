@@ -16,12 +16,12 @@ import (
 const (
 	// Time allowed to write the file to the client.
 	writeWait = 10 * time.Second
-	// Time allowed to read the next pong message from the client.
-	pongWait = 60 * time.Second
 	// Send pings to client with this period. Must be less than pongWait.
-	pingPeriod = (pongWait * 9) / 10
-	// Poll file for changes with this period.
-	filePeriod = 10 * time.Second
+	pingPeriod = 10 * time.Second
+	//job status
+	JOB_STATUS_RUNNING = "running"
+	JOB_STATUS_SUCCEED = "succeed"
+	JOB_STATUS_FAILED  = "failed"
 )
 
 var (
@@ -34,36 +34,31 @@ var (
 	}
 )
 
-func writer(ws *websocket.Conn, jobname string) {
+// write Message to Client
+func writeMessage2Client(ws *websocket.Conn, jobname string) {
 	pingTicker := time.NewTicker(pingPeriod)
-	fileTicker := time.NewTicker(filePeriod)
 	defer func() {
 		pingTicker.Stop()
-		fileTicker.Stop()
 		ws.Close()
 	}()
 	for {
 		select {
-		case <-fileTicker.C:
+		case <-pingTicker.C:
 			var p []byte
 			jobAPI := GetClientSet().BatchV1()
 			job, err := jobAPI.Jobs(metav1.NamespaceDefault).Get(context.TODO(), jobname, metav1.GetOptions{})
 			if err != nil {
 				if err = ws.WriteMessage(websocket.TextMessage, []byte(err.Error())); err != nil {
-
 					return
 				}
 				return
 			}
 			completions := job.Spec.Completions
 			backoffLimit := job.Spec.BackoffLimit
-			const JOB_STATUS_RUNNING = "running"
-			const JOB_STATUS_SUCCEED = "succeed"
-			const JOB_STATUS_FAILED = "failed"
+
 			result := make(map[string]interface{})
 			result["name"] = jobname
 			result["startTime"] = job.Status.StartTime
-
 			// check status
 			if job.Status.Succeeded > *completions {
 				result["status"] = JOB_STATUS_SUCCEED
@@ -76,25 +71,21 @@ func writer(ws *websocket.Conn, jobname string) {
 			}
 
 			p, _ = json.Marshal(result)
-
-			if p != nil {
-				ws.SetWriteDeadline(time.Now().Add(writeWait))
-				if err := ws.WriteMessage(websocket.TextMessage, p); err != nil {
-
-					return
-				}
-			}
-		case <-pingTicker.C:
 			ws.SetWriteDeadline(time.Now().Add(writeWait))
-			if err := ws.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+			if err := ws.WriteMessage(websocket.TextMessage, p); err != nil {
 				return
 			}
+			// close websocket if status not qual running
+			if result["status"] != JOB_STATUS_RUNNING {
+				ws.Close()
+			}
+
 		}
 	}
 }
 
 //connect each websocket
-func QueryJobStatus(w http.ResponseWriter, r *http.Request) {
+func wsQueryJobStatus(w http.ResponseWriter, r *http.Request) {
 	token := r.URL.Query().Get("token")
 	if token != "tokentest" {
 		return
@@ -110,14 +101,14 @@ func QueryJobStatus(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	writer(ws, jobname)
+	writeMessage2Client(ws, jobname)
 	// reader(ws)
 }
 
 func StartWebSocket() {
-	http.HandleFunc("/wsQueryJobStatus", QueryJobStatus)
+	http.HandleFunc("/wsQueryJobStatus", wsQueryJobStatus)
 	addr := fmt.Sprintf(":%d", util.GetConfig().WSConfig.Port)
-	util.Log.Warnf("websocket start at %s port ", addr)
+	util.Log.Warnf("websocket Listening and serving at %s port ", addr)
 	if err := http.ListenAndServe(addr, nil); err != nil {
 		util.Log.Errorf("websocket startup failed ,error: %s", err)
 	}

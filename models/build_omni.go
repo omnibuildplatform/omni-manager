@@ -13,11 +13,7 @@ var (
 	k8sconfig *rest.Config
 )
 
-func Int32Ptr(i int32) *int32 { return &i }
-func BoolPtr(i bool) *bool    { return &i }
-
 func InitDispatcherMonitor() (err error) {
-
 	// use the current context in kubeconfig
 	k8sconfig, err = clientcmd.BuildConfigFromFlags("", "./docs/infra-test.yaml")
 	if err != nil {

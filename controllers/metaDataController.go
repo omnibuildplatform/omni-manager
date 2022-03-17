@@ -39,25 +39,26 @@ func StartBuild(c *gin.Context) {
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, "verison not allowed empty ", nil))
 		return
 	}
-	valide := false
+	//check package validate
+	validate := false
 	for _, pkgs := range util.GetConfig().BuildParam.Packages {
 		if pkgs == insertData.Packages {
-			valide = true
+			validate = true
 			break
 		}
 	}
-	if !valide {
+	if !validate {
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, "packages not supported  ", util.GetConfig().BuildParam.Packages))
 		return
 	}
-	valide = false
+	validate = false //reset for buildtype
 	for _, buildtype := range util.GetConfig().BuildParam.BuildType {
 		if buildtype == insertData.BuildType {
-			valide = true
+			validate = true
 			break
 		}
 	}
-	if !valide {
+	if !validate {
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, "buildType not supported  ", util.GetConfig().BuildParam.BuildType))
 		return
 	}
@@ -70,7 +71,6 @@ func StartBuild(c *gin.Context) {
 	}
 	insertData.CustomPkg = string(temp)
 	//----------------------send data to k8s to build----
-
 	controllerID := uuid.NewV4().String()
 	var jobID = fmt.Sprintf(`omni-image-%s`, controllerID)
 	var imageName = fmt.Sprintf(`openEuler-%s.iso`, controllerID)
@@ -104,7 +104,6 @@ func StartBuild(c *gin.Context) {
 
 					"spec": map[string]interface{}{
 						"restartPolicy": "Never",
-
 						"containers": []map[string]interface{}{
 							{
 								"name":    "image-builder",
@@ -135,7 +134,7 @@ func StartBuild(c *gin.Context) {
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusServerError, err, nil))
 		return
 	}
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, nil, deploy.GetName()))
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, nil, deploy.GetName(), util.GetConfig().WSConfig))
 }
 
 // @Summary QueryJobStatus
@@ -147,6 +146,10 @@ func StartBuild(c *gin.Context) {
 // @Router /images/queryJobStatus/{name} [get]
 func QueryJobStatus(c *gin.Context) {
 	name := c.Param("name")
+	if name == "" {
+		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, " job name must be fill:", nil))
+		return
+	}
 	jobAPI := models.GetClientSet().BatchV1()
 	job, err := jobAPI.Jobs(metav1.NamespaceDefault).Get(context.TODO(), name, metav1.GetOptions{})
 	if err != nil {

@@ -55,8 +55,9 @@ type PkgList struct {
 
 //websocket config
 type WSConfig struct {
-	Port        int  `json:"port"`
-	CheckOrigin bool `json:"check_origin"`
+	Host        string `json:"host"`
+	Port        int    `json:"port"`
+	CheckOrigin bool   `json:"check_origin"`
 }
 
 func InitConfig() {

@@ -1,7 +1,7 @@
 {
     "app_name": "obs_meta",
     "app_model": "dev",
-    "app_host": "localhost",
+    "app_host": "192.168.1.193",
     "app_port": 8888,
     "database": {
         "driver": "mysql",
@@ -20,6 +20,7 @@
         "db": 0
     },
     "ws_config": {
+        "host": "192.168.1.193", 
         "port": 8989,
         "check_origin": true
     },
