@@ -11,9 +11,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
-	appsv1 "k8s.io/api/apps/v1"
-	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/dynamic"
 )
 
 // @Summary StartBuild Job
@@ -69,55 +70,72 @@ func StartBuild(c *gin.Context) {
 	}
 	insertData.CustomPkg = string(temp)
 	//----------------------send data to k8s to build----
-	var jobID = fmt.Sprintf(`omni-image-%s`, uuid.NewV4().String())
-	var imageName = fmt.Sprintf(`openEuler-%s.iso`, uuid.NewV4().String())
+
 	controllerID := uuid.NewV4().String()
+	var jobID = fmt.Sprintf(`omni-image-%s`, controllerID)
+	var imageName = fmt.Sprintf(`openEuler-%s.iso`, controllerID)
 
 	omniImager := `omni-imager --package-list /etc/omni-imager/` + insertData.Packages + `.json --config-file /etc/omni-imager/conf.yaml --build-type ` + insertData.BuildType + ` --output-file ` + imageName
 	omniCurl := `curl -vvv -Ffile=@/opt/omni-workspace/` + imageName + ` -Fproject=openeuler20.03  -FfileType=image 'https://repo.test.osinfra.cn/data/upload?token=316462d0c029ba707ad2'`
-	deployment := &appsv1.Deployment{
 
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      jobID,
-			Namespace: metav1.NamespaceDefault,
-		},
-		TypeMeta: metav1.TypeMeta{APIVersion: "batch/v1", Kind: "Job"},
-		Spec: appsv1.DeploymentSpec{
-			Selector: &metav1.LabelSelector{
-				MatchLabels: map[string]string{"job-name": jobID, "controller-uid": controllerID},
+	deployment := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "batch/v1",
+			"kind":       "Job",
+			"metadata": map[string]interface{}{
+				"name":      jobID,
+				"namespace": metav1.NamespaceDefault,
 			},
-			Template: apiv1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{"job-name": jobID, "controller-uid": controllerID},
+			"spec": map[string]interface{}{
+				"replicas": 2,
+				"selector": map[string]interface{}{
+					"matchLabels": map[string]interface{}{
+						"job-name": jobID,
+					},
 				},
-				Spec: apiv1.PodSpec{
-					Containers: []apiv1.Container{
-						{
-							Name:            "image-builder",
-							Image:           "tommylike/omni-worker:0.0.1",
-							SecurityContext: &(apiv1.SecurityContext{Privileged: models.BoolPtr(true)}),
-							Command:         []string{"/bin/sh", "-c", omniImager, omniCurl},
+				"ttlSecondsAfterFinished": 1800,
+				"backoffLimit":            2,
+				"template": map[string]interface{}{
+					"metadata": map[string]interface{}{
+						"labels": map[string]interface{}{
+							"job-name": jobID,
 						},
 					},
-					RestartPolicy: "Always", //Never not supported .
+
+					"spec": map[string]interface{}{
+						"restartPolicy": "Never",
+
+						"containers": []map[string]interface{}{
+							{
+								"name":    "image-builder",
+								"image":   "tommylike/omni-worker:0.0.1",
+								"command": []string{"/bin/sh", "-c", omniImager, omniCurl},
+							},
+						},
+					},
 				},
 			},
 		},
 	}
-
-	deploy, err := models.GetClientSet().AppsV1().Deployments(metav1.NamespaceDefault).Create(context.TODO(), deployment, metav1.CreateOptions{})
+	client, err := dynamic.NewForConfig(models.GetK8sConfig())
+	if err != nil {
+		panic(err)
+	}
+	deploymentRes := schema.GroupVersionResource{Group: "batch", Version: "v1", Resource: "jobs"}
+	deploy, err := client.Resource(deploymentRes).Namespace(metav1.NamespaceDefault).Create(context.TODO(), deployment, metav1.CreateOptions{})
 	if err != nil {
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusServerError, "Create job Error", err))
 		return
 	}
-	insertData.ContainerName = deploy.ObjectMeta.Name
-	insertData.CreateTime = deploy.ObjectMeta.CreationTimestamp.Time
+
+	insertData.ContainerName = deploy.GetName()
+	insertData.CreateTime = deploy.GetCreationTimestamp().Time
 	_, err = models.AddMetadata(&insertData)
 	if err != nil {
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusServerError, err, nil))
 		return
 	}
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, nil, deploy.ObjectMeta.Name))
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, nil, deploy.GetName()))
 }
 
 // @Summary QueryJobStatus

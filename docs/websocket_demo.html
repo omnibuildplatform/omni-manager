@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>jobs log</title>
+    </head>
+    <body>
+        <pre id="fileData"></pre>
+        <script type="text/javascript">
+            (function() {
+                var data = document.getElementById("fileData");
+                var conn = new WebSocket("ws://192.168.1.193:8888/wsQueryJobStatus?token=tokentest&jobname=omni-image-2a93f741-e52f-41c5-916d-a785512dbce3");
+                conn.onclose = function(evt) {
+                    data.textContent = 'Connection closed';
+                }
+                conn.onmessage = function(evt) {
+                    console.log('file updated');
+                    data.textContent =  data.textContent +'\n'+evt.data;
+                }
+            })();
+        </script>
+    </body>
+</html>

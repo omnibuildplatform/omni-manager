@@ -208,6 +208,31 @@ const docTemplate = `{
                 ],
                 "responses": {}
             }
+        },
+        "/images/wsQueryJobStatus/{name}": {
+            "get": {
+                "description": "QueryJobStatus by websocket",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "meta Manager"
+                ],
+                "summary": "QueryJobStatus by websocket",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The name for job",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
         }
     },
     "definitions": {

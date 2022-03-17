@@ -22,7 +22,6 @@ func main() {
 		//if config port not set,then set a default 8080
 		httpPort = 8080
 	}
-
 	address := fmt.Sprintf(":%d", httpPort)
 	//init database
 	err := util.InitDB()

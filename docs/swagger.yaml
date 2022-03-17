@@ -150,4 +150,21 @@ paths:
       summary: update
       tags:
       - meta Manager
+  /images/wsQueryJobStatus/{name}:
+    get:
+      consumes:
+      - application/json
+      description: QueryJobStatus by websocket
+      parameters:
+      - description: The name for job
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: QueryJobStatus by websocket
+      tags:
+      - meta Manager
 swagger: "2.0"
