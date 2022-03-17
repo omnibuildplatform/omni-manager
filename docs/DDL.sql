@@ -31,13 +31,15 @@ CREATE TABLE `metadata` (
   `build_type` varchar(50) DEFAULT NULL COMMENT 'iso , zip ....',
   `base_pkg` mediumtext CHARACTER SET utf8mb4 DEFAULT NULL COMMENT '默认的基本package',
   `custom_pkg` mediumtext CHARACTER SET utf8mb4 DEFAULT NULL COMMENT '自定义',
+  `create_time` datetime DEFAULT NULL COMMENT 'create time',
+  `job_name` varchar(150) DEFAULT NULL,
+  `status` varchar(10) NOT NULL DEFAULT 'running' COMMENT 'current status :1 :submit request   2 build   3finished',
   `user_id` int(11) DEFAULT NULL COMMENT 'user id',
   `user_name` varchar(45) DEFAULT NULL,
-  `create_time` datetime DEFAULT NULL COMMENT 'create time',
-  `status` tinyint(4) DEFAULT 1 COMMENT 'current status :1 :submit request   2 build   3finished',
-  `container_name` varchar(90) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=57 DEFAULT CHARSET=utf8mb3 COMMENT='基础数据包';
+  PRIMARY KEY (`id`),
+  KEY `userid_index` (`user_id`),
+  KEY `query_index` (`packages`,`version`,`build_type`)
+) ENGINE=InnoDB AUTO_INCREMENT=73 DEFAULT CHARSET=utf8mb3 COMMENT='基础数据包';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -49,4 +51,4 @@ CREATE TABLE `metadata` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-03-17 11:30:47
+-- Dump completed on 2022-03-17 16:26:11

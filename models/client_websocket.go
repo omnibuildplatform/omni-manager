@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"omni-manager/util"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -35,7 +36,13 @@ var (
 )
 
 // write Message to Client
-func writeMessage2Client(ws *websocket.Conn, jobname string) {
+func writeMessage2Client(ws *websocket.Conn, jobDBID, jobname string) {
+	jobid, _ := strconv.Atoi(jobDBID)
+	if jobid <= 0 {
+		if err := ws.WriteMessage(websocket.TextMessage, []byte("job id not integer")); err != nil {
+			return
+		}
+	}
 	pingTicker := time.NewTicker(pingPeriod)
 	defer func() {
 		pingTicker.Stop()
@@ -65,7 +72,6 @@ func writeMessage2Client(ws *websocket.Conn, jobname string) {
 				result["completionTime"] = job.Status.CompletionTime
 			} else if job.Status.Failed > *backoffLimit {
 				result["status"] = JOB_STATUS_FAILED
-				result["completionTime"] = job.Status.CompletionTime
 			} else if job.Status.Succeeded == 0 || job.Status.Failed == 0 {
 				result["status"] = JOB_STATUS_RUNNING
 			}
@@ -78,6 +84,10 @@ func writeMessage2Client(ws *websocket.Conn, jobname string) {
 			// close websocket if status not qual running
 			if result["status"] != JOB_STATUS_RUNNING {
 				ws.Close()
+				var updateMetaData Metadata
+				updateMetaData.Status = result["status"].(string)
+				updateMetaData.Id = jobid
+				UpdateJobStatus(&updateMetaData)
 			}
 
 		}
@@ -94,6 +104,10 @@ func wsQueryJobStatus(w http.ResponseWriter, r *http.Request) {
 	if jobname == "" {
 		return
 	}
+	jobDBID := r.URL.Query().Get("jobDBID")
+	if jobDBID == "" {
+		return
+	}
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		if _, ok := err.(websocket.HandshakeError); !ok {
@@ -101,8 +115,7 @@ func wsQueryJobStatus(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	writeMessage2Client(ws, jobname)
-	// reader(ws)
+	writeMessage2Client(ws, jobDBID, jobname)
 }
 
 func StartWebSocket() {

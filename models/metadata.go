@@ -23,28 +23,32 @@ type pkgData struct {
 }
 
 type Metadata struct {
-	Id            int       `gorm:"primaryKey"`
-	Packages      string    ` description:"architecture"`
-	Version       string    ` description:"release openEuler Version"`
-	BuildType     string    ` description:"iso , zip ...."`
-	BasePkg       string    ` description:"default package"`
-	CustomPkg     string    ` description:"custom"`
-	UserId        int       ` description:"user id"`
-	UserName      string    ` description:"user name"`
-	CreateTime    time.Time ` description:"create time"`
-	Status        int8      ` description:"current status :1 :submit request   2 build   3finished"`
-	ContainerName string    ` description:"container name"`
+	Id         int       `gorm:"primaryKey"`
+	Packages   string    ` description:"architecture"`
+	Version    string    ` description:"release openEuler Version"`
+	BuildType  string    ` description:"iso , zip ...."`
+	BasePkg    string    ` description:"default package"`
+	CustomPkg  string    ` description:"custom"`
+	UserId     int       ` description:"user id"`
+	UserName   string    ` description:"user name"`
+	CreateTime time.Time ` description:"create time"`
+	Status     string    ` description:"current status :running ,success, failed"`
+	JobName    string    ` description:"pod name"`
+}
+
+func (t *Metadata) TableName() string {
+	return "metadata"
 }
 
 func (t *Metadata) ToString() string {
-	return fmt.Sprintf("id:%d;Architecture:%s;EulerVersion:%s;OutFormat:%s;UserId:%d;UserName:%s;ContainerName:%s", t.Id, t.Packages, t.Version, t.BuildType, t.UserId, t.UserName, t.ContainerName)
+	return fmt.Sprintf("id:%d;Architecture:%s;EulerVersion:%s;OutFormat:%s;UserId:%d;UserName:%s;JobName:%s", t.Id, t.Packages, t.Version, t.BuildType, t.UserId, t.UserName, t.JobName)
 }
 
 // AddMetadata insert a new Metadata into database and returns
 // last inserted Id on success.
 func AddMetadata(m *Metadata) (id int64, err error) {
 	o := util.GetDB()
-	result := o.Debug().Create(m)
+	result := o.Create(m)
 	return int64(m.Id), result.Error
 }
 
@@ -69,6 +73,13 @@ func GetAllMetadata(query map[string]string, fields []string, sortby []string, o
 func UpdateMetadataById(m *Metadata) (err error) {
 	o := util.GetDB()
 	result := o.Model(m).Updates(m)
+	return result.Error
+}
+
+// UpdateJobStatus
+func UpdateJobStatus(m *Metadata) (err error) {
+	o := util.GetDB()
+	result := o.Debug().Model(m).Where("id = ?", m.Id).Update("status", m.Status)
 	return result.Error
 }
 

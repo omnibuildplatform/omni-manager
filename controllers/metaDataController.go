@@ -127,14 +127,14 @@ func StartBuild(c *gin.Context) {
 		return
 	}
 
-	insertData.ContainerName = deploy.GetName()
+	insertData.JobName = deploy.GetName()
 	insertData.CreateTime = deploy.GetCreationTimestamp().Time
-	_, err = models.AddMetadata(&insertData)
+	jobDBID, err := models.AddMetadata(&insertData)
 	if err != nil {
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusServerError, err, nil))
 		return
 	}
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, nil, deploy.GetName(), util.GetConfig().WSConfig))
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, jobDBID, deploy.GetName(), util.GetConfig().WSConfig))
 }
 
 // @Summary QueryJobStatus
