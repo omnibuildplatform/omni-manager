@@ -130,6 +130,31 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/images/queryJobLogs/{name}": {
+            "get": {
+                "description": "QueryJobLogs for given job name",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "meta Manager"
+                ],
+                "summary": "QueryJobLogs",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The name for job",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/images/queryJobStatus/{name}": {
             "get": {
                 "description": "QueryJobStatus for given job name",

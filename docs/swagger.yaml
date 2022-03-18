@@ -97,6 +97,23 @@ paths:
       summary: query multi datas
       tags:
       - meta Manager
+  /images/queryJobLogs/{name}:
+    get:
+      consumes:
+      - application/json
+      description: QueryJobLogs for given job name
+      parameters:
+      - description: The name for job
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: QueryJobLogs
+      tags:
+      - meta Manager
   /images/queryJobStatus/{name}:
     get:
       consumes:

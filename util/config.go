@@ -66,7 +66,7 @@ func InitConfig() {
 		dir = dir + "/conf/app.json"
 		err = parseConfig(dir)
 		if err != nil {
-			Log.Errorf("load app.json file failed, app must exit .please check app.json path:%s,and error:%s", dir, err)
+			Log.Errorf("load app.json   failed, app must exit .please check app.json path:%s,and error:%s", dir, err)
 			os.Exit(1)
 			return
 		}

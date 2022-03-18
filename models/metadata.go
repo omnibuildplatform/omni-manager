@@ -79,7 +79,11 @@ func UpdateMetadataById(m *Metadata) (err error) {
 // UpdateJobStatus
 func UpdateJobStatus(m *Metadata) (err error) {
 	o := util.GetDB()
-	result := o.Debug().Model(m).Where("id = ?", m.Id).Update("status", m.Status)
+	result := o.Model(m).Where("id = ?", m.Id).Update("status", m.Status)
+	if result.Error == nil {
+		//record log after update status
+		util.Log.Infof("jobid:%d,jobname:%s, update status = %s ", m.Id, m.JobName, m.Status)
+	}
 	return result.Error
 }
 

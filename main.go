@@ -6,6 +6,8 @@ import (
 	"omni-manager/models"
 	"omni-manager/routers"
 	"omni-manager/util"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -40,9 +42,10 @@ func main() {
 	//startup a webscoket server to wait client ws
 	go models.StartWebSocket()
 	//init router
+	gin.SetMode(util.GetConfig().AppModel)
 	r := routers.InitRouter()
-	util.Log.Infof(" startup meta service at port %s \n", address)
+	util.Log.Errorf(" startup meta http service at port %s .and %s mode \n", address, util.GetConfig().AppModel)
 	if err := r.Run(address); err != nil {
-		util.Log.Errorf("startup meta   service failed, err:%v\n", err)
+		util.Log.Fatalf("startup meta  http service failed, err:%v\n", err)
 	}
 }

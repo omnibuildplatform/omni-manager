@@ -4,17 +4,20 @@
         <title>jobs log</title>
     </head>
     <body>
+	 <pre id="codeui"></pre>
         <pre id="fileData"></pre>
         <script type="text/javascript">
             (function() {
-                var data = document.getElementById("fileData");
-                var conn = new WebSocket("ws://192.168.1.193:8888/wsQueryJobStatus?token=tokentest&jobname=omni-image-2a93f741-e52f-41c5-916d-a785512dbce3");
+                var codeui = document.getElementById("codeui");
+				 var data = document.getElementById("fileData");
+                var conn = new WebSocket("ws://localhost:8989/wsQueryJobStatus?token=tokentest&jobname=omni-image-e1728efb-b7dd-4ed0-aaa5-8e48c4b7c86c&jobDBID=141");
                 conn.onclose = function(evt) {
                     data.textContent = 'Connection closed';
                 }
-                conn.onmessage = function(evt) {
-                    console.log('file updated');
-                    data.textContent =  data.textContent +'\n'+evt.data;
+                conn.onmessage = function(evt) { 
+					var result = JSON.parse(evt.data)
+                    data.textContent =  data.textContent +result.data;
+					codeui.textContent = result.code;
                 }
             })();
         </script>

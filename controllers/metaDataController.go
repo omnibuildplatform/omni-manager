@@ -1,9 +1,11 @@
 package controllers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"omni-manager/models"
 	"omni-manager/util"
@@ -11,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -28,7 +31,7 @@ func StartBuild(c *gin.Context) {
 	var imageInputData models.ImageInputData
 	err := c.ShouldBindJSON(&imageInputData)
 	if err != nil {
-		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, err, nil))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
 		return
 	}
 	var insertData models.Metadata
@@ -36,7 +39,7 @@ func StartBuild(c *gin.Context) {
 	insertData.Version = imageInputData.Version
 	insertData.BuildType = imageInputData.BuildType
 	if len(insertData.Version) == 0 {
-		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, "verison not allowed empty ", nil))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "verison not allowed empty ", nil))
 		return
 	}
 	//check package validate
@@ -48,7 +51,7 @@ func StartBuild(c *gin.Context) {
 		}
 	}
 	if !validate {
-		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, "packages not supported  ", util.GetConfig().BuildParam.Packages))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "packages not supported  ", util.GetConfig().BuildParam.Packages))
 		return
 	}
 	validate = false //reset for buildtype
@@ -59,14 +62,14 @@ func StartBuild(c *gin.Context) {
 		}
 	}
 	if !validate {
-		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, "buildType not supported  ", util.GetConfig().BuildParam.BuildType))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "buildType not supported  ", util.GetConfig().BuildParam.BuildType))
 		return
 	}
 
 	var temp []byte
 	temp, err = json.Marshal(imageInputData.CustomPkg)
 	if err != nil {
-		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, err, nil))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
 		return
 	}
 	insertData.CustomPkg = string(temp)
@@ -77,7 +80,6 @@ func StartBuild(c *gin.Context) {
 
 	omniImager := `omni-imager --package-list /etc/omni-imager/` + insertData.Packages + `.json --config-file /etc/omni-imager/conf.yaml --build-type ` + insertData.BuildType + ` --output-file ` + imageName
 	omniCurl := `curl -vvv -Ffile=@/opt/omni-workspace/` + imageName + ` -Fproject=openeuler20.03  -FfileType=image 'https://repo.test.osinfra.cn/data/upload?token=316462d0c029ba707ad2'`
-
 	deployment := &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": "batch/v1",
@@ -94,7 +96,7 @@ func StartBuild(c *gin.Context) {
 					},
 				},
 				"ttlSecondsAfterFinished": 1800,
-				"backoffLimit":            2,
+				"backoffLimit":            1,
 				"template": map[string]interface{}{
 					"metadata": map[string]interface{}{
 						"labels": map[string]interface{}{
@@ -118,12 +120,13 @@ func StartBuild(c *gin.Context) {
 	}
 	client, err := dynamic.NewForConfig(models.GetK8sConfig())
 	if err != nil {
-		panic(err)
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "Create job Error", err))
+		return
 	}
 	deploymentRes := schema.GroupVersionResource{Group: "batch", Version: "v1", Resource: "jobs"}
 	deploy, err := client.Resource(deploymentRes).Namespace(metav1.NamespaceDefault).Create(context.TODO(), deployment, metav1.CreateOptions{})
 	if err != nil {
-		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusServerError, "Create job Error", err))
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "Create job Error", err))
 		return
 	}
 
@@ -131,9 +134,10 @@ func StartBuild(c *gin.Context) {
 	insertData.CreateTime = deploy.GetCreationTimestamp().Time
 	jobDBID, err := models.AddMetadata(&insertData)
 	if err != nil {
-		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusServerError, err, nil))
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, err, nil))
 		return
 	}
+	deploy.GetFinalizers()
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, jobDBID, deploy.GetName(), util.GetConfig().WSConfig))
 }
 
@@ -147,13 +151,13 @@ func StartBuild(c *gin.Context) {
 func QueryJobStatus(c *gin.Context) {
 	name := c.Param("name")
 	if name == "" {
-		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, " job name must be fill:", nil))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, " job name must be fill:", nil))
 		return
 	}
 	jobAPI := models.GetClientSet().BatchV1()
 	job, err := jobAPI.Jobs(metav1.NamespaceDefault).Get(context.TODO(), name, metav1.GetOptions{})
 	if err != nil {
-		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusServerError, " QueryJobStatus Error:", err))
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, " QueryJobStatus Error:", err))
 		return
 	}
 	completions := job.Spec.Completions
@@ -164,7 +168,6 @@ func QueryJobStatus(c *gin.Context) {
 	result := make(map[string]interface{})
 	result["name"] = name
 	result["startTime"] = job.Status.StartTime
-
 	// check status
 	if job.Status.Succeeded > *completions {
 		result["status"] = JOB_STATUS_SUCCEED
@@ -175,7 +178,63 @@ func QueryJobStatus(c *gin.Context) {
 	} else if job.Status.Succeeded == 0 || job.Status.Failed == 0 {
 		result["status"] = JOB_STATUS_RUNNING
 	}
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
+
+	req := models.GetClientSet().CoreV1().Pods(metav1.NamespaceDefault).GetLogs(name, &corev1.PodLogOptions{})
+
+	podLogs, err := req.Stream(context.TODO())
+	if err != nil {
+		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusServerError, "ok", result))
+		return
+	}
+	defer podLogs.Close()
+
+	buf := new(bytes.Buffer)
+	_, err = io.Copy(buf, podLogs)
+	if err != nil {
+		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusServerError, "ok", result))
+		return
+	}
+	str := buf.String()
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result, str))
+}
+
+// @Summary QueryJobLogs
+// @Description QueryJobLogs for given job name
+// @Tags  meta Manager
+// @Param	name		path 	string	true		"The name for job"
+// @Accept json
+// @Produce json
+// @Router /images/queryJobLogs/{name} [get]
+func QueryJobLogs(c *gin.Context) {
+	name := c.Param("name")
+	if name == "" {
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, " job name must be fill:", nil))
+		return
+	}
+	listopt := metav1.ListOptions{}
+	listopt.LabelSelector = "job-name=" + name
+	pods, err := models.GetClientSet().CoreV1().Pods(metav1.NamespaceDefault).List(context.TODO(), listopt)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "", err))
+		return
+	}
+	buf := new(bytes.Buffer)
+	for _, pod := range pods.Items {
+		req := models.GetClientSet().CoreV1().Pods(metav1.NamespaceDefault).GetLogs(pod.Name, &corev1.PodLogOptions{})
+		podLogs, err := req.Stream(context.TODO())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "", err))
+			return
+		}
+		defer podLogs.Close()
+		_, err = io.Copy(buf, podLogs)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "", err))
+			return
+		}
+
+	}
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", buf.String()))
 }
 
 // @Summary get
@@ -188,13 +247,13 @@ func QueryJobStatus(c *gin.Context) {
 func Read(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if id <= 0 || err != nil {
-		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, "id must be int type", err))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "id must be int type", err))
 		return
 	}
 
 	v, err := models.GetMetadataById(id)
 	if err != nil {
-		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusServerError, err, nil))
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, err, nil))
 		return
 	}
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, id, v))
@@ -244,7 +303,7 @@ func Update(c *gin.Context) {
 	var imageInputData models.ImageInputData
 	err := c.ShouldBindJSON(&imageInputData)
 	if err != nil {
-		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, err, nil))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
 		return
 	}
 	var updateData models.Metadata
@@ -254,13 +313,13 @@ func Update(c *gin.Context) {
 	var temp []byte
 	// temp, err = json.Marshal(imageInputData.BasePkg)
 	// if err != nil {
-	// 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, err, nil))
+	// 	c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
 	// 	return
 	// }
 	// updateData.BasePkg = string(temp)
 	temp, err = json.Marshal(imageInputData.CustomPkg)
 	if err != nil {
-		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, err, nil))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
 		return
 	}
 	updateData.CustomPkg = string(temp)
@@ -269,7 +328,7 @@ func Update(c *gin.Context) {
 
 	err = models.UpdateMetadataById(&updateData)
 	if err != nil {
-		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusServerError, err, nil))
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, err, nil))
 		return
 	}
 	util.Log.Warnf("The MetaData of Id (%d) had been update to: %s", updateData.Id, updateData.ToString())
@@ -286,12 +345,12 @@ func Update(c *gin.Context) {
 func Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if id <= 0 || err != nil {
-		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, "id must be int type", err))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "id must be int type", err))
 		return
 	}
 	err = models.DeleteMetadata(id)
 	if err != nil {
-		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusServerError, err, nil))
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, err, nil))
 		return
 	}
 	util.Log.Warnf("The  MetaData (Id:%d) had been delete ", id)

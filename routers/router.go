@@ -27,6 +27,7 @@ func InitRouter() *gin.Engine {
 		v1.GET("/images/param/getBaseData/", controllers.GetBaseData)
 		v1.GET("/images/param/getCustomePkgList/", controllers.GetCustomePkgList)
 		v1.GET("/images/queryJobStatus/:name", controllers.QueryJobStatus)
+		v1.GET("/images/queryJobLogs/:name", controllers.QueryJobLogs)
 
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
