@@ -19,6 +19,7 @@
         "password": "58243586@qq.com",
         "db": 0
     },
+    "__ws_config__comment__": "for websocket ",
     "ws_config": {
         "host": "192.168.1.193", 
         "port": 8989,
@@ -42,6 +43,7 @@
             "installer-iso",
             "vhd"
         ],
-        "openeulerMinimal": "https://raw.githubusercontent.com/omnibuildplatform/omni-imager/main/etc/openEuler-minimal.json"
+        "openeulerMinimal": "https://raw.githubusercontent.com/omnibuildplatform/omni-imager/main/etc/openEuler-minimal.json",
+        "downloadIsoUrl":"http://www.asdfasdfasd.asdfsadf/openEuler-%s.iso"
     }
 }

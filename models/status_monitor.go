@@ -79,7 +79,6 @@ func writeMessage2Client(ws *websocket.Conn, jobDBID, jobname string) {
 		return
 	}
 	defer podLogs.Close()
-
 	jobAPI := GetClientSet().BatchV1()
 	job, err := jobAPI.Jobs(metav1.NamespaceDefault).Get(context.TODO(), jobname, metav1.GetOptions{})
 	if err != nil {
@@ -97,9 +96,11 @@ func writeMessage2Client(ws *websocket.Conn, jobDBID, jobname string) {
 				job, err = jobAPI.Jobs(metav1.NamespaceDefault).Get(context.TODO(), jobname, metav1.GetOptions{})
 				if job.Status.Succeeded > *job.Spec.Completions {
 					// JOB_STATUS_SUCCEED
-					logData := fmt.Sprintf("----------build success ---- <br > then click <a href='%s' target='_blank'>my openeuler </a> to download ", jobname)
+					logData := fmt.Sprintf("----------build success ----  ")
 					result["data"] = logData
 					result["code"] = 1
+					// make a full download iso url
+					result["url"] = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, jobname)
 					resultBytes, err := json.Marshal(result)
 					if err = ws.WriteMessage(websocket.TextMessage, resultBytes); err != nil {
 						break

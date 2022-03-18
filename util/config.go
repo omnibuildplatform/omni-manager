@@ -48,6 +48,7 @@ type BuildParam struct {
 	Version          []string `json:"version"`
 	BuildType        []string `json:"buildType"`
 	OpeneulerMinimal string   `json:"openeulerMinimal"`
+	DownloadIsoUrl   string   `json:"downloadIsoUrl"`
 }
 type PkgList struct {
 	Packages []string `json:"packages"`
