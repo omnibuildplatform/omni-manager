@@ -18,8 +18,6 @@ import (
 const (
 	// Time allowed to write the file to the client.
 	writeWait = 10 * time.Second
-	// Send pings to client with this period. Must be less than pongWait.
-	pingPeriod = 10 * time.Second
 	//job status
 	JOB_STATUS_RUNNING = "running"
 	JOB_STATUS_SUCCEED = "succeed"
@@ -48,9 +46,7 @@ func writeMessage2Client(ws *websocket.Conn, jobDBID, jobname string) {
 			return
 		}
 	}
-	pingTicker := time.NewTicker(pingPeriod)
 	defer func() {
-		pingTicker.Stop()
 		ws.Close()
 	}()
 	//check job status first

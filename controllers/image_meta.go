@@ -23,7 +23,7 @@ import (
 // @Summary StartBuild Job
 // @Description start a image build job
 // @Tags  meta Manager
-// @Param	body		body 	models.ImageInputData	true		"body for Metadata content"
+// @Param	body		body 	models.ImageInputData	true		"body for ImageMeta content"
 // @Accept json
 // @Produce json
 // @Router /images/startBuild [post]
@@ -84,7 +84,7 @@ func StartBuild(c *gin.Context) {
 		Object: map[string]interface{}{
 			"apiVersion": "batch/v1",
 			"kind":       "Job",
-			"metadata": map[string]interface{}{
+			"ImageMeta": map[string]interface{}{
 				"name":      jobID,
 				"namespace": util.GetConfig().K8sConfig.Namespace,
 			},
@@ -98,7 +98,7 @@ func StartBuild(c *gin.Context) {
 				"ttlSecondsAfterFinished": 1800,
 				"backoffLimit":            1,
 				"template": map[string]interface{}{
-					"metadata": map[string]interface{}{
+					"ImageMeta": map[string]interface{}{
 						"labels": map[string]interface{}{
 							"job-name": jobID,
 						},
@@ -132,7 +132,7 @@ func StartBuild(c *gin.Context) {
 
 	insertData.JobName = deploy.GetName()
 	insertData.CreateTime = deploy.GetCreationTimestamp().Time
-	jobDBID, err := models.AddMetadata(&insertData)
+	jobDBID, err := models.AddImageMeta(&insertData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, nil, err))
 		return
@@ -145,7 +145,7 @@ func StartBuild(c *gin.Context) {
 // @Description QueryJobStatus for given job name
 // @Tags  meta Manager
 // @Param	name		path 	string	true		"The name for job"
-// @Param	id		query 	string	false		"The id for job"
+// @Param	id		query 	string	false		"The id for job in database. "
 // @Accept json
 // @Produce json
 // @Router /images/queryJobStatus/{name} [get]
@@ -166,36 +166,33 @@ func QueryJobStatus(c *gin.Context) {
 	}
 	completions := job.Spec.Completions
 	backoffLimit := job.Spec.BackoffLimit
-	const JOB_STATUS_RUNNING = "running"
-	const JOB_STATUS_SUCCEED = "succeed"
-	const JOB_STATUS_FAILED = "failed"
 	result := make(map[string]interface{})
 	result["name"] = jobname
 	result["startTime"] = job.Status.StartTime
 	// check status
 	if job.Status.Succeeded > *completions {
-		result["status"] = JOB_STATUS_SUCCEED
+		result["status"] = models.JOB_STATUS_SUCCEED
 		result["completionTime"] = job.Status.CompletionTime
 		result["url"] = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, jobname)
 		if jobid > 0 {
 			var updateJob models.ImageMeta
 			updateJob.JobName = jobname
 			updateJob.Id = jobid
-			updateJob.Status = JOB_STATUS_SUCCEED
+			updateJob.Status = models.JOB_STATUS_SUCCEED
 			models.UpdateJobStatus(&updateJob)
 		}
 	} else if job.Status.Failed > *backoffLimit {
-		result["status"] = JOB_STATUS_FAILED
+		result["status"] = models.JOB_STATUS_FAILED
 		result["completionTime"] = job.Status.CompletionTime
 		if jobid > 0 {
 			var updateJob models.ImageMeta
 			updateJob.JobName = jobname
 			updateJob.Id = jobid
-			updateJob.Status = JOB_STATUS_FAILED
+			updateJob.Status = models.JOB_STATUS_FAILED
 			models.UpdateJobStatus(&updateJob)
 		}
 	} else if job.Status.Succeeded == 0 || job.Status.Failed == 0 {
-		result["status"] = JOB_STATUS_RUNNING
+		result["status"] = models.JOB_STATUS_RUNNING
 	}
 
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result, job))
@@ -253,7 +250,7 @@ func Read(c *gin.Context) {
 		return
 	}
 
-	v, err := models.GetMetadataById(id)
+	v, err := models.GetImageMetaById(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, err, nil))
 		return
@@ -297,7 +294,7 @@ func Query(c *gin.Context) {
 // @Summary update
 // @Description update single data
 // @Tags  meta Manager
-// @Param	body		body 	models.ImageInputData	true		"body for Metadata content"
+// @Param	body		body 	models.ImageInputData	true		"body for ImageMeta content"
 // @Accept json
 // @Produce json
 // @Router /images/update [put]
@@ -328,12 +325,12 @@ func Update(c *gin.Context) {
 	//use origin item id
 	updateData.Id = imageInputData.Id
 
-	err = models.UpdateMetadataById(&updateData)
+	err = models.UpdateImageMetaById(&updateData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, err, nil))
 		return
 	}
-	util.Log.Warnf("The MetaData of Id (%d) had been update to: %s", updateData.Id, updateData.ToString())
+	util.Log.Warnf("The ImageMeta of Id (%d) had been update to: %s", updateData.Id, updateData.ToString())
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", nil))
 }
 
@@ -350,11 +347,11 @@ func Delete(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "id must be int type", err))
 		return
 	}
-	err = models.DeleteMetadata(id)
+	err = models.DeleteImageMeta(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, err, nil))
 		return
 	}
-	util.Log.Warnf("The  MetaData (Id:%d) had been delete ", id)
+	util.Log.Warnf("The  ImageMeta (Id:%d) had been delete ", id)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", id))
 }

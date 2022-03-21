@@ -37,40 +37,40 @@ type ImageMeta struct {
 }
 
 func (t *ImageMeta) TableName() string {
-	return "metadata"
+	return "image_meta"
 }
 
 func (t *ImageMeta) ToString() string {
 	return fmt.Sprintf("id:%d;Architecture:%s;EulerVersion:%s;OutFormat:%s;UserId:%d;UserName:%s;JobName:%s", t.Id, t.Packages, t.Version, t.BuildType, t.UserId, t.UserName, t.JobName)
 }
 
-// AddMetadata insert a new Metadata into database and returns
+// AddImageMeta insert a new ImageMeta into database and returns
 // last inserted Id on success.
-func AddMetadata(m *ImageMeta) (id int64, err error) {
+func AddImageMeta(m *ImageMeta) (id int64, err error) {
 	o := util.GetDB()
 	result := o.Create(m)
 	return int64(m.Id), result.Error
 }
 
-// GetMetadataById retrieves Metadata by Id. Returns error if
+// GetImageMetaById retrieves ImageMeta by Id. Returns error if
 // Id doesn't exist
-func GetMetadataById(id int) (v *ImageMeta, err error) {
+func GetImageMetaById(id int) (v *ImageMeta, err error) {
 	o := util.GetDB()
 	v = &ImageMeta{Id: id}
 	o.First(v, id)
 	return v, err
 }
 
-// GetAllMetadata retrieves all Metadata matches certain condition. Returns empty list if
+// GetAllImageMeta retrieves all ImageMeta matches certain condition. Returns empty list if
 // no records exist
-func GetAllMetadata(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllImageMeta(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	return nil, err
 }
 
-// UpdateMetadata updates Metadata by Id and returns error if
+// UpdateImageMeta updates ImageMeta by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateMetadataById(m *ImageMeta) (err error) {
+func UpdateImageMetaById(m *ImageMeta) (err error) {
 	o := util.GetDB()
 	result := o.Model(m).Updates(m)
 	return result.Error
@@ -87,9 +87,9 @@ func UpdateJobStatus(m *ImageMeta) (err error) {
 	return result.Error
 }
 
-// DeleteMetadata deletes Metadata by Id and returns error if
+// DeleteImageMeta deletes ImageMeta by Id and returns error if
 // the record to be deleted doesn't exist
-func DeleteMetadata(id int) (err error) {
+func DeleteImageMeta(id int) (err error) {
 	o := util.GetDB()
 	temp := new(ImageMeta)
 	temp.Id = id
