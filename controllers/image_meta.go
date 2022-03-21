@@ -14,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
 	corev1 "k8s.io/api/core/v1"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -118,7 +119,6 @@ func StartBuild(c *gin.Context) {
 		},
 	}
 
-	fmt.Println("------------:", deployment)
 	client, err := dynamic.NewForConfig(models.GetK8sConfig())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "Create job Error", err))
@@ -138,7 +138,6 @@ func StartBuild(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, nil, err))
 		return
 	}
-	deploy.GetFinalizers()
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, jobDBID, deploy.GetName(), util.GetConfig().WSConfig))
 }
 
@@ -221,6 +220,7 @@ func QueryJobLogs(c *gin.Context) {
 	}
 	buf := new(bytes.Buffer)
 	for _, pod := range pods.Items {
+		buf.WriteString(fmt.Sprintf("------------------- pod.name:%s \n---------", pod.Name))
 		req := models.GetClientSet().CoreV1().Pods(util.GetConfig().K8sConfig.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{})
 		podLogs, err := req.Stream(context.TODO())
 		if err != nil {
