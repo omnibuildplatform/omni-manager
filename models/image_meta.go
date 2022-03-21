@@ -22,7 +22,7 @@ type pkgData struct {
 	PkgMd5  string
 }
 
-type Metadata struct {
+type ImageMeta struct {
 	Id         int       `gorm:"primaryKey"`
 	Packages   string    ` description:"architecture"`
 	Version    string    ` description:"release openEuler Version"`
@@ -36,17 +36,17 @@ type Metadata struct {
 	JobName    string    ` description:"pod name"`
 }
 
-func (t *Metadata) TableName() string {
+func (t *ImageMeta) TableName() string {
 	return "metadata"
 }
 
-func (t *Metadata) ToString() string {
+func (t *ImageMeta) ToString() string {
 	return fmt.Sprintf("id:%d;Architecture:%s;EulerVersion:%s;OutFormat:%s;UserId:%d;UserName:%s;JobName:%s", t.Id, t.Packages, t.Version, t.BuildType, t.UserId, t.UserName, t.JobName)
 }
 
 // AddMetadata insert a new Metadata into database and returns
 // last inserted Id on success.
-func AddMetadata(m *Metadata) (id int64, err error) {
+func AddMetadata(m *ImageMeta) (id int64, err error) {
 	o := util.GetDB()
 	result := o.Create(m)
 	return int64(m.Id), result.Error
@@ -54,9 +54,9 @@ func AddMetadata(m *Metadata) (id int64, err error) {
 
 // GetMetadataById retrieves Metadata by Id. Returns error if
 // Id doesn't exist
-func GetMetadataById(id int) (v *Metadata, err error) {
+func GetMetadataById(id int) (v *ImageMeta, err error) {
 	o := util.GetDB()
-	v = &Metadata{Id: id}
+	v = &ImageMeta{Id: id}
 	o.First(v, id)
 	return v, err
 }
@@ -70,14 +70,14 @@ func GetAllMetadata(query map[string]string, fields []string, sortby []string, o
 
 // UpdateMetadata updates Metadata by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateMetadataById(m *Metadata) (err error) {
+func UpdateMetadataById(m *ImageMeta) (err error) {
 	o := util.GetDB()
 	result := o.Model(m).Updates(m)
 	return result.Error
 }
 
 // UpdateJobStatus
-func UpdateJobStatus(m *Metadata) (err error) {
+func UpdateJobStatus(m *ImageMeta) (err error) {
 	o := util.GetDB()
 	result := o.Model(m).Where("id = ?", m.Id).Update("status", m.Status)
 	if result.Error == nil {
@@ -91,7 +91,7 @@ func UpdateJobStatus(m *Metadata) (err error) {
 // the record to be deleted doesn't exist
 func DeleteMetadata(id int) (err error) {
 	o := util.GetDB()
-	temp := new(Metadata)
+	temp := new(ImageMeta)
 	temp.Id = id
 	result := o.Delete(temp)
 	return result.Error

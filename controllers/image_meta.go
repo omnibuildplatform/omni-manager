@@ -34,7 +34,7 @@ func StartBuild(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
 		return
 	}
-	var insertData models.Metadata
+	var insertData models.ImageMeta
 	insertData.Packages = imageInputData.Packages
 	insertData.Version = imageInputData.Version
 	insertData.BuildType = imageInputData.BuildType
@@ -134,7 +134,7 @@ func StartBuild(c *gin.Context) {
 	insertData.CreateTime = deploy.GetCreationTimestamp().Time
 	jobDBID, err := models.AddMetadata(&insertData)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, err, nil))
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, nil, err))
 		return
 	}
 	deploy.GetFinalizers()
@@ -178,7 +178,7 @@ func QueryJobStatus(c *gin.Context) {
 		result["completionTime"] = job.Status.CompletionTime
 		result["url"] = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, jobname)
 		if jobid > 0 {
-			var updateJob models.Metadata
+			var updateJob models.ImageMeta
 			updateJob.JobName = jobname
 			updateJob.Id = jobid
 			updateJob.Status = JOB_STATUS_SUCCEED
@@ -188,7 +188,7 @@ func QueryJobStatus(c *gin.Context) {
 		result["status"] = JOB_STATUS_FAILED
 		result["completionTime"] = job.Status.CompletionTime
 		if jobid > 0 {
-			var updateJob models.Metadata
+			var updateJob models.ImageMeta
 			updateJob.JobName = jobname
 			updateJob.Id = jobid
 			updateJob.Status = JOB_STATUS_FAILED
@@ -308,7 +308,7 @@ func Update(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
 		return
 	}
-	var updateData models.Metadata
+	var updateData models.ImageMeta
 	updateData.Packages = imageInputData.Packages
 	updateData.Version = imageInputData.Version
 	updateData.BuildType = imageInputData.BuildType

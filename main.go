@@ -37,8 +37,8 @@ func main() {
 		util.Log.Errorf("Redis connect failed , err:%v\n", err)
 		return
 	}
-	//init dispatcher monitor
-	models.InitDispatcherMonitor()
+	//init kubernetes client-go
+	models.InitK8sClient()
 	//startup a webscoket server to wait client ws
 	go models.StartWebSocket()
 	//init router

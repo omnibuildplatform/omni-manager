@@ -65,7 +65,7 @@ checkJobStatus:
 			result["code"] = 0
 		} else {
 			result["data"] = "/api/v1/images/queryJobStatus/" + jobname
-			result["code"] = -1
+			result["code"] = 1
 		}
 		resultBytes, err := json.Marshal(result)
 		if err = ws.WriteMessage(websocket.TextMessage, resultBytes); err != nil {
