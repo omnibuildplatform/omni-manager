@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"omni-manager/util"
@@ -42,7 +41,10 @@ func writeMessage2Client(ws *websocket.Conn, jobDBID, jobname string) {
 	result := make(map[string]interface{}, 0)
 	jobid, _ := strconv.Atoi(jobDBID)
 	if jobid <= 0 {
-		if err := ws.WriteMessage(websocket.TextMessage, []byte("job id not integer")); err != nil {
+		result["data"] = "job id not integer"
+		result["code"] = -1
+		resultBytes, err := json.Marshal(result)
+		if err = ws.WriteMessage(websocket.TextMessage, resultBytes); err != nil {
 			return
 		}
 	}
@@ -51,80 +53,81 @@ func writeMessage2Client(ws *websocket.Conn, jobDBID, jobname string) {
 		pingTicker.Stop()
 		ws.Close()
 	}()
+	//check job status first
+	var reTry = 0
+checkJobStatus:
+	jobAPI := GetClientSet().BatchV1()
+	_, err := jobAPI.Jobs(util.GetConfig().K8sConfig.Namespace).Get(context.TODO(), jobname, metav1.GetOptions{})
+	if err != nil {
+		//retry 10 times if some err , one time.second each time
+		if reTry < 10 {
+			result["data"] = "----------checking job status ----"
+			result["code"] = 0
+		} else {
+			result["data"] = "/api/v1/images/queryJobStatus/" + jobname
+			result["code"] = -1
+		}
+		resultBytes, err := json.Marshal(result)
+		if err = ws.WriteMessage(websocket.TextMessage, resultBytes); err != nil {
+			return
+		}
+		time.Sleep(time.Second)
+		if reTry < 10 {
+			goto checkJobStatus
+		} else {
+			return
+		}
+	}
 
 	listopt := metav1.ListOptions{}
 	listopt.LabelSelector = "job-name=" + jobname
-	pods, err := GetClientSet().CoreV1().Pods(metav1.NamespaceDefault).List(context.TODO(), listopt)
+	pods, err := GetClientSet().CoreV1().Pods(util.GetConfig().K8sConfig.Namespace).List(context.TODO(), listopt)
 	if err != nil {
-		if err = ws.WriteMessage(websocket.TextMessage, []byte(err.Error())); err != nil {
+		result["data"] = err.Error()
+		result["code"] = -1
+		resultBytes, err := json.Marshal(result)
+		if err = ws.WriteMessage(websocket.TextMessage, resultBytes); err != nil {
 			return
 		}
 		return
 	}
+
 	// buf := new(bytes.Buffer)
 	if len(pods.Items) == 0 {
-		if err = ws.WriteMessage(websocket.TextMessage, []byte("no items in this job name:"+jobname)); err != nil {
+		result["data"] = []byte("no items in this job name:" + jobname)
+		result["code"] = -1
+		resultBytes, err := json.Marshal(result)
+		if err = ws.WriteMessage(websocket.TextMessage, resultBytes); err != nil {
 			return
 		}
 	}
 	// for _, pod := range pods.Items {
 	pod := pods.Items[0]
-	req := GetClientSet().CoreV1().Pods(metav1.NamespaceDefault).GetLogs(pod.Name, &corev1.PodLogOptions{Follow: true})
+	req := GetClientSet().CoreV1().Pods(util.GetConfig().K8sConfig.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{Follow: true})
 	podLogs, err := req.Stream(context.TODO())
 
 	if err != nil {
-		if err = ws.WriteMessage(websocket.TextMessage, []byte(err.Error())); err != nil {
+		result["data"] = err.Error()
+		result["code"] = -1
+		resultBytes, err := json.Marshal(result)
+		if err = ws.WriteMessage(websocket.TextMessage, resultBytes); err != nil {
 			return
 		}
 		return
 	}
 	defer podLogs.Close()
-	jobAPI := GetClientSet().BatchV1()
-	job, err := jobAPI.Jobs(metav1.NamespaceDefault).Get(context.TODO(), jobname, metav1.GetOptions{})
-	if err != nil {
-		if err = ws.WriteMessage(websocket.TextMessage, []byte(err.Error())); err != nil {
-			return
-		}
-		return
-	}
-
 	tempBytes := make([]byte, 100)
 	for {
 		n, err := podLogs.Read(tempBytes)
 		if err != nil {
-			if err == io.EOF {
-				job, err = jobAPI.Jobs(metav1.NamespaceDefault).Get(context.TODO(), jobname, metav1.GetOptions{})
-				if job.Status.Succeeded > *job.Spec.Completions {
-					// JOB_STATUS_SUCCEED
-					logData := fmt.Sprintf("----------build success ----  ")
-					result["data"] = logData
-					result["code"] = 1
-					// make a full download iso url
-					result["url"] = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, jobname)
-					resultBytes, err := json.Marshal(result)
-					if err = ws.WriteMessage(websocket.TextMessage, resultBytes); err != nil {
-						break
-					}
-					return
-				} else if job.Status.Failed > *job.Spec.BackoffLimit {
-					// JOB_STATUS_FAILED
-					result["data"] = "----------build failed ----"
-					result["code"] = -1
-					resultBytes, err := json.Marshal(result)
-					if err = ws.WriteMessage(websocket.TextMessage, resultBytes); err != nil {
-						break
-					}
-					return
-				} else if job.Status.Succeeded == 0 || job.Status.Failed == 0 {
-					// runnig status
-					//after some time ,check job status
-					<-pingTicker.C
-				}
-			} else {
-				if err = ws.WriteMessage(websocket.TextMessage, []byte("----------build error ----"+err.Error())); err != nil {
-					break
-				}
+			// if some  err occured,then tell client to call follow api to query job status
+			result["data"] = "/api/v1/images/queryJobStatus/" + jobname
+			result["code"] = 1
+			resultBytes, err := json.Marshal(result)
+			if err = ws.WriteMessage(websocket.TextMessage, resultBytes); err != nil {
+				break
 			}
+			return
 		}
 		if n > 0 {
 			result["data"] = string(tempBytes[:n])
@@ -135,6 +138,7 @@ func writeMessage2Client(ws *websocket.Conn, jobDBID, jobname string) {
 			}
 		}
 	}
+	// }
 }
 
 //connect each websocket

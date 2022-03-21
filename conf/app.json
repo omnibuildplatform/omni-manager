@@ -2,7 +2,7 @@
     "app_name": "obs_meta",
     "app_model": "release",
     "app_host": "192.168.1.193",
-    "app_port": 8888,
+    "app_port": 8080,
     "database": {
         "driver": "mysql",
         "user": "root",
@@ -18,11 +18,10 @@
         "port": "6379",
         "password": "58243586@qq.com",
         "db": 0
-    },
-    "__ws_config__comment__": "for websocket ",
+    }, 
     "ws_config": {
         "host": "192.168.1.193", 
-        "port": 8989,
+        "port": 8888,
         "check_origin": true
     },
     "buildParam": {
@@ -44,6 +43,10 @@
             "vhd"
         ],
         "openeulerMinimal": "https://raw.githubusercontent.com/omnibuildplatform/omni-imager/main/etc/openEuler-minimal.json",
-        "downloadIsoUrl":"http://www.asdfasdfasd.asdfsadf/openEuler-%s.iso"
+        "downloadIsoUrl":"http://www.asdfasdfasd.com/openEuler-%s.iso"
+    },
+    "k8s":{
+        "namespace":"omni-manager",
+        "image":"tommylike/omni-worker:0.0.1"
     }
 }

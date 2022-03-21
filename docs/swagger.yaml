@@ -125,6 +125,10 @@ paths:
         name: name
         required: true
         type: string
+      - description: The id for job
+        in: query
+        name: id
+        type: string
       produces:
       - application/json
       responses: {}

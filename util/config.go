@@ -19,7 +19,13 @@ type Config struct {
 	BuildParam     BuildParam     `json:"buildParam"`
 	DefaultPkgList PkgList
 	CustomPkgList  PkgList
-	WSConfig       WSConfig `json:"ws_config"`
+	WSConfig       WSConfig  `json:"ws_config"`
+	K8sConfig      K8sConfig `json:"k8s"`
+}
+
+type K8sConfig struct {
+	Namespace string `json:"namespace"`
+	Image     string `json:"image"`
 }
 
 //sql config

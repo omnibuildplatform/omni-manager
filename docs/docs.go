@@ -175,6 +175,12 @@ const docTemplate = `{
                         "name": "name",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "The id for job",
+                        "name": "id",
+                        "in": "query"
                     }
                 ],
                 "responses": {}

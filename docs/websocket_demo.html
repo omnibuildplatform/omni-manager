@@ -10,13 +10,25 @@
             (function() {
                 var codeui = document.getElementById("codeui");
 				 var data = document.getElementById("fileData");
-                var conn = new WebSocket("ws://localhost:8989/wsQueryJobStatus?token=tokentest&jobname=omni-image-e1728efb-b7dd-4ed0-aaa5-8e48c4b7c86c&jobDBID=141");
+                var conn = new WebSocket("ws://localhost:8989/wsQueryJobStatus?token=tokentest&jobname=omni-image-f6debf72-d99f-4202-99fc-2fa4a898d3ef&jobDBID=156");
                 conn.onclose = function(evt) {
                     data.textContent = 'Connection closed';
                 }
                 conn.onmessage = function(evt) { 
 					var result = JSON.parse(evt.data)
-                    data.textContent =  data.textContent +result.data;
+					switch(result.code){
+					case 0:
+					 data.textContent =  data.textContent +result.data;
+					 break;
+					 case -1:
+					 data.textContent =  data.textContent +result.data;
+					 break;
+					 case 1:
+					 data.textContent = "call api:"+  result.url;
+					 break;
+					
+					}
+                   
 					codeui.textContent = result.code;
                 }
             })();

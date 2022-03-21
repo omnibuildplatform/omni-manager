@@ -79,17 +79,17 @@ func StartBuild(c *gin.Context) {
 	var imageName = fmt.Sprintf(`openEuler-%s.iso`, controllerID)
 
 	omniImager := `omni-imager --package-list /etc/omni-imager/` + insertData.Packages + `.json --config-file /etc/omni-imager/conf.yaml --build-type ` + insertData.BuildType + ` --output-file ` + imageName
-	omniCurl := `curl -vvv -Ffile=@/opt/omni-workspace/` + imageName + ` -Fproject=openeuler20.03  -FfileType=image 'https://repo.test.osinfra.cn/data/upload?token=316462d0c029ba707ad2'`
+	omniCurl := `curl -vvv -Ffile=@/opt/omni-workspace/` + imageName + ` -Fproject=` + insertData.Version + `  -FfileType=image 'https://repo.test.osinfra.cn/data/upload?token=316462d0c029ba707ad2'`
 	deployment := &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": "batch/v1",
 			"kind":       "Job",
 			"metadata": map[string]interface{}{
 				"name":      jobID,
-				"namespace": metav1.NamespaceDefault,
+				"namespace": util.GetConfig().K8sConfig.Namespace,
 			},
 			"spec": map[string]interface{}{
-				"replicas": 2,
+				"replicas": 1,
 				"selector": map[string]interface{}{
 					"matchLabels": map[string]interface{}{
 						"job-name": jobID,
@@ -109,7 +109,7 @@ func StartBuild(c *gin.Context) {
 						"containers": []map[string]interface{}{
 							{
 								"name":    "image-builder",
-								"image":   "tommylike/omni-worker:0.0.1",
+								"image":   util.GetConfig().K8sConfig.Image,
 								"command": []string{"/bin/sh", "-c", omniImager, omniCurl},
 							},
 						},
@@ -124,7 +124,7 @@ func StartBuild(c *gin.Context) {
 		return
 	}
 	deploymentRes := schema.GroupVersionResource{Group: "batch", Version: "v1", Resource: "jobs"}
-	deploy, err := client.Resource(deploymentRes).Namespace(metav1.NamespaceDefault).Create(context.TODO(), deployment, metav1.CreateOptions{})
+	deploy, err := client.Resource(deploymentRes).Namespace(util.GetConfig().K8sConfig.Namespace).Create(context.TODO(), deployment, metav1.CreateOptions{})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "Create job Error", err))
 		return
@@ -145,17 +145,21 @@ func StartBuild(c *gin.Context) {
 // @Description QueryJobStatus for given job name
 // @Tags  meta Manager
 // @Param	name		path 	string	true		"The name for job"
+// @Param	id		query 	string	false		"The id for job"
 // @Accept json
 // @Produce json
 // @Router /images/queryJobStatus/{name} [get]
 func QueryJobStatus(c *gin.Context) {
-	name := c.Param("name")
-	if name == "" {
+	jobname := c.Param("name")
+	if jobname == "" {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, " job name must be fill:", nil))
 		return
 	}
+	jobidStr, _ := c.GetQuery("id")
+	// if given jobid . update job status in database
+	jobid, _ := strconv.Atoi(jobidStr)
 	jobAPI := models.GetClientSet().BatchV1()
-	job, err := jobAPI.Jobs(metav1.NamespaceDefault).Get(context.TODO(), name, metav1.GetOptions{})
+	job, err := jobAPI.Jobs(util.GetConfig().K8sConfig.Namespace).Get(context.TODO(), jobname, metav1.GetOptions{})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, " QueryJobStatus Error:", err))
 		return
@@ -166,36 +170,35 @@ func QueryJobStatus(c *gin.Context) {
 	const JOB_STATUS_SUCCEED = "succeed"
 	const JOB_STATUS_FAILED = "failed"
 	result := make(map[string]interface{})
-	result["name"] = name
+	result["name"] = jobname
 	result["startTime"] = job.Status.StartTime
 	// check status
 	if job.Status.Succeeded > *completions {
 		result["status"] = JOB_STATUS_SUCCEED
 		result["completionTime"] = job.Status.CompletionTime
+		result["url"] = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, jobname)
+		if jobid > 0 {
+			var updateJob models.Metadata
+			updateJob.JobName = jobname
+			updateJob.Id = jobid
+			updateJob.Status = JOB_STATUS_SUCCEED
+			models.UpdateJobStatus(&updateJob)
+		}
 	} else if job.Status.Failed > *backoffLimit {
 		result["status"] = JOB_STATUS_FAILED
 		result["completionTime"] = job.Status.CompletionTime
+		if jobid > 0 {
+			var updateJob models.Metadata
+			updateJob.JobName = jobname
+			updateJob.Id = jobid
+			updateJob.Status = JOB_STATUS_FAILED
+			models.UpdateJobStatus(&updateJob)
+		}
 	} else if job.Status.Succeeded == 0 || job.Status.Failed == 0 {
 		result["status"] = JOB_STATUS_RUNNING
 	}
 
-	req := models.GetClientSet().CoreV1().Pods(metav1.NamespaceDefault).GetLogs(name, &corev1.PodLogOptions{})
-
-	podLogs, err := req.Stream(context.TODO())
-	if err != nil {
-		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusServerError, "ok", result))
-		return
-	}
-	defer podLogs.Close()
-
-	buf := new(bytes.Buffer)
-	_, err = io.Copy(buf, podLogs)
-	if err != nil {
-		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusServerError, "ok", result))
-		return
-	}
-	str := buf.String()
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result, str))
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result, job))
 }
 
 // @Summary QueryJobLogs
@@ -213,14 +216,14 @@ func QueryJobLogs(c *gin.Context) {
 	}
 	listopt := metav1.ListOptions{}
 	listopt.LabelSelector = "job-name=" + name
-	pods, err := models.GetClientSet().CoreV1().Pods(metav1.NamespaceDefault).List(context.TODO(), listopt)
+	pods, err := models.GetClientSet().CoreV1().Pods(util.GetConfig().K8sConfig.Namespace).List(context.TODO(), listopt)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "", err))
 		return
 	}
 	buf := new(bytes.Buffer)
 	for _, pod := range pods.Items {
-		req := models.GetClientSet().CoreV1().Pods(metav1.NamespaceDefault).GetLogs(pod.Name, &corev1.PodLogOptions{})
+		req := models.GetClientSet().CoreV1().Pods(util.GetConfig().K8sConfig.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{})
 		podLogs, err := req.Stream(context.TODO())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "", err))
@@ -232,7 +235,6 @@ func QueryJobLogs(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "", err))
 			return
 		}
-
 	}
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", buf.String()))
 }
