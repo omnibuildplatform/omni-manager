@@ -18,7 +18,7 @@ definitions:
 info:
   contact: {}
 paths:
-  /images/delete/:id:
+  /v1/images/delete/:id:
     delete:
       consumes:
       - application/json
@@ -35,7 +35,7 @@ paths:
       summary: delete
       tags:
       - meta Manager
-  /images/get/{id}:
+  /v1/images/get/{id}:
     get:
       consumes:
       - application/json
@@ -52,7 +52,7 @@ paths:
       summary: get
       tags:
       - meta Manager
-  /images/param/getBaseData/:
+  /v1/images/param/getBaseData/:
     get:
       consumes:
       - application/json
@@ -64,7 +64,7 @@ paths:
       summary: GetBaseData param
       tags:
       - meta Manager
-  /images/param/getCustomePkgList/:
+  /v1/images/param/getCustomePkgList/:
     get:
       consumes:
       - application/json
@@ -75,7 +75,7 @@ paths:
       summary: GetCustomePkgList param
       tags:
       - meta Manager
-  /images/query:
+  /v1/images/query:
     get:
       consumes:
       - application/json
@@ -97,7 +97,7 @@ paths:
       summary: query multi datas
       tags:
       - meta Manager
-  /images/queryJobLogs/{name}:
+  /v1/images/queryJobLogs/{name}:
     get:
       consumes:
       - application/json
@@ -114,7 +114,7 @@ paths:
       summary: QueryJobLogs
       tags:
       - meta Manager
-  /images/queryJobStatus/{name}:
+  /v1/images/queryJobStatus/{name}:
     get:
       consumes:
       - application/json
@@ -125,7 +125,7 @@ paths:
         name: name
         required: true
         type: string
-      - description: The id for job
+      - description: 'The id for job in database. '
         in: query
         name: id
         type: string
@@ -135,13 +135,13 @@ paths:
       summary: QueryJobStatus
       tags:
       - meta Manager
-  /images/startBuild:
+  /v1/images/startBuild:
     post:
       consumes:
       - application/json
       description: start a image build job
       parameters:
-      - description: body for Metadata content
+      - description: body for ImageMeta content
         in: body
         name: body
         required: true
@@ -151,24 +151,6 @@ paths:
       - application/json
       responses: {}
       summary: StartBuild Job
-      tags:
-      - meta Manager
-  /images/update:
-    put:
-      consumes:
-      - application/json
-      description: update single data
-      parameters:
-      - description: body for Metadata content
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/models.ImageInputData'
-      produces:
-      - application/json
-      responses: {}
-      summary: update
       tags:
       - meta Manager
 swagger: "2.0"

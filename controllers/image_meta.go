@@ -26,7 +26,7 @@ import (
 // @Param	body		body 	models.ImageInputData	true		"body for ImageMeta content"
 // @Accept json
 // @Produce json
-// @Router /images/startBuild [post]
+// @Router /v1/images/startBuild [post]
 func StartBuild(c *gin.Context) {
 	var imageInputData models.ImageInputData
 	err := c.ShouldBindJSON(&imageInputData)
@@ -75,32 +75,31 @@ func StartBuild(c *gin.Context) {
 	insertData.CustomPkg = string(temp)
 	//----------------------send data to k8s to build----
 	controllerID := uuid.NewV4().String()
-	var jobID = fmt.Sprintf(`omni-image-%s`, controllerID)
+	var jobName = fmt.Sprintf(`omni-image-%s`, controllerID)
 	var imageName = fmt.Sprintf(`openEuler-%s.iso`, controllerID)
-
 	omniImager := `omni-imager --package-list /etc/omni-imager/` + insertData.Packages + `.json --config-file /etc/omni-imager/conf.yaml --build-type ` + insertData.BuildType + ` --output-file ` + imageName
 	omniCurl := `curl -vvv -Ffile=@/opt/omni-workspace/` + imageName + ` -Fproject=` + insertData.Version + `  -FfileType=image 'https://repo.test.osinfra.cn/data/upload?token=316462d0c029ba707ad2'`
 	deployment := &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": "batch/v1",
 			"kind":       "Job",
-			"ImageMeta": map[string]interface{}{
-				"name":      jobID,
+			"metadata": map[string]interface{}{
+				"name":      jobName,
 				"namespace": util.GetConfig().K8sConfig.Namespace,
 			},
 			"spec": map[string]interface{}{
 				"replicas": 1,
 				"selector": map[string]interface{}{
 					"matchLabels": map[string]interface{}{
-						"job-name": jobID,
+						"job-name": jobName,
 					},
 				},
 				"ttlSecondsAfterFinished": 1800,
 				"backoffLimit":            1,
 				"template": map[string]interface{}{
-					"ImageMeta": map[string]interface{}{
+					"metadata": map[string]interface{}{
 						"labels": map[string]interface{}{
-							"job-name": jobID,
+							"job-name": jobName,
 						},
 					},
 
@@ -118,6 +117,8 @@ func StartBuild(c *gin.Context) {
 			},
 		},
 	}
+
+	fmt.Println("------------:", deployment)
 	client, err := dynamic.NewForConfig(models.GetK8sConfig())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "Create job Error", err))
@@ -148,7 +149,7 @@ func StartBuild(c *gin.Context) {
 // @Param	id		query 	string	false		"The id for job in database. "
 // @Accept json
 // @Produce json
-// @Router /images/queryJobStatus/{name} [get]
+// @Router /v1/images/queryJobStatus/{name} [get]
 func QueryJobStatus(c *gin.Context) {
 	jobname := c.Param("name")
 	if jobname == "" {
@@ -204,7 +205,7 @@ func QueryJobStatus(c *gin.Context) {
 // @Param	name		path 	string	true		"The name for job"
 // @Accept json
 // @Produce json
-// @Router /images/queryJobLogs/{name} [get]
+// @Router /v1/images/queryJobLogs/{name} [get]
 func QueryJobLogs(c *gin.Context) {
 	name := c.Param("name")
 	if name == "" {
@@ -242,7 +243,7 @@ func QueryJobLogs(c *gin.Context) {
 // @Param	id		path 	string	true		"The key for staticblock"
 // @Accept json
 // @Produce json
-// @Router /images/get/{id} [get]
+// @Router /v1/images/get/{id} [get]
 func Read(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if id <= 0 || err != nil {
@@ -263,7 +264,7 @@ func Read(c *gin.Context) {
 // @Tags  meta Manager
 // @Accept json
 // @Produce json
-// @Router /images/param/getBaseData/ [get]
+// @Router /v1/images/param/getBaseData/ [get]
 func GetBaseData(c *gin.Context) {
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", util.GetConfig().BuildParam, util.GetConfig().DefaultPkgList))
 }
@@ -273,7 +274,7 @@ func GetBaseData(c *gin.Context) {
 // @Tags  meta Manager
 // @Accept json
 // @Produce json
-// @Router /images/param/getCustomePkgList/ [get]
+// @Router /v1/images/param/getCustomePkgList/ [get]
 func GetCustomePkgList(c *gin.Context) {
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", nil))
 }
@@ -285,53 +286,10 @@ func GetCustomePkgList(c *gin.Context) {
 // @Param	pkg_name		query 	string	true		"package name"
 // @Accept json
 // @Produce json
-// @Router /images/query [get]
+// @Router /v1/images/query [get]
 func Query(c *gin.Context) {
 	//...... emplty . wait for query param
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, c.Query("project_name"), c.Query("pkg_name")))
-}
-
-// @Summary update
-// @Description update single data
-// @Tags  meta Manager
-// @Param	body		body 	models.ImageInputData	true		"body for ImageMeta content"
-// @Accept json
-// @Produce json
-// @Router /images/update [put]
-func Update(c *gin.Context) {
-	var imageInputData models.ImageInputData
-	err := c.ShouldBindJSON(&imageInputData)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
-		return
-	}
-	var updateData models.ImageMeta
-	updateData.Packages = imageInputData.Packages
-	updateData.Version = imageInputData.Version
-	updateData.BuildType = imageInputData.BuildType
-	var temp []byte
-	// temp, err = json.Marshal(imageInputData.BasePkg)
-	// if err != nil {
-	// 	c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
-	// 	return
-	// }
-	// updateData.BasePkg = string(temp)
-	temp, err = json.Marshal(imageInputData.CustomPkg)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
-		return
-	}
-	updateData.CustomPkg = string(temp)
-	//use origin item id
-	updateData.Id = imageInputData.Id
-
-	err = models.UpdateImageMetaById(&updateData)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, err, nil))
-		return
-	}
-	util.Log.Warnf("The ImageMeta of Id (%d) had been update to: %s", updateData.Id, updateData.ToString())
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", nil))
 }
 
 // @Summary delete
@@ -340,7 +298,7 @@ func Update(c *gin.Context) {
 // @Param	id		path 	string	true		"The key for staticblock"
 // @Accept json
 // @Produce json
-// @Router /images/delete/:id [delete]
+// @Router /v1/images/delete/:id [delete]
 func Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if id <= 0 || err != nil {

@@ -16,7 +16,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/images/delete/:id": {
+        "/v1/images/delete/:id": {
             "delete": {
                 "description": "update single data",
                 "consumes": [
@@ -41,7 +41,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/images/get/{id}": {
+        "/v1/images/get/{id}": {
             "get": {
                 "description": "get single one",
                 "consumes": [
@@ -66,7 +66,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/images/param/getBaseData/": {
+        "/v1/images/param/getBaseData/": {
             "get": {
                 "description": "get architecture, release Version, output Format ,and default package name list",
                 "consumes": [
@@ -82,7 +82,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/images/param/getCustomePkgList/": {
+        "/v1/images/param/getCustomePkgList/": {
             "get": {
                 "description": "get default package name list. this list load from https://raw.githubusercontent.com/omnibuildplatform/omni-imager/main/etc/openEuler-minimal.json",
                 "consumes": [
@@ -98,7 +98,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/images/query": {
+        "/v1/images/query": {
             "get": {
                 "description": "use param to query multi datas",
                 "consumes": [
@@ -130,7 +130,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/images/queryJobLogs/{name}": {
+        "/v1/images/queryJobLogs/{name}": {
             "get": {
                 "description": "QueryJobLogs for given job name",
                 "consumes": [
@@ -155,7 +155,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/images/queryJobStatus/{name}": {
+        "/v1/images/queryJobStatus/{name}": {
             "get": {
                 "description": "QueryJobStatus for given job name",
                 "consumes": [
@@ -178,7 +178,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "The id for job",
+                        "description": "The id for job in database. ",
                         "name": "id",
                         "in": "query"
                     }
@@ -186,7 +186,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/images/startBuild": {
+        "/v1/images/startBuild": {
             "post": {
                 "description": "start a image build job",
                 "consumes": [
@@ -201,34 +201,7 @@ const docTemplate = `{
                 "summary": "StartBuild Job",
                 "parameters": [
                     {
-                        "description": "body for Metadata content",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.ImageInputData"
-                        }
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/images/update": {
-            "put": {
-                "description": "update single data",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "meta Manager"
-                ],
-                "summary": "update",
-                "parameters": [
-                    {
-                        "description": "body for Metadata content",
+                        "description": "body for ImageMeta content",
                         "name": "body",
                         "in": "body",
                         "required": true,
