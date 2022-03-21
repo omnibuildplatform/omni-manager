@@ -10,7 +10,7 @@
             (function() {
                 var codeui = document.getElementById("codeui");
 				 var data = document.getElementById("fileData");
-                var conn = new WebSocket("ws://localhost:8989/wsQueryJobStatus?token=tokentest&jobname=omni-image-f6debf72-d99f-4202-99fc-2fa4a898d3ef&jobDBID=156");
+                var conn = new WebSocket("ws://localhost:8888/wsQueryJobStatus?token=tokentest&jobname=omni-image-60022d82-89d5-4c6b-8b3f-ccdc48c25e7b&jobDBID=159");
                 conn.onclose = function(evt) {
                     data.textContent = 'Connection closed';
                 }
