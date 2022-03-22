@@ -29,6 +29,7 @@ func ExportData(code int, title interface{}, data ...interface{}) *JsonData {
 	resultData.Code = code
 	resultData.Title = title
 	resultData.Data = data[0]
+
 	if len(data) > 1 {
 		resultData.Attach = data[1]
 	}
@@ -36,11 +37,10 @@ func ExportData(code int, title interface{}, data ...interface{}) *JsonData {
 		resultData.Title = "Error Information"
 		resultData.Data = ""
 		if err, ok := data[0].(error); ok {
-			Log.Error(err.Error())
+			Log.Warnln(err.Error())
 		} else {
-			Log.Error(data)
+			Log.Warnln(data)
 		}
-
 	}
 	return &resultData
 }

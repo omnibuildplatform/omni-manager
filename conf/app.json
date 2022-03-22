@@ -1,22 +1,52 @@
 {
     "app_name": "obs_meta",
-    "app_model": "dev",
-    "app_host": "localhost",
-    "app_port": 8989,
+    "app_model": "release",
+    "app_host": "192.168.1.193",
+    "app_port": 8080,
     "database": {
         "driver": "mysql",
         "user": "root",
         "password": "rootpswd",
-        "host": "127.0.0.1",
+        "host": "192.168.1.193",
         "port": "3306",
         "db_name": "obs_meta",
         "charset": "utf8",
         "show_sql": false
     },
     "redis_config": {
-        "addr": "127.0.0.1",
+        "addr": "192.168.1.193",
         "port": "6379",
         "password": "58243586@qq.com",
         "db": 0
+    }, 
+    "ws_config": {
+        "host": "192.168.1.193", 
+        "port": 8888,
+        "check_origin": true
+    },
+    "buildParam": {
+        "packages": [
+            "openEuler-minimal"
+        ],
+        "version": [
+            "openEuler-20.03-LTS",
+            "openEuler-20.03-LTS-SP1",
+            "openEuler-20.03-LTS-SP2",
+            "openEuler-20.03-LTS-SP3",
+            "openEuler-20.09",
+            "openEuler-21.03",
+            "openEuler-21.09"
+        ],
+        "buildType": [
+            "livecd-iso",
+            "installer-iso",
+            "vhd"
+        ],
+        "openeulerMinimal": "https://raw.githubusercontent.com/omnibuildplatform/omni-imager/main/etc/openEuler-minimal.json",
+        "downloadIsoUrl":"http://www.asdfasdfasd.com/openEuler-%s.iso"
+    },
+    "k8s":{
+        "namespace":"omni-manager",
+        "image":"tommylike/omni-worker:0.0.1"
     }
 }

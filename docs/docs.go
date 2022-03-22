@@ -16,7 +16,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/meta/delete/:id": {
+        "/v1/images/delete/:id": {
             "delete": {
                 "description": "update single data",
                 "consumes": [
@@ -41,7 +41,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/meta/get/{id}": {
+        "/v1/images/get/{id}": {
             "get": {
                 "description": "get single one",
                 "consumes": [
@@ -63,19 +63,12 @@ const docTemplate = `{
                         "required": true
                     }
                 ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
+                "responses": {}
             }
         },
-        "/meta/insert": {
-            "post": {
-                "description": "insert single data",
+        "/v1/images/param/getBaseData/": {
+            "get": {
+                "description": "get architecture, release Version, output Format ,and default package name list",
                 "consumes": [
                     "application/json"
                 ],
@@ -85,29 +78,27 @@ const docTemplate = `{
                 "tags": [
                     "meta Manager"
                 ],
-                "summary": "create",
-                "parameters": [
-                    {
-                        "description": "body for Metadata content",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.Metadata"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
+                "summary": "GetBaseData param",
+                "responses": {}
             }
         },
-        "/meta/query": {
+        "/v1/images/param/getCustomePkgList/": {
+            "get": {
+                "description": "get default package name list. this list load from https://raw.githubusercontent.com/omnibuildplatform/omni-imager/main/etc/openEuler-minimal.json",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "meta Manager"
+                ],
+                "summary": "GetCustomePkgList param",
+                "responses": {}
+            }
+        },
+        "/v1/images/query": {
             "get": {
                 "description": "use param to query multi datas",
                 "consumes": [
@@ -139,9 +130,9 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/meta/update": {
-            "put": {
-                "description": "update single data",
+        "/v1/images/queryJobLogs/{name}": {
+            "get": {
+                "description": "QueryJobLogs for given job name",
                 "consumes": [
                     "application/json"
                 ],
@@ -151,15 +142,71 @@ const docTemplate = `{
                 "tags": [
                     "meta Manager"
                 ],
-                "summary": "update",
+                "summary": "QueryJobLogs",
                 "parameters": [
                     {
-                        "description": "body for Metadata content",
+                        "type": "string",
+                        "description": "The name for job",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v1/images/queryJobStatus/{name}": {
+            "get": {
+                "description": "QueryJobStatus for given job name",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "meta Manager"
+                ],
+                "summary": "QueryJobStatus",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The name for job",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "The id for job in database. ",
+                        "name": "id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v1/images/startBuild": {
+            "post": {
+                "description": "start a image build job",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "meta Manager"
+                ],
+                "summary": "StartBuild Job",
+                "parameters": [
+                    {
+                        "description": "body for ImageMeta content",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Metadata"
+                            "$ref": "#/definitions/models.ImageInputData"
                         }
                     }
                 ],
@@ -168,22 +215,26 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "models.Metadata": {
+        "models.ImageInputData": {
             "type": "object",
             "properties": {
-                "arcName": {
+                "buildType": {
                     "type": "string"
                 },
-                "desc": {
-                    "type": "string"
+                "customPkg": {
+                    "description": "BasePkg      []pkgData ` + "`" + ` description:\"default package\"` + "`" + `",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "id": {
                     "type": "integer"
                 },
-                "packageName": {
+                "packages": {
                     "type": "string"
                 },
-                "projectName": {
+                "version": {
                     "type": "string"
                 }
             }

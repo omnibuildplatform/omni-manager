@@ -15,16 +15,18 @@ import (
 func InitRouter() *gin.Engine {
 	r := gin.Default()
 	r.Use(util.LoggerToFile())
-	docs.SwaggerInfo.BasePath = "/api/v1"
+	docs.SwaggerInfo.BasePath = "/api"
 	//version 1
 	v1 := r.Group(docs.SwaggerInfo.BasePath)
 	{
-		v1.POST("/meta/insert", controllers.Insert)
-		v1.PUT("/meta/update", controllers.Update)
-		v1.GET("/meta/get/:id", controllers.Read)
-		v1.GET("/meta/query", controllers.Query)
-		v1.DELETE("/meta/delete/:id", controllers.Delete)
-
+		v1.POST("/v1/images/startBuild", controllers.StartBuild)
+		v1.GET("/v1/images/get/:id", controllers.Read)
+		v1.GET("/v1/images/query", controllers.Query)
+		v1.DELETE("/v1/images/delete/:id", controllers.Delete)
+		v1.GET("/v1/images/param/getBaseData/", controllers.GetBaseData)
+		v1.GET("/v1/images/param/getCustomePkgList/", controllers.GetCustomePkgList)
+		v1.GET("/v1/images/queryJobStatus/:name", controllers.QueryJobStatus)
+		v1.GET("/v1/images/queryJobLogs/:name", controllers.QueryJobLogs)
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	return r

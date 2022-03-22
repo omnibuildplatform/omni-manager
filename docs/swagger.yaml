@@ -1,21 +1,24 @@
 definitions:
-  models.Metadata:
+  models.ImageInputData:
     properties:
-      arcName:
+      buildType:
         type: string
-      desc:
-        type: string
+      customPkg:
+        description: BasePkg      []pkgData ` description:"default package"`
+        items:
+          type: string
+        type: array
       id:
         type: integer
-      packageName:
+      packages:
         type: string
-      projectName:
+      version:
         type: string
     type: object
 info:
   contact: {}
 paths:
-  /meta/delete/:id:
+  /v1/images/delete/:id:
     delete:
       consumes:
       - application/json
@@ -32,7 +35,7 @@ paths:
       summary: delete
       tags:
       - meta Manager
-  /meta/get/{id}:
+  /v1/images/get/{id}:
     get:
       consumes:
       - application/json
@@ -45,37 +48,34 @@ paths:
         type: string
       produces:
       - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
+      responses: {}
       summary: get
       tags:
       - meta Manager
-  /meta/insert:
-    post:
+  /v1/images/param/getBaseData/:
+    get:
       consumes:
       - application/json
-      description: insert single data
-      parameters:
-      - description: body for Metadata content
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/models.Metadata'
+      description: get architecture, release Version, output Format ,and default package
+        name list
       produces:
       - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-      summary: create
+      responses: {}
+      summary: GetBaseData param
       tags:
       - meta Manager
-  /meta/query:
+  /v1/images/param/getCustomePkgList/:
+    get:
+      consumes:
+      - application/json
+      description: get default package name list. this list load from https://raw.githubusercontent.com/omnibuildplatform/omni-imager/main/etc/openEuler-minimal.json
+      produces:
+      - application/json
+      responses: {}
+      summary: GetCustomePkgList param
+      tags:
+      - meta Manager
+  /v1/images/query:
     get:
       consumes:
       - application/json
@@ -97,22 +97,60 @@ paths:
       summary: query multi datas
       tags:
       - meta Manager
-  /meta/update:
-    put:
+  /v1/images/queryJobLogs/{name}:
+    get:
       consumes:
       - application/json
-      description: update single data
+      description: QueryJobLogs for given job name
       parameters:
-      - description: body for Metadata content
+      - description: The name for job
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: QueryJobLogs
+      tags:
+      - meta Manager
+  /v1/images/queryJobStatus/{name}:
+    get:
+      consumes:
+      - application/json
+      description: QueryJobStatus for given job name
+      parameters:
+      - description: The name for job
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: 'The id for job in database. '
+        in: query
+        name: id
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: QueryJobStatus
+      tags:
+      - meta Manager
+  /v1/images/startBuild:
+    post:
+      consumes:
+      - application/json
+      description: start a image build job
+      parameters:
+      - description: body for ImageMeta content
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/models.Metadata'
+          $ref: '#/definitions/models.ImageInputData'
       produces:
       - application/json
       responses: {}
-      summary: update
+      summary: StartBuild Job
       tags:
       - meta Manager
 swagger: "2.0"
