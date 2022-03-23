@@ -32,5 +32,5 @@ VOLUME ["${home}/logs","${home}/repos","${home}/conf"]
 
 ENV PATH="${home}:${PATH}"
 ENV APP_ENV="release"
-EXPOSE 8500 8501
+EXPOSE 8080 8888
 ENTRYPOINT ["/app/omni-manager"]
