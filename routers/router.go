@@ -13,9 +13,12 @@ import (
 
 //InitRouter init router
 func InitRouter() *gin.Engine {
-	r := gin.Default()
+	r := gin.New()
+	r.Use(gin.Recovery())
 	r.Use(util.LoggerToFile())
 	docs.SwaggerInfo.BasePath = "/api"
+	docs.SwaggerInfo.Title = util.GetConfig().AppName
+	docs.SwaggerInfo.Description = util.GetConfig().AppName
 	//version 1
 	v1 := r.Group(docs.SwaggerInfo.BasePath)
 	{

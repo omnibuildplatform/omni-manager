@@ -34,8 +34,10 @@ func ExportData(code int, title interface{}, data ...interface{}) *JsonData {
 		resultData.Attach = data[1]
 	}
 	if code == 500 {
-		resultData.Title = "Error Information"
-		resultData.Data = ""
+		if GetConfig().AppModel == "release" {
+			resultData.Title = "Error Information"
+			resultData.Data = ""
+		}
 		if err, ok := data[0].(error); ok {
 			Log.Warnln(err.Error())
 		} else {

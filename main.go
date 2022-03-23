@@ -43,6 +43,7 @@ func main() {
 	go models.StartWebSocket()
 	//init router
 	gin.SetMode(util.GetConfig().AppModel)
+
 	r := routers.InitRouter()
 	util.Log.Errorf(" startup meta http service at port %s .and %s mode \n", address, util.GetConfig().AppModel)
 	if err := r.Run(address); err != nil {

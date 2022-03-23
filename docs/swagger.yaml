@@ -129,6 +129,10 @@ paths:
         in: query
         name: id
         type: string
+      - description: 'job namespace '
+        in: query
+        name: ns
+        type: string
       produces:
       - application/json
       responses: {}

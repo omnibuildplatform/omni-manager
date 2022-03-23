@@ -116,6 +116,14 @@ checkJobStatus:
 	for {
 		n, err := podLogs.Read(tempBytes)
 		if err != nil {
+			//wait some seconds for update the job status
+			time.Sleep(time.Second * 5)
+			// fmt.Println("-----------test call api-----", err)
+			// resp, err := http.Get("http://localhost:8080/api/v1/images/queryJobStatus/" + jobname)
+			// jobstatusResp, _ := ioutil.ReadAll(resp.Body)
+			// defer resp.Body.Close()
+			// fmt.Println(string(jobstatusResp))
+			//----------------------------------------
 			// if some  err occured,then tell client to call follow api to query job status
 			result["data"] = "/api/v1/images/queryJobStatus/" + jobname
 			result["code"] = 1

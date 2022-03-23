@@ -26,6 +26,7 @@ type Config struct {
 type K8sConfig struct {
 	Namespace string `json:"namespace"`
 	Image     string `json:"image"`
+	FfileType string `json:"ffileType"`
 }
 
 //sql config

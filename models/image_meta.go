@@ -23,17 +23,18 @@ type pkgData struct {
 }
 
 type ImageMeta struct {
-	Id         int       `gorm:"primaryKey"`
-	Packages   string    ` description:"architecture"`
-	Version    string    ` description:"release openEuler Version"`
-	BuildType  string    ` description:"iso , zip ...."`
-	BasePkg    string    ` description:"default package"`
-	CustomPkg  string    ` description:"custom"`
-	UserId     int       ` description:"user id"`
-	UserName   string    ` description:"user name"`
-	CreateTime time.Time ` description:"create time"`
-	Status     string    ` description:"current status :running ,success, failed"`
-	JobName    string    ` description:"pod name"`
+	Id          int       `gorm:"primaryKey"`
+	Packages    string    ` description:"architecture"`
+	Version     string    ` description:"release openEuler Version"`
+	BuildType   string    ` description:"iso , zip ...."`
+	BasePkg     string    ` description:"default package"`
+	CustomPkg   string    ` description:"custom"`
+	UserId      int       ` description:"user id"`
+	UserName    string    ` description:"user name"`
+	CreateTime  time.Time ` description:"create time"`
+	Status      string    ` description:"current status :running ,success, failed"`
+	JobName     string    ` description:"pod name"`
+	DownloadUrl string    ` description:"download the result of build iso file"`
 }
 
 func (t *ImageMeta) TableName() string {

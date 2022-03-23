@@ -181,6 +181,12 @@ const docTemplate = `{
                         "description": "The id for job in database. ",
                         "name": "id",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "job namespace ",
+                        "name": "ns",
+                        "in": "query"
                     }
                 ],
                 "responses": {}

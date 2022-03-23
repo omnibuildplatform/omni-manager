@@ -79,8 +79,8 @@ func StartBuild(c *gin.Context) {
 	var jobName = fmt.Sprintf(`omni-image-%s`, controllerID)
 	var imageName = fmt.Sprintf(`openEuler-%s.iso`, controllerID)
 	omniImager := `omni-imager --package-list /etc/omni-imager/` + insertData.Packages + `.json --config-file /etc/omni-imager/conf.yaml --build-type ` + insertData.BuildType + ` --output-file ` + imageName
-	omniCurl := `curl -vvv -Ffile=@/opt/omni-workspace/` + imageName + ` -Fproject=` + insertData.Version + `  -FfileType=image 'https://repo.test.osinfra.cn/data/upload?token=316462d0c029ba707ad2'`
-	deployment := &unstructured.Unstructured{
+	omniCurl := `curl -vvv -Ffile=@/opt/omni-workspace/` + imageName + ` -Fproject=` + insertData.Version + `  -FfileType=image '` + util.GetConfig().K8sConfig.FfileType
+	imageJob := &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": "batch/v1",
 			"kind":       "Job",
@@ -96,20 +96,22 @@ func StartBuild(c *gin.Context) {
 					},
 				},
 				"ttlSecondsAfterFinished": 1800,
-				"backoffLimit":            1,
+				"backoffLimit":            0,
 				"template": map[string]interface{}{
 					"metadata": map[string]interface{}{
 						"labels": map[string]interface{}{
 							"job-name": jobName,
 						},
 					},
-
 					"spec": map[string]interface{}{
 						"restartPolicy": "Never",
 						"containers": []map[string]interface{}{
 							{
-								"name":    "image-builder",
-								"image":   util.GetConfig().K8sConfig.Image,
+								"name":  "image-builder",
+								"image": util.GetConfig().K8sConfig.Image,
+								"securityContext": map[string]interface{}{
+									"privileged": true,
+								},
 								"command": []string{"/bin/sh", "-c", omniImager, omniCurl},
 							},
 						},
@@ -124,13 +126,16 @@ func StartBuild(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "Create job Error", err))
 		return
 	}
-	deploymentRes := schema.GroupVersionResource{Group: "batch", Version: "v1", Resource: "jobs"}
-	deploy, err := client.Resource(deploymentRes).Namespace(util.GetConfig().K8sConfig.Namespace).Create(context.TODO(), deployment, metav1.CreateOptions{})
+	imageJobREs := schema.GroupVersionResource{Group: "batch", Version: "v1", Resource: "jobs"}
+	deploy, err := client.Resource(imageJobREs).Namespace(util.GetConfig().K8sConfig.Namespace).Create(context.TODO(), imageJob, metav1.CreateOptions{})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "Create job Error", err))
 		return
 	}
+	// jsondata, _ := deployment.MarshalJSON()
+	// util.Log.Warnln("---------------", string(jsondata))
 
+	insertData.Status = models.JOB_STATUS_RUNNING
 	insertData.JobName = deploy.GetName()
 	insertData.CreateTime = deploy.GetCreationTimestamp().Time
 	jobDBID, err := models.AddImageMeta(&insertData)
@@ -146,6 +151,7 @@ func StartBuild(c *gin.Context) {
 // @Tags  meta Manager
 // @Param	name		path 	string	true		"The name for job"
 // @Param	id		query 	string	false		"The id for job in database. "
+// @Param	ns		query 	string	false		"job namespace "
 // @Accept json
 // @Produce json
 // @Router /v1/images/queryJobStatus/{name} [get]
@@ -155,11 +161,16 @@ func QueryJobStatus(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, " job name must be fill:", nil))
 		return
 	}
+	jobNamespace, _ := c.GetQuery("ns")
+	if jobNamespace == "" {
+		//if no special,then use config namespace
+		jobNamespace = util.GetConfig().K8sConfig.Namespace
+	}
 	jobidStr, _ := c.GetQuery("id")
 	// if given jobid . update job status in database
 	jobid, _ := strconv.Atoi(jobidStr)
 	jobAPI := models.GetClientSet().BatchV1()
-	job, err := jobAPI.Jobs(util.GetConfig().K8sConfig.Namespace).Get(context.TODO(), jobname, metav1.GetOptions{})
+	job, err := jobAPI.Jobs(jobNamespace).Get(context.TODO(), jobname, metav1.GetOptions{})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, " QueryJobStatus Error:", err))
 		return
@@ -170,7 +181,7 @@ func QueryJobStatus(c *gin.Context) {
 	result["name"] = jobname
 	result["startTime"] = job.Status.StartTime
 	// check status
-	if job.Status.Succeeded > *completions {
+	if job.Status.Succeeded >= *completions {
 		result["status"] = models.JOB_STATUS_SUCCEED
 		result["completionTime"] = job.Status.CompletionTime
 		result["url"] = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, jobname)
@@ -179,10 +190,14 @@ func QueryJobStatus(c *gin.Context) {
 			updateJob.JobName = jobname
 			updateJob.Id = jobid
 			updateJob.Status = models.JOB_STATUS_SUCCEED
+			updateJob.DownloadUrl = result["url"].(string)
 			models.UpdateJobStatus(&updateJob)
 		}
-	} else if job.Status.Failed > *backoffLimit {
+		//no export if success
+		job = nil
+	} else if job.Status.Failed >= *backoffLimit {
 		result["status"] = models.JOB_STATUS_FAILED
+		result["error"] = job.Status.String()
 		result["completionTime"] = job.Status.CompletionTime
 		if jobid > 0 {
 			var updateJob models.ImageMeta
