@@ -112,20 +112,19 @@ checkJobStatus:
 		return
 	}
 	defer podLogs.Close()
-	tempBytes := make([]byte, 100)
+	tempBytes := make([]byte, 1024)
 	for {
 		n, err := podLogs.Read(tempBytes)
 		if err != nil {
 			//wait some seconds for update the job status
 			time.Sleep(time.Second * 5)
-			// fmt.Println("-----------test call api-----", err)
 			// resp, err := http.Get("http://localhost:8080/api/v1/images/queryJobStatus/" + jobname)
 			// jobstatusResp, _ := ioutil.ReadAll(resp.Body)
 			// defer resp.Body.Close()
 			// fmt.Println(string(jobstatusResp))
 			//----------------------------------------
 			// if some  err occured,then tell client to call follow api to query job status
-			result["data"] = "/api/v1/images/queryJobStatus/" + jobname
+			result["data"] = "/api/v1/images/queryJobStatus/" + jobname + "?id=" + jobDBID
 			result["code"] = 1
 			resultBytes, err := json.Marshal(result)
 			if err = ws.WriteMessage(websocket.TextMessage, resultBytes); err != nil {

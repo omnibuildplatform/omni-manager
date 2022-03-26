@@ -10,7 +10,7 @@
             (function() {
                 var codeui = document.getElementById("codeui");
 				 var data = document.getElementById("fileData");
-                var conn = new WebSocket("ws://localhost:8888/wsQueryJobStatus?token=tokentest&jobname=omni-image-3c9213d6-af7c-4fa3-9f6a-8d40b13129e5&jobDBID=2");
+                var conn = new WebSocket("ws://localhost:8888/wsQueryJobStatus?token=tokentest&jobname=omni-image-d483157e-8f73-4022-b50f-aeb55bb86c6b&jobDBID=2");
                 conn.onclose = function(evt) {
                     //data.textContent = 'Connection closed';
                 }
@@ -24,7 +24,7 @@
 					 data.textContent =  data.textContent +result.data;
 					 break;
 					 case 1:
-					 data.textContent = "call api:"+  result.url;
+					 //data.textContent = "call api:"+  result.url;
 					 break;
 					
 					}

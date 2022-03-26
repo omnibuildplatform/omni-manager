@@ -84,7 +84,7 @@ const docTemplate = `{
         },
         "/v1/images/param/getCustomePkgList/": {
             "get": {
-                "description": "get default package name list. this list load from https://raw.githubusercontent.com/omnibuildplatform/omni-imager/main/etc/openEuler-minimal.json",
+                "description": "get custom package name list",
                 "consumes": [
                     "application/json"
                 ],
@@ -95,6 +95,29 @@ const docTemplate = `{
                     "meta Manager"
                 ],
                 "summary": "GetCustomePkgList param",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": " arch ,e g:x86_64",
+                        "name": "arch",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "release  ",
+                        "name": "release",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "custom group  ",
+                        "name": "sig",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {}
             }
         },
@@ -224,11 +247,13 @@ const docTemplate = `{
         "models.ImageInputData": {
             "type": "object",
             "properties": {
+                "arch": {
+                    "type": "string"
+                },
                 "buildType": {
                     "type": "string"
                 },
                 "customPkg": {
-                    "description": "BasePkg      []pkgData ` + "`" + ` description:\"default package\"` + "`" + `",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -237,10 +262,7 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "packages": {
-                    "type": "string"
-                },
-                "version": {
+                "release": {
                     "type": "string"
                 }
             }

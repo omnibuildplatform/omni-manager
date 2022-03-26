@@ -3,6 +3,7 @@ package util
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -14,6 +15,8 @@ type Config struct {
 	AppModel       string         `json:"app_model"`
 	AppHost        string         `json:"app_host"`
 	AppPort        int            `json:"app_port"`
+	AppID          string         `json:"app_id"`
+	AppSecret      string         `json:"app_secret"`
 	Database       DatabaseConfig `json:"database"`
 	RedisConfig    RedisConfig    `json:"redis_config"`
 	BuildParam     BuildParam     `json:"buildParam"`
@@ -51,10 +54,12 @@ type RedisConfig struct {
 
 //
 type BuildParam struct {
-	Packages         []string `json:"packages"`
-	Version          []string `json:"version"`
+	Arch             []string `json:"arch"`
+	Release          []string `json:"release"`
 	BuildType        []string `json:"buildType"`
 	OpeneulerMinimal string   `json:"openeulerMinimal"`
+	CustomRpmAPI     string   `json:"customRpmAPI"`
+	PackageName      string   `json:"packageName"`
 	DownloadIsoUrl   string   `json:"downloadIsoUrl"`
 }
 type PkgList struct {
@@ -80,7 +85,7 @@ func InitConfig() {
 		}
 	}
 	// load openeuler_minimal.json file from github resp, and reload and update it'data every night at 3:00 / beijing
-	minimalPath := GetConfig().BuildParam.OpeneulerMinimal
+	minimalPath := fmt.Sprintf(GetConfig().BuildParam.OpeneulerMinimal, GetConfig().BuildParam.PackageName)
 	respo, err := http.Get(minimalPath)
 	if err != nil {
 		Log.Errorf("load openEuler-minimal.json file failed, app must exit .please check url path:%s. and error:%s", minimalPath, err)

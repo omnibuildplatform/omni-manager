@@ -1,18 +1,17 @@
 definitions:
   models.ImageInputData:
     properties:
+      arch:
+        type: string
       buildType:
         type: string
       customPkg:
-        description: BasePkg      []pkgData ` description:"default package"`
         items:
           type: string
         type: array
       id:
         type: integer
-      packages:
-        type: string
-      version:
+      release:
         type: string
     type: object
 info:
@@ -68,7 +67,23 @@ paths:
     get:
       consumes:
       - application/json
-      description: get default package name list. this list load from https://raw.githubusercontent.com/omnibuildplatform/omni-imager/main/etc/openEuler-minimal.json
+      description: get custom package name list
+      parameters:
+      - description: ' arch ,e g:x86_64'
+        in: query
+        name: arch
+        required: true
+        type: string
+      - description: 'release  '
+        in: query
+        name: release
+        required: true
+        type: string
+      - description: 'custom group  '
+        in: query
+        name: sig
+        required: true
+        type: string
       produces:
       - application/json
       responses: {}

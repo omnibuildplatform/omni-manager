@@ -3,6 +3,8 @@
     "app_model": "debug",
     "app_host": "192.168.1.193",
     "app_port": 8080,
+    "app_id": "8080",
+    "app_secret": "8080",
     "database": {
         "driver": "mysql",
         "user": "root",
@@ -25,25 +27,24 @@
         "check_origin": true
     },
     "buildParam": {
-        "packages": [
-            "openEuler-minimal"
+        "packageName":"openEuler-minimal",
+        "arch": [
+            "x86_64"
         ],
-        "version": [
-            "openEuler-20.03-LTS",
-            "openEuler-20.03-LTS-SP1",
-            "openEuler-20.03-LTS-SP2",
-            "openEuler-20.03-LTS-SP3",
-            "openEuler-20.09",
-            "openEuler-21.03",
-            "openEuler-21.09"
+        "release": [
+            "openEuler2003-LTS-SP3",
+            "openEuler2009",
+            "openEuler2103",
+            "openEuler2109"
         ],
         "buildType": [
             "livecd-iso",
             "installer-iso",
             "vhd"
         ],
-        "openeulerMinimal": "https://raw.githubusercontent.com/omnibuildplatform/omni-imager/main/etc/openEuler-minimal.json",
-        "downloadIsoUrl":"http://www.asdfasdfasd.com/openEuler-%s.iso"
+        "openeulerMinimal": "https://raw.githubusercontent.com/omnibuildplatform/omni-imager/main/etc/%s.json",
+        "customRpmAPI": "http://119.8.161.105:6666",
+        "downloadIsoUrl":"https://repo.test.osinfra.cn/data/browse/%s/%s/%s"
     },
     "k8s":{
         "namespace":"omni-manager",

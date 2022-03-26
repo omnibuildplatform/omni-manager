@@ -10,15 +10,18 @@ import (
 	"omni-manager/models"
 	"omni-manager/util"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
-
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/dynamic"
+	apconfigcorev1 "k8s.io/client-go/applyconfigurations/core/v1"
+	"k8s.io/client-go/kubernetes"
+	"sigs.k8s.io/yaml"
 )
 
 // @Summary StartBuild Job
@@ -29,6 +32,7 @@ import (
 // @Produce json
 // @Router /v1/images/startBuild [post]
 func StartBuild(c *gin.Context) {
+
 	var imageInputData models.ImageInputData
 	err := c.ShouldBindJSON(&imageInputData)
 	if err != nil {
@@ -36,23 +40,23 @@ func StartBuild(c *gin.Context) {
 		return
 	}
 	var insertData models.ImageMeta
-	insertData.Packages = imageInputData.Packages
-	insertData.Version = imageInputData.Version
+	insertData.Arch = imageInputData.Arch
+	insertData.Release = imageInputData.Release
 	insertData.BuildType = imageInputData.BuildType
-	if len(insertData.Version) == 0 {
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "verison not allowed empty ", nil))
+	if len(insertData.Release) == 0 {
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "Release not allowed empty ", nil))
 		return
 	}
 	//check package validate
 	validate := false
-	for _, pkgs := range util.GetConfig().BuildParam.Packages {
-		if pkgs == insertData.Packages {
+	for _, arch := range util.GetConfig().BuildParam.Arch {
+		if arch == insertData.Arch {
 			validate = true
 			break
 		}
 	}
 	if !validate {
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "packages not supported  ", util.GetConfig().BuildParam.Packages))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "arch not supported  ", util.GetConfig().BuildParam.Arch))
 		return
 	}
 	validate = false //reset for buildtype
@@ -67,83 +71,161 @@ func StartBuild(c *gin.Context) {
 		return
 	}
 
-	var temp []byte
-	temp, err = json.Marshal(imageInputData.CustomPkg)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
-		return
-	}
-	insertData.CustomPkg = string(temp)
-	//----------------------send data to k8s to build----
+	insertData.CustomPkg = strings.Join(imageInputData.CustomPkg, ",")
 	controllerID := uuid.NewV4().String()
 	var jobName = fmt.Sprintf(`omni-image-%s`, controllerID)
 	var imageName = fmt.Sprintf(`openEuler-%s.iso`, controllerID)
-	omniImager := `omni-imager --package-list /etc/omni-imager/` + insertData.Packages + `.json --config-file /etc/omni-imager/conf.yaml --build-type ` + insertData.BuildType + ` --output-file ` + imageName
-	omniCurl := `curl -vvv -Ffile=@/opt/omni-workspace/` + imageName + ` -Fproject=` + insertData.Version + `  -FfileType=image '` + util.GetConfig().K8sConfig.FfileType
-	imageJob := &unstructured.Unstructured{
-		Object: map[string]interface{}{
-			"apiVersion": "batch/v1",
-			"kind":       "Job",
-			"metadata": map[string]interface{}{
-				"name":      jobName,
-				"namespace": util.GetConfig().K8sConfig.Namespace,
-			},
-			"spec": map[string]interface{}{
-				"replicas": 1,
-				"selector": map[string]interface{}{
-					"matchLabels": map[string]interface{}{
-						"job-name": jobName,
-					},
-				},
-				"ttlSecondsAfterFinished": 1800,
-				"backoffLimit":            0,
-				"template": map[string]interface{}{
-					"metadata": map[string]interface{}{
-						"labels": map[string]interface{}{
-							"job-name": jobName,
+	clientset, err := kubernetes.NewForConfig(models.GetK8sConfig())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "kubernetes.NewForConfig Error:  ", err))
+		return
+	}
+
+	//-------- make custom rpms config first
+
+	totalPkgs := make(map[string][]string)
+	totalPkgs["packages"] = append(util.GetConfig().DefaultPkgList.Packages, imageInputData.CustomPkg...)
+	confYmalConentBytes, err := json.Marshal(totalPkgs)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "json marshal total rpm names Errof: ", err))
+		return
+	}
+
+	insertData.ConfigMapName = fmt.Sprintf("cmname%d", time.Now().UnixMicro())
+	cfgapp := apconfigcorev1.ConfigMap("conf"+insertData.ConfigMapName, util.GetConfig().K8sConfig.Namespace)
+	tempdata := make(map[string]string)
+	tempdata["working_dir"] = "/opt/omni-workspace"
+	tempdata["debug"] = "True"
+	tempdata["user_name"] = "root"
+	tempdata["user_passwd"] = "openEuler"
+	tempdata["installer_configs"] = "/etc/omni-imager/installer_assets/calamares-configs"
+	tempdata["systemd_configs"] = "/etc/omni-imager/installer_assets/systemd-configs"
+	tempdata["init_script"] = "/etc/omni-imager/init"
+	tempdata["installer_script"] = "/etc/omni-imager/runinstaller"
+	tempdata["repo_file"] = fmt.Sprintf("/etc/omni-imager/repos/%s.repo", insertData.Release)
+	tempdataBytes, _ := yaml.Marshal(tempdata)
+	cfgapp.WithData(map[string]string{
+		"conf.yaml": string(tempdataBytes),
+	})
+	_, err = clientset.CoreV1().ConfigMaps(util.GetConfig().K8sConfig.Namespace).Apply(context.TODO(), cfgapp, metav1.ApplyOptions{
+		FieldManager: "application/apply-patch",
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "json marshal total rpm names Errof: ", err))
+		return
+	}
+	var configImage *v1.ConfigMap
+	configImage = &v1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "ConfigMap",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      insertData.ConfigMapName,
+			Namespace: util.GetConfig().K8sConfig.Namespace,
+		},
+		Data: map[string]string{
+			"totalrpms.json": string(confYmalConentBytes),
+		},
+	}
+	configImage, err = clientset.CoreV1().ConfigMaps(util.GetConfig().K8sConfig.Namespace).Create(context.TODO(), configImage, metav1.CreateOptions{})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "create job image  Errof: ", err))
+		return
+	}
+
+	//---------------------------------
+	omniImager := `omni-imager --package-list /conf/totalrpms.json --config-file /conf/omni-imager/conf.yaml --build-type ` + insertData.BuildType + ` --output-file ` + imageName + ` && curl -vvv -Ffile=@/opt/omni-workspace/` + imageName + ` -Fproject=` + insertData.Release + `  -FfileType=image '` + util.GetConfig().K8sConfig.FfileType + `'`
+	jobs := clientset.BatchV1().Jobs(util.GetConfig().K8sConfig.Namespace)
+	var backOffLimit int32 = 1
+	var tTLSecondsAfterFinished int32 = 1800
+	var privileged bool = true
+	jobSpec := &batchv1.Job{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Job",
+			APIVersion: "batch/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      jobName,
+			Namespace: util.GetConfig().K8sConfig.Namespace,
+		},
+		Spec: batchv1.JobSpec{
+			Template: v1.PodTemplateSpec{
+				Spec: v1.PodSpec{
+					Containers: []v1.Container{
+						{
+							Name:  jobName,
+							Image: util.GetConfig().K8sConfig.Image,
+							SecurityContext: &corev1.SecurityContext{
+								Privileged: &privileged,
+							},
+							Command: []string{
+								"/bin/sh",
+								"-c",
+								omniImager,
+							},
+							VolumeMounts: []v1.VolumeMount{
+								{
+									Name:      "customrpms",
+									MountPath: "/conf",
+								},
+								{
+									Name:      "confyaml",
+									MountPath: "/conf/omni-imager",
+								},
+							},
 						},
 					},
-					"spec": map[string]interface{}{
-						"restartPolicy": "Never",
-						"containers": []map[string]interface{}{
-							{
-								"name":  "image-builder",
-								"image": util.GetConfig().K8sConfig.Image,
-								"securityContext": map[string]interface{}{
-									"privileged": true,
+					RestartPolicy: v1.RestartPolicyNever,
+					Volumes: []v1.Volume{
+						{
+							Name: "customrpms",
+							VolumeSource: v1.VolumeSource{
+								ConfigMap: &v1.ConfigMapVolumeSource{
+									LocalObjectReference: v1.LocalObjectReference{
+										Name: insertData.ConfigMapName,
+									},
 								},
-								"command": []string{"/bin/sh", "-c", omniImager, omniCurl},
+							},
+						},
+						{
+							Name: "confyaml",
+							VolumeSource: v1.VolumeSource{
+								ConfigMap: &v1.ConfigMapVolumeSource{
+									LocalObjectReference: v1.LocalObjectReference{
+										Name: "conf" + insertData.ConfigMapName,
+									},
+								},
 							},
 						},
 					},
 				},
 			},
+			BackoffLimit:            &backOffLimit,
+			TTLSecondsAfterFinished: &tTLSecondsAfterFinished,
 		},
 	}
 
-	client, err := dynamic.NewForConfig(models.GetK8sConfig())
+	//----------create job
+
+	job, err := jobs.Create(context.TODO(), jobSpec, metav1.CreateOptions{})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "Create job Error", err))
 		return
+
 	}
-	imageJobREs := schema.GroupVersionResource{Group: "batch", Version: "v1", Resource: "jobs"}
-	deploy, err := client.Resource(imageJobREs).Namespace(util.GetConfig().K8sConfig.Namespace).Create(context.TODO(), imageJob, metav1.CreateOptions{})
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "Create job Error", err))
-		return
-	}
-	// jsondata, _ := deployment.MarshalJSON()
-	// util.Log.Warnln("---------------", string(jsondata))
 
 	insertData.Status = models.JOB_STATUS_RUNNING
-	insertData.JobName = deploy.GetName()
-	insertData.CreateTime = deploy.GetCreationTimestamp().Time
+	insertData.JobName = job.GetName()
+	insertData.CreateTime = job.GetCreationTimestamp().Time
+	insertData.DownloadUrl = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, insertData.Release, time.Now().Format("2006-01-02"), imageName)
 	jobDBID, err := models.AddImageMeta(&insertData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, nil, err))
 		return
 	}
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, jobDBID, deploy.GetName(), util.GetConfig().WSConfig))
+
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, jobDBID, job.GetName(), util.GetConfig().WSConfig))
 }
 
 // @Summary QueryJobStatus
@@ -169,8 +251,15 @@ func QueryJobStatus(c *gin.Context) {
 	jobidStr, _ := c.GetQuery("id")
 	// if given jobid . update job status in database
 	jobid, _ := strconv.Atoi(jobidStr)
+	var err error
+	var imageData *models.ImageMeta
+	if jobid > 0 {
+		imageData, err = models.GetImageMetaById(jobid)
+	}
+
 	jobAPI := models.GetClientSet().BatchV1()
-	job, err := jobAPI.Jobs(jobNamespace).Get(context.TODO(), jobname, metav1.GetOptions{})
+	var job *batchv1.Job
+	job, err = jobAPI.Jobs(jobNamespace).Get(context.TODO(), jobname, metav1.GetOptions{})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, " QueryJobStatus Error:", err))
 		return
@@ -184,22 +273,26 @@ func QueryJobStatus(c *gin.Context) {
 	if job.Status.Succeeded >= *completions {
 		result["status"] = models.JOB_STATUS_SUCCEED
 		result["completionTime"] = job.Status.CompletionTime
-		result["url"] = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, jobname)
-		if jobid > 0 {
+		if imageData != nil {
+			result["url"] = imageData.DownloadUrl
 			var updateJob models.ImageMeta
 			updateJob.JobName = jobname
 			updateJob.Id = jobid
 			updateJob.Status = models.JOB_STATUS_SUCCEED
-			updateJob.DownloadUrl = result["url"].(string)
 			models.UpdateJobStatus(&updateJob)
 		}
+
+		// go func() {
+		//   delete this ConfigMap
+		// 	clientset.CoreV1().ConfigMaps(util.GetConfig().K8sConfig.Namespace).Delete(context.TODO(), insertData.ConfigMapName, *metav1.NewDeleteOptions(0))
+		// }()
 		//no export if success
 		job = nil
 	} else if job.Status.Failed >= *backoffLimit {
 		result["status"] = models.JOB_STATUS_FAILED
 		result["error"] = job.Status.String()
 		result["completionTime"] = job.Status.CompletionTime
-		if jobid > 0 {
+		if imageData != nil {
 			var updateJob models.ImageMeta
 			updateJob.JobName = jobname
 			updateJob.Id = jobid
@@ -265,7 +358,6 @@ func Read(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "id must be int type", err))
 		return
 	}
-
 	v, err := models.GetImageMetaById(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, err, nil))
@@ -281,17 +373,31 @@ func Read(c *gin.Context) {
 // @Produce json
 // @Router /v1/images/param/getBaseData/ [get]
 func GetBaseData(c *gin.Context) {
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", util.GetConfig().BuildParam, util.GetConfig().DefaultPkgList))
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", util.GetConfig().BuildParam, util.GetConfig().DefaultPkgList, models.CustomSigList))
 }
 
 // @Summary GetCustomePkgList param
-// @Description get default package name list. this list load from https://raw.githubusercontent.com/omnibuildplatform/omni-imager/main/etc/openEuler-minimal.json
+// @Description get custom package name list
 // @Tags  meta Manager
+// @Param	arch		query 	string	true		" arch ,e g:x86_64"
+// @Param	release		query 	string	true		"release  "
+// @Param	sig		query 	string	true		"custom group  "
 // @Accept json
 // @Produce json
 // @Router /v1/images/param/getCustomePkgList/ [get]
 func GetCustomePkgList(c *gin.Context) {
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", nil))
+
+	arch := c.Query("arch")
+	release := c.Query("release")
+	sig := c.Query("sig")
+
+	customlist, err := models.GetCustomePkgList(release, arch, sig)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, err, nil))
+		return
+	}
+
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", customlist))
 }
 
 // @Summary query multi datas

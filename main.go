@@ -25,6 +25,7 @@ func main() {
 		httpPort = 8080
 	}
 	address := fmt.Sprintf(":%d", httpPort)
+
 	//init database
 	err := util.InitDB()
 	if err != nil {
@@ -37,6 +38,9 @@ func main() {
 		util.Log.Errorf("Redis connect failed , err:%v\n", err)
 		return
 	}
+	//init customPkgs
+	models.InitCustomPkgs()
+
 	//init kubernetes client-go
 	models.InitK8sClient()
 	//startup a webscoket server to wait client ws

@@ -8,11 +8,10 @@ import (
 
 //post this body to backend
 type ImageInputData struct {
-	Id        int    `gorm:"primaryKey"`
-	Packages  string ` description:"architecture"`
-	Version   string ` description:"release openEuler Version"`
-	BuildType string ` description:"iso , zip ...."`
-	// BasePkg      []pkgData ` description:"default package"`
+	Id        int      `gorm:"primaryKey"`
+	Arch      string   ` description:"architecture"`
+	Release   string   ` description:"release openEuler Version"`
+	BuildType string   ` description:"iso , zip ...."`
 	CustomPkg []string ` description:"custom"`
 }
 
@@ -23,18 +22,19 @@ type pkgData struct {
 }
 
 type ImageMeta struct {
-	Id          int       `gorm:"primaryKey"`
-	Packages    string    ` description:"architecture"`
-	Version     string    ` description:"release openEuler Version"`
-	BuildType   string    ` description:"iso , zip ...."`
-	BasePkg     string    ` description:"default package"`
-	CustomPkg   string    ` description:"custom"`
-	UserId      int       ` description:"user id"`
-	UserName    string    ` description:"user name"`
-	CreateTime  time.Time ` description:"create time"`
-	Status      string    ` description:"current status :running ,success, failed"`
-	JobName     string    ` description:"pod name"`
-	DownloadUrl string    ` description:"download the result of build iso file"`
+	Id            int       `gorm:"primaryKey"`
+	Arch          string    ` description:"architecture"`
+	Release       string    ` description:"release openEuler Version"`
+	BuildType     string    ` description:"iso , zip ...."`
+	BasePkg       string    ` description:"default package"`
+	CustomPkg     string    ` description:"custom"`
+	UserId        int       ` description:"user id"`
+	UserName      string    ` description:"user name"`
+	CreateTime    time.Time ` description:"create time"`
+	Status        string    ` description:"current status :running ,success, failed"`
+	JobName       string    ` description:"pod name"`
+	DownloadUrl   string    ` description:"download the result of build iso file"`
+	ConfigMapName string    ` description:"configMap name"`
 }
 
 func (t *ImageMeta) TableName() string {
@@ -42,7 +42,7 @@ func (t *ImageMeta) TableName() string {
 }
 
 func (t *ImageMeta) ToString() string {
-	return fmt.Sprintf("id:%d;Architecture:%s;EulerVersion:%s;OutFormat:%s;UserId:%d;UserName:%s;JobName:%s", t.Id, t.Packages, t.Version, t.BuildType, t.UserId, t.UserName, t.JobName)
+	return fmt.Sprintf("id:%d;Architecture:%s;EulerVersion:%s;OutFormat:%s;UserId:%d;UserName:%s;JobName:%s", t.Id, t.Arch, t.Release, t.BuildType, t.UserId, t.UserName, t.JobName)
 }
 
 // AddImageMeta insert a new ImageMeta into database and returns
