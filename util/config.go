@@ -15,15 +15,14 @@ type Config struct {
 	AppModel       string         `json:"app_model"`
 	AppHost        string         `json:"app_host"`
 	AppPort        int            `json:"app_port"`
-	AppID          string         `json:"app_id"`
-	AppSecret      string         `json:"app_secret"`
 	Database       DatabaseConfig `json:"database"`
 	RedisConfig    RedisConfig    `json:"redis_config"`
 	BuildParam     BuildParam     `json:"buildParam"`
 	DefaultPkgList PkgList
 	CustomPkgList  PkgList
-	WSConfig       WSConfig  `json:"ws_config"`
-	K8sConfig      K8sConfig `json:"k8s"`
+	WSConfig       WSConfig      `json:"ws_config"`
+	K8sConfig      K8sConfig     `json:"k8s"`
+	AuthingConfig  AuthingConfig `json:"authing"`
 }
 
 type K8sConfig struct {
@@ -71,6 +70,14 @@ type WSConfig struct {
 	Host        string `json:"host"`
 	Port        int    `json:"port"`
 	CheckOrigin bool   `json:"check_origin"`
+}
+
+//Authing Config
+type AuthingConfig struct {
+	UserPoolID string `json:"userPoolID"`
+	Secret     string `json:"secret"`
+	AppID      string `json:"appID"`
+	AppSecret  string `json:"appSecret"`
 }
 
 func InitConfig() {

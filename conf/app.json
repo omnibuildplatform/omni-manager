@@ -2,9 +2,7 @@
     "app_name": "omni-manager",
     "app_model": "debug",
     "app_host": "192.168.1.193",
-    "app_port": 8080,
-    "app_id": "8080",
-    "app_secret": "8080",
+    "app_port": 8080, 
     "database": {
         "driver": "mysql",
         "user": "root",
@@ -18,7 +16,7 @@
     "redis_config": {
         "addr": "192.168.1.193",
         "port": "6379",
-        "password": "58243586@qq.com",
+        "password": "",
         "db": 0
     }, 
     "ws_config": {
@@ -50,5 +48,11 @@
         "namespace":"omni-manager",
         "image":"tommylike/omni-worker:0.1.4",
         "ffileType":"http://omni-repository.omni-repository.svc.cluster.local/data/upload?token=316462d0c029ba707ad2"
+    },
+    "authing":{
+        "userPoolID":"6219de6ce6bfeabc92071991",
+        "secret":"d5a008f7337a1e159bc91224a7a76379",
+        "appID":"623d6bf75c72636ebb8c5e4b",
+        "appSecret":"374a74fb1131916139d4789ef870820e"
     }
 }

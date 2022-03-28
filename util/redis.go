@@ -41,6 +41,7 @@ func InitRedis() error {
 
 // NewRedisPool 返回redis连接池
 func NewRedisPool(redisURL, pswd string, db int) (redisErr error) {
+
 	redisPool = &redis.Pool{
 		MaxIdle:     redisMaxIdle,
 		IdleTimeout: time.Duration(redisIdleTimeoutSec) * time.Second,
@@ -63,7 +64,7 @@ func NewRedisPool(redisURL, pswd string, db int) (redisErr error) {
 				Log.Error(err)
 				return nil, err
 			}
-
+			fmt.Println("===============", c.Err())
 			return c, nil
 		},
 		TestOnBorrow: func(c redis.Conn, t time.Time) error {

@@ -16,6 +16,74 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/v1/auth/createUser": {
+            "post": {
+                "description": "AuthingCreateUser",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authing"
+                ],
+                "summary": "AuthingCreateUser",
+                "parameters": [
+                    {
+                        "description": "body for user info",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateUserInput"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v1/auth/getDetail/{id}": {
+            "get": {
+                "description": "AuthingGetToken",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authing"
+                ],
+                "summary": "AuthingGetToken",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The key for staticblock",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v1/auth/loginok": {
+            "get": {
+                "description": "login success redirect url",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authing"
+                ],
+                "summary": "login success redirect url",
+                "responses": {}
+            }
+        },
         "/v1/images/delete/:id": {
             "delete": {
                 "description": "update single data",
@@ -244,6 +312,134 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.CreateUserInput": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "birthdate": {
+                    "type": "string"
+                },
+                "blocked": {
+                    "type": "boolean"
+                },
+                "browser": {
+                    "type": "string"
+                },
+                "company": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "device": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "emailVerified": {
+                    "type": "boolean"
+                },
+                "externalId": {
+                    "type": "string"
+                },
+                "familyName": {
+                    "type": "string"
+                },
+                "formatted": {
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "givenName": {
+                    "type": "string"
+                },
+                "isDeleted": {
+                    "type": "boolean"
+                },
+                "lastIP": {
+                    "type": "string"
+                },
+                "lastLogin": {
+                    "type": "string"
+                },
+                "locale": {
+                    "type": "string"
+                },
+                "locality": {
+                    "type": "string"
+                },
+                "loginsCount": {
+                    "type": "integer"
+                },
+                "middleName": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "oauth": {
+                    "type": "string"
+                },
+                "openid": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "phoneVerified": {
+                    "type": "boolean"
+                },
+                "photo": {
+                    "type": "string"
+                },
+                "postalCode": {
+                    "type": "string"
+                },
+                "preferredUsername": {
+                    "type": "string"
+                },
+                "profile": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "registerSource": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "signedUp": {
+                    "type": "string"
+                },
+                "streetAddress": {
+                    "type": "string"
+                },
+                "unionid": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "website": {
+                    "type": "string"
+                },
+                "zoneinfo": {
+                    "type": "string"
+                }
+            }
+        },
         "models.ImageInputData": {
             "type": "object",
             "properties": {

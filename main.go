@@ -40,7 +40,8 @@ func main() {
 	}
 	//init customPkgs
 	models.InitCustomPkgs()
-
+	//init Authing.cn config
+	models.InitAuthing("", "")
 	//init kubernetes client-go
 	models.InitK8sClient()
 	//startup a webscoket server to wait client ws
