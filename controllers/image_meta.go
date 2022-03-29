@@ -19,6 +19,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	apconfigcorev1 "k8s.io/client-go/applyconfigurations/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/yaml"
@@ -39,12 +40,21 @@ func StartBuild(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
 		return
 	}
+
 	var insertData models.ImageMeta
+	insertData.UserName = c.Keys["nm"].(string)
+	insertData.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
+
 	insertData.Arch = imageInputData.Arch
 	insertData.Release = imageInputData.Release
 	insertData.BuildType = imageInputData.BuildType
 	if len(insertData.Release) == 0 {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "Release not allowed empty ", nil))
+		return
+	}
+
+	if insertData.UserId <= 0 {
+		c.JSON(http.StatusForbidden, util.ExportData(util.CodeStatusClientError, " forbidden ", nil))
 		return
 	}
 	//check package validate
@@ -92,7 +102,7 @@ func StartBuild(c *gin.Context) {
 	}
 
 	insertData.ConfigMapName = fmt.Sprintf("cmname%d", time.Now().UnixMicro())
-	cfgapp := apconfigcorev1.ConfigMap("conf"+insertData.ConfigMapName, util.GetConfig().K8sConfig.Namespace)
+	cfgapp := apconfigcorev1.ConfigMap(insertData.ConfigMapName, util.GetConfig().K8sConfig.Namespace)
 	tempdata := make(map[string]string)
 	tempdata["working_dir"] = "/opt/omni-workspace"
 	tempdata["debug"] = "True"
@@ -105,7 +115,8 @@ func StartBuild(c *gin.Context) {
 	tempdata["repo_file"] = fmt.Sprintf("/etc/omni-imager/repos/%s.repo", insertData.Release)
 	tempdataBytes, _ := yaml.Marshal(tempdata)
 	cfgapp.WithData(map[string]string{
-		"conf.yaml": string(tempdataBytes),
+		"conf.yaml":      string(tempdataBytes),
+		"totalrpms.json": string(confYmalConentBytes),
 	})
 	_, err = clientset.CoreV1().ConfigMaps(util.GetConfig().K8sConfig.Namespace).Apply(context.TODO(), cfgapp, metav1.ApplyOptions{
 		FieldManager: "application/apply-patch",
@@ -114,32 +125,15 @@ func StartBuild(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "json marshal total rpm names Errof: ", err))
 		return
 	}
-	var configImage *v1.ConfigMap
-	configImage = &v1.ConfigMap{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "v1",
-			Kind:       "ConfigMap",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      insertData.ConfigMapName,
-			Namespace: util.GetConfig().K8sConfig.Namespace,
-		},
-		Data: map[string]string{
-			"totalrpms.json": string(confYmalConentBytes),
-		},
-	}
-	configImage, err = clientset.CoreV1().ConfigMaps(util.GetConfig().K8sConfig.Namespace).Create(context.TODO(), configImage, metav1.CreateOptions{})
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "create job image  Errof: ", err))
-		return
-	}
 
 	//---------------------------------
-	omniImager := `omni-imager --package-list /conf/totalrpms.json --config-file /conf/omni-imager/conf.yaml --build-type ` + insertData.BuildType + ` --output-file ` + imageName + ` && curl -vvv -Ffile=@/opt/omni-workspace/` + imageName + ` -Fproject=` + insertData.Release + `  -FfileType=image '` + util.GetConfig().K8sConfig.FfileType + `'`
+	omniImager := `omni-imager --package-list /conf/totalrpms.json --config-file /conf/conf.yaml --build-type ` + insertData.BuildType + ` --output-file ` + imageName + ` && curl -vvv -Ffile=@/opt/omni-workspace/` + imageName + ` -Fproject=` + insertData.Release + `  -FfileType=image '` + util.GetConfig().K8sConfig.FfileType + `'`
 	jobs := clientset.BatchV1().Jobs(util.GetConfig().K8sConfig.Namespace)
 	var backOffLimit int32 = 1
 	var tTLSecondsAfterFinished int32 = 1800
 	var privileged bool = true
+	var ownerReferenceController bool = true
+	var BlockOwnerDeletion bool = true
 	jobSpec := &batchv1.Job{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Job",
@@ -148,6 +142,16 @@ func StartBuild(c *gin.Context) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      jobName,
 			Namespace: util.GetConfig().K8sConfig.Namespace,
+			OwnerReferences: []metav1.OwnerReference{
+				{
+					APIVersion:         "v1",
+					Kind:               "Job",
+					Name:               "ownerRefName",
+					Controller:         &ownerReferenceController,
+					UID:                types.UID(jobName),
+					BlockOwnerDeletion: &BlockOwnerDeletion,
+				},
+			},
 		},
 		Spec: batchv1.JobSpec{
 			Template: v1.PodTemplateSpec{
@@ -166,34 +170,21 @@ func StartBuild(c *gin.Context) {
 							},
 							VolumeMounts: []v1.VolumeMount{
 								{
-									Name:      "customrpms",
-									MountPath: "/conf",
-								},
-								{
 									Name:      "confyaml",
-									MountPath: "/conf/omni-imager",
+									MountPath: "/conf",
 								},
 							},
 						},
 					},
 					RestartPolicy: v1.RestartPolicyNever,
 					Volumes: []v1.Volume{
-						{
-							Name: "customrpms",
-							VolumeSource: v1.VolumeSource{
-								ConfigMap: &v1.ConfigMapVolumeSource{
-									LocalObjectReference: v1.LocalObjectReference{
-										Name: insertData.ConfigMapName,
-									},
-								},
-							},
-						},
+
 						{
 							Name: "confyaml",
 							VolumeSource: v1.VolumeSource{
 								ConfigMap: &v1.ConfigMapVolumeSource{
 									LocalObjectReference: v1.LocalObjectReference{
-										Name: "conf" + insertData.ConfigMapName,
+										Name: insertData.ConfigMapName,
 									},
 								},
 							},
@@ -214,7 +205,8 @@ func StartBuild(c *gin.Context) {
 		return
 
 	}
-
+	insertData.UserName = c.Keys["nm"].(string)
+	insertData.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	insertData.Status = models.JOB_STATUS_RUNNING
 	insertData.JobName = job.GetName()
 	insertData.CreateTime = job.GetCreationTimestamp().Time
@@ -373,7 +365,9 @@ func Read(c *gin.Context) {
 // @Produce json
 // @Router /v1/images/param/getBaseData/ [get]
 func GetBaseData(c *gin.Context) {
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", util.GetConfig().BuildParam, util.GetConfig().DefaultPkgList, models.CustomSigList))
+
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal,
+		"ok", util.GetConfig().BuildParam, util.GetConfig().DefaultPkgList, models.CustomSigList))
 }
 
 // @Summary GetCustomePkgList param
@@ -433,4 +427,26 @@ func Delete(c *gin.Context) {
 	}
 	util.Log.Warnf("The  ImageMeta (Id:%d) had been delete ", id)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", id))
+}
+
+// @Summary QueryMyHistory
+// @Description Query My History
+// @Tags  meta Manager
+// @Accept json
+// @Produce json
+// @Router /v1/images/queryHistory/mine [get]
+func QueryMyHistory(c *gin.Context) {
+	//...... emplty . wait for query param
+	var UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
+	if UserId <= 0 {
+		c.JSON(http.StatusForbidden, util.ExportData(util.CodeStatusClientError, " forbidden ", nil))
+		return
+	}
+
+	result, err := models.GetMyImageMetaHistory(UserId, 0, 10)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, err, nil))
+		return
+	}
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
 }

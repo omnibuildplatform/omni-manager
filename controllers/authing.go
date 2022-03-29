@@ -101,13 +101,23 @@ func AuthingGetUserDetail(c *gin.Context) {
 	authingUserId := c.Param("authingUserId")
 	userDetail, err := models.AuthingClient.Detail(authingUserId)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "jwtToken Parse", err))
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "AuthingClient.Detail", err))
 		return
+	}
+	if userDetail.Name == nil {
+		defaultName := "noName"
+		userDetail.Name = &defaultName
 	}
 	result := make(map[string]interface{})
 	result["username"] = userDetail.Username
 	result["nickname"] = userDetail.Nickname
-	result["token"] = userDetail.Token
+	result["nm"] = userDetail.Name
+	jwtString, err := models.GetJwtString(util.GetConfig().JwtConfig.Expire, userDetail.Id, *(userDetail.Name))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "models.GetJwtString", err))
+		return
+	}
+	result["token"] = jwtString
 	result["photo"] = userDetail.Photo
 	result["id"] = userDetail.Id
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))

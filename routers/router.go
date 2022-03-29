@@ -32,11 +32,13 @@ func InitRouter() *gin.Engine {
 		v1.GET("/v1/images/param/getCustomePkgList/", controllers.GetCustomePkgList)
 		v1.GET("/v1/images/queryJobStatus/:name", controllers.QueryJobStatus)
 		v1.GET("/v1/images/queryJobLogs/:name", controllers.QueryJobLogs)
+		v1.GET("/v1/images/queryHistory/mine", controllers.QueryMyHistory)
+
 	}
 	auth := r.Group(docs.SwaggerInfo.BasePath)
 	{
 		auth.GET("/v1/auth/loginok", controllers.AuthingLoginOk)
-		auth.GET("/v1/auth/getDetail/:id", controllers.AuthingGetUserDetail)
+		auth.GET("/v1/auth/getDetail/:authingUserId", controllers.AuthingGetUserDetail)
 		auth.Use(models.Authorize()) //
 		auth.POST("/v1/auth/createUser", controllers.AuthingCreateUser)
 

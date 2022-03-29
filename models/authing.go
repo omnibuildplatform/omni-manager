@@ -1,16 +1,21 @@
 package models
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"omni-manager/util"
+	"time"
 
 	"github.com/Authing/authing-go-sdk/lib/authentication"
 	"github.com/Authing/authing-go-sdk/lib/management"
 	"github.com/Authing/authing-go-sdk/lib/model"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+)
+
+const (
+	JwtString = "omni-manager@98524"
 )
 
 type CreateUserInput struct {
@@ -81,78 +86,7 @@ func InitAuthing(userpoolid, secret string) {
 	AuthingClient = management.NewClient(userpoolid, secret)
 	AppClient, _ = AuthingClient.FindApplicationById("623d6bf75c72636ebb8c5e4b")
 	UserClient = authentication.NewClient(util.GetConfig().AuthingConfig.AppID, util.GetConfig().AuthingConfig.Secret)
-	return
-	resp, err := http.Get("https://openeuler-omni-manager.authing.cn/oidc/.well-known/jwks.json")
-	if err != nil {
-		fmt.Println("----------Get jwks error:", err)
-		return
-	}
-	defer resp.Body.Close()
-	//-------------------------------
 
-	//--------------------------jwt
-	jkwsBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("----------Get jwks ReadAll error:", err)
-		return
-	}
-	err = json.Unmarshal(jkwsBytes, &AuthingJWKSItem)
-	if err != nil {
-		fmt.Println("----------Get jwks Unmarshal error:", err)
-		return
-	}
-	fmt.Println("--------", AuthingJWKSItem)
-
-	fmt.Println("==========c.host:", AuthingClient.Host)
-	userpoolDetai, _ := AuthingClient.UserPoolDetail()
-	temBytes, err := json.Marshal(userpoolDetai)
-	if err != nil {
-		fmt.Println("----------UserPoolDetail---err---", err)
-		return
-	}
-	fmt.Println("----------UserPoolDetail:", string(temBytes))
-	comm := new(model.CommonPageRequest)
-	comm.Limit = 100
-	applistData, _ := AuthingClient.ListApplication(comm)
-	for index, v := range applistData.List {
-		fmt.Println(index, "-----ListApplication----:", v)
-	}
-	myqpp, _ := AuthingClient.CreateApplication("luonan App2", "luonancomapp2", "www.luonan2.net", nil)
-	temBytes, err = json.Marshal(myqpp)
-	fmt.Println("-----myqpp----:", string(temBytes))
-
-	var testreq model.QueryListRequest
-	testreq.Limit = 10
-	pageUser, err := AuthingClient.GetUserList(testreq)
-	if err != nil {
-		fmt.Println("----------GetUserList---err---", err)
-		return
-	}
-	fmt.Println("=========GetUserList:=====", pageUser)
-	for index, user := range pageUser.List {
-		fmt.Println(index, "-----user----:", user)
-	}
-	fmt.Println("--------------test cureate user")
-	var testuser model.CreateUserRequest
-	username := "luonancom2"
-	testuser.UserInfo.Username = &username
-	email := "582435826@qq.com"
-	testuser.UserInfo.Email = &email
-	newuser, err := AuthingClient.CreateUser(testuser)
-	if err != nil {
-		fmt.Println("----------CreateUser---err---", err)
-		return
-	}
-
-	temBytes, err = json.Marshal(newuser)
-	if err != nil {
-		fmt.Println("----------UserPoolDetail---err---", err)
-		return
-	}
-
-	fmt.Println("-----------new user:", string(temBytes))
-	_, _ = resp, err
-	AuthingClient.UserPoolDetail()
 }
 func ParseAuthingUserInput(userinput *CreateUserInput) *model.CreateUserRequest {
 	fmt.Println(*(userinput.Address), "------ParseAuthingUserInput----------", userinput)
@@ -184,21 +118,57 @@ func GetUserInfoByToekn(token string) error {
 func Authorize() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.GetHeader("Authorization")
-		loginStatus, err := UserClient.CheckLoginStatus(token)
+		// authing.cn
+		// loginStatus, err := UserClient.CheckLoginStatus(token)
+		// local
+		userInfo, err := CheckAuthorization(token)
+
 		if err != nil {
 			c.Abort()
 			c.JSON(http.StatusUnauthorized, util.ExportData(util.CodeStatusClientError, "forbidden", nil))
 			return
 		}
-		if loginStatus.Status {
-			//pass
-			c.Next()
-		} else {
-			// no pass
-			c.Abort()
-			c.JSON(http.StatusUnauthorized, util.ExportData(util.CodeStatusClientError, "forbidden", nil))
 
-			return
+		c.Keys = userInfo
+	}
+}
+
+//GetJwtString GetJwtString
+func GetJwtString(expire int, id, name string) (string, error) {
+	token := jwt.New(jwt.SigningMethodHS256)
+	claims := make(jwt.MapClaims)
+	now := time.Now()
+	claims["exp"] = now.Add(time.Hour * time.Duration(expire)).Unix()
+	claims["iat"] = now.Unix()
+	claims["id"] = id
+	claims["nm"] = name
+	token.Claims = claims
+	tokenString, err := token.SignedString([]byte(JwtString))
+	return tokenString, err
+}
+
+//check user token status
+func CheckAuthorization(tokenString string) (userInfo map[string]interface{}, err error) {
+	var token *jwt.Token
+	token, err = jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return []byte(JwtString), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if token.Valid {
+		var ok bool
+		userInfo, ok = token.Claims.(jwt.MapClaims)
+		if ok == false {
+			return nil, fmt.Errorf("token无效")
+		}
+		if userInfo["id"] == nil || userInfo["id"] == "" {
+			return nil, fmt.Errorf("token无效")
+		}
+		expireTime := userInfo["exp"].(float64)
+		if int(expireTime) <= int(time.Now().Unix()) {
+			return nil, fmt.Errorf("登陆已经过期")
 		}
 	}
+	return
 }

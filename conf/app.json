@@ -54,5 +54,11 @@
         "secret":"d5a008f7337a1e159bc91224a7a76379",
         "appID":"623d6bf75c72636ebb8c5e4b",
         "appSecret":"374a74fb1131916139d4789ef870820e"
+    },
+    "jwt":{
+        "expire":12,
+        "jwtKey":"omanager@*45"
+
     }
+
 }

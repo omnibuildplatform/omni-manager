@@ -74,7 +74,7 @@ func GetCustomePkgList(release, arch, sig string) (customPkgList *CustomPkg, err
 	}
 
 	customPkgList = new(CustomPkg)
-	err = json.Unmarshal(bodyData, &customPkgList)
+	err = json.Unmarshal(bodyData, customPkgList)
 	return
 
 }

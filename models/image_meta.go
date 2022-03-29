@@ -69,6 +69,17 @@ func GetAllImageMeta(query map[string]string, fields []string, sortby []string, 
 	return nil, err
 }
 
+// GetMyImageMetaHistory query my build history
+func GetMyImageMetaHistory(userid int, offset int, limit int) (ml []*ImageMeta, err error) {
+	o := util.GetDB()
+	m := new(ImageMeta)
+	m.UserId = userid
+	ml = make([]*ImageMeta, limit)
+	sql := fmt.Sprintf("select * from %s where user_id = %d order by id desc limit %d,%d", m.TableName(), userid, offset, limit)
+	o.Raw(sql).Scan(&ml)
+	return ml, nil
+}
+
 // UpdateImageMeta updates ImageMeta by Id and returns error if
 // the record to be updated doesn't exist
 func UpdateImageMetaById(m *ImageMeta) (err error) {
