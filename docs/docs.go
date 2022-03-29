@@ -43,7 +43,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/v1/auth/getDetail/{id}": {
+        "/v1/auth/getDetail/{authingUserId}": {
             "get": {
                 "description": "AuthingGetToken",
                 "consumes": [
@@ -60,7 +60,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "The key for staticblock",
-                        "name": "id",
+                        "name": "authingUserId",
                         "in": "path",
                         "required": true
                     }

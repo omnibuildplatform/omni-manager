@@ -120,7 +120,7 @@ paths:
       summary: AuthingCreateUser
       tags:
       - Authing
-  /v1/auth/getDetail/{id}:
+  /v1/auth/getDetail/{authingUserId}:
     get:
       consumes:
       - application/json
@@ -128,7 +128,7 @@ paths:
       parameters:
       - description: The key for staticblock
         in: path
-        name: id
+        name: authingUserId
         required: true
         type: string
       produces:

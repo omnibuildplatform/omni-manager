@@ -23,6 +23,7 @@ type Config struct {
 	WSConfig       WSConfig      `json:"ws_config"`
 	K8sConfig      K8sConfig     `json:"k8s"`
 	AuthingConfig  AuthingConfig `json:"authing"`
+	JwtConfig      JwtConfig     `json:"jwt"`
 }
 
 type K8sConfig struct {
@@ -78,6 +79,12 @@ type AuthingConfig struct {
 	Secret     string `json:"secret"`
 	AppID      string `json:"appID"`
 	AppSecret  string `json:"appSecret"`
+}
+
+//Jwt Jwt
+type JwtConfig struct {
+	Expire int    `json:"expire"`
+	JwtKey string `json:"jwtKey"`
 }
 
 func InitConfig() {
