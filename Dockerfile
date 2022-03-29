@@ -26,16 +26,27 @@ COPY --chown=${user} ./docs ./docs/
 VOLUME ["${home}/logs","${home}/conf","${home}/docs"]
 
 ENV PATH="${home}:${PATH}"
+#app mode. release is prod
 ENV APP_ENV="release"
+#api port
 ENV APP_PORT="8080"
+#database user
 ENV DB_USER="root"
+#database password
 ENV DB_PSWD="rootpswd"
+#database host
 ENV DB_HOST="192.168.1.193"
+#database name
 ENV DB_NAME="obs_meta"
+#redis host
 ENV REDIS_ADDR="192.168.1.193"
+#redis db index
 ENV REDIS_DB="0"
+#redis password
 ENV REDIS_PSWD=""
+#websocket host
 ENV WS_HOST="192.168.1.193"
+#websocket port
 ENV WS_PORT="8888"
 
 EXPOSE 8080 8888
