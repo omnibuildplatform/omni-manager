@@ -133,7 +133,7 @@ func StartBuild(c *gin.Context) {
 	var tTLSecondsAfterFinished int32 = 1800
 	var privileged bool = true
 	var ownerReferenceController bool = true
-	var BlockOwnerDeletion bool = true
+	var BlockOwnerDeletion bool = false
 	jobSpec := &batchv1.Job{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Job",

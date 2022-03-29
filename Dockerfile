@@ -13,7 +13,7 @@ ARG group=app
 ARG home=/app
 # to fix mv unrecoginzed option T
 RUN apk update --no-cache && apk add --no-cache coreutils=8.32-r2 \
- && addgroup -S ${group} && adduser -S ${user} -G ${group} -h ${home}
+    && addgroup -S ${group} && adduser -S ${user} -G ${group} -h ${home}
 
 USER ${user}
 WORKDIR ${home}
@@ -27,5 +27,16 @@ VOLUME ["${home}/logs","${home}/conf","${home}/docs"]
 
 ENV PATH="${home}:${PATH}"
 ENV APP_ENV="release"
+ENV APP_PORT="8080"
+ENV DB_USER="root"
+ENV DB_PSWD="rootpswd"
+ENV DB_HOST="192.168.1.193"
+ENV DB_NAME="obs_meta"
+ENV REDIS_ADDR="192.168.1.193"
+ENV REDIS_DB="0"
+ENV REDIS_PSWD=""
+ENV WS_HOST="192.168.1.193"
+ENV WS_PORT="8888"
+
 EXPOSE 8080 8888
 ENTRYPOINT ["/app/omni-manager"]

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 //app config
@@ -98,6 +99,38 @@ func InitConfig() {
 			return
 		}
 	}
+	if os.Getenv("APP_PORT") != "" {
+		cfg.AppPort, _ = strconv.Atoi(os.Getenv("APP_PORT"))
+	}
+
+	if os.Getenv("DB_USER") != "" {
+		cfg.Database.User = os.Getenv("DB_USER")
+	}
+	if os.Getenv("DB_PSWD") != "" {
+		cfg.Database.Password = os.Getenv("DB_PSWD")
+	}
+	if os.Getenv("DB_HOST") != "" {
+		cfg.Database.Host = os.Getenv("DB_HOST")
+	}
+	if os.Getenv("DB_NAME") != "" {
+		cfg.Database.DbName = os.Getenv("DB_NAME")
+	}
+	if os.Getenv("REDIS_ADDR") != "" {
+		cfg.RedisConfig.Addr = os.Getenv("REDIS_ADDR")
+	}
+	if os.Getenv("REDIS_DB") != "" {
+		cfg.RedisConfig.Db, _ = strconv.Atoi(os.Getenv("REDIS_DB"))
+	}
+	if os.Getenv("REDIS_PSWD") != "" {
+		cfg.RedisConfig.Password = os.Getenv("REDIS_PSWD")
+	}
+	if os.Getenv("WS_HOST") != "" {
+		cfg.WSConfig.Host = os.Getenv("WS_HOST")
+	}
+	if os.Getenv("WS_PORT") != "" {
+		cfg.WSConfig.Port, _ = strconv.Atoi(os.Getenv("WS_PORT"))
+	}
+
 	// load openeuler_minimal.json file from github resp, and reload and update it'data every night at 3:00 / beijing
 	minimalPath := fmt.Sprintf(GetConfig().BuildParam.OpeneulerMinimal, GetConfig().BuildParam.PackageName)
 	respo, err := http.Get(minimalPath)
