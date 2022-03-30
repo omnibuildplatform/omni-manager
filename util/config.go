@@ -35,15 +35,14 @@ type K8sConfig struct {
 
 //sql config
 type DatabaseConfig struct {
-	Driver      string `json:"driver"`
-	User        string `json:"user"`
-	Password    string `json:"password"`
-	Host        string `json:"host"`
-	Port        string `json:"port"`
-	DbName      string `json:"db_name"`
-	Chartset    string `json:"charset"`
-	ShowSql     bool   `json:"show_sql"`
-	CreateTable bool   `json:"create_table"`
+	Driver   string `json:"driver"`
+	User     string `json:"user"`
+	Password string `json:"password"`
+	Host     string `json:"host"`
+	Port     string `json:"port"`
+	DbName   string `json:"db_name"`
+	Chartset string `json:"charset"`
+	ShowSql  bool   `json:"show_sql"`
 }
 
 //Redis config
@@ -116,6 +115,7 @@ func InitConfig() {
 	if os.Getenv("DB_NAME") != "" {
 		cfg.Database.DbName = os.Getenv("DB_NAME")
 	}
+
 	if os.Getenv("REDIS_ADDR") != "" {
 		cfg.RedisConfig.Addr = os.Getenv("REDIS_ADDR")
 	}

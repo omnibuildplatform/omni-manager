@@ -102,6 +102,10 @@ func UpdateJobStatus(m *ImageMeta) (err error) {
 // CreateTables
 func CreateTables() (err error) {
 	o := util.GetDB()
-	err = o.Migrator().CreateTable(&ImageMeta{})
+	if !o.Migrator().HasTable(&ImageMeta{}) {
+		// create table if not exist
+		err = o.Migrator().CreateTable(&ImageMeta{})
+	}
+
 	return
 }

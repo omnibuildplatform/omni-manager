@@ -11,10 +11,7 @@
         "port": "3306",
         "db_name": "obs_meta_test",
         "charset": "utf8",
-        "show_sql": false,
-        "create_table": true
-
-        
+        "show_sql": false
     },
     "redis_config": {
         "addr": "192.168.1.193",
