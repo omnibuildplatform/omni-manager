@@ -2,6 +2,7 @@ package util
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 )
 
@@ -26,6 +27,7 @@ type JsonData struct {
 //ExportData ExportData
 func ExportData(code int, title interface{}, data ...interface{}) *JsonData {
 
+	Log.Infoln(fmt.Sprintf("code:%d,title:%s,data:%v", code, title, data))
 	var resultData JsonData
 	resultData.Code = code
 	resultData.Title = title
