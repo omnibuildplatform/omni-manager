@@ -6,12 +6,12 @@ RUN go mod download
 RUN CGO_ENABLED=0 go build -o omni-manager
 
 FROM alpine/git:v2.30.2
-ARG user=root
-ARG group=root
+ARG user=root 
+ARG group=root 
 ARG home=/app
 # to fix mv unrecoginzed option T
-RUN apk update --no-cache && apk add --no-cache coreutils=8.32-r2 \
-    && addgroup -S ${group} && adduser -S ${user} -G ${group} -h ${home}
+#RUN apk update --no-cache && apk add --no-cache coreutils=8.32-r2 \
+#    && addgroup -S ${group} && adduser -S ${user} -G ${group} -h ${home}
 
 USER ${user}
 WORKDIR ${home}
