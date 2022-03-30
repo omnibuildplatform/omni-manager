@@ -32,12 +32,11 @@ func main() {
 		util.Log.Errorf("database connect failed , err:%v\n", err)
 		return
 	}
-	if util.GetConfig().Database.CreateTable {
-		err = models.CreateTables()
-		if err != nil {
-			util.Log.Errorf("database create tables failed , err:%v\n", err)
-			return
-		}
+
+	err = models.CreateTables()
+	if err != nil {
+		util.Log.Errorf("database create tables failed , err:%v\n", err)
+		return
 	}
 	//init redis
 	err = util.InitRedis()
