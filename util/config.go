@@ -109,8 +109,8 @@ func InitConfig() {
 	if os.Getenv("DB_PSWD") != "" {
 		cfg.Database.Password = os.Getenv("DB_PSWD")
 	}
-	if os.Getenv("DB_HOST") != "" {
-		cfg.Database.Host = os.Getenv("DB_HOST")
+	if os.Getenv("MANAGER_DB_HOST") != "" {
+		cfg.Database.Host = os.Getenv("MANAGER_DB_HOST")
 	}
 	if os.Getenv("DB_NAME") != "" {
 		cfg.Database.DbName = os.Getenv("DB_NAME")
