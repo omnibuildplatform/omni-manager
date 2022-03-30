@@ -125,7 +125,7 @@ func Authorize() gin.HandlerFunc {
 
 		if err != nil {
 			c.Abort()
-			c.JSON(http.StatusUnauthorized, util.ExportData(util.CodeStatusClientError, "forbidden", nil))
+			c.JSON(http.StatusUnauthorized, util.ExportData(util.CodeStatusClientError, "forbidden", err))
 			return
 		}
 
@@ -163,7 +163,7 @@ func CheckAuthorization(tokenString string) (userInfo map[string]interface{}, er
 			return nil, fmt.Errorf("token无效")
 		}
 		if userInfo["id"] == nil || userInfo["id"] == "" {
-			return nil, fmt.Errorf("token无效")
+			return nil, fmt.Errorf("token无效,无id")
 		}
 		expireTime := userInfo["exp"].(float64)
 		if int(expireTime) <= int(time.Now().Unix()) {
