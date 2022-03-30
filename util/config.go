@@ -109,17 +109,12 @@ func InitConfig() {
 	if os.Getenv("DB_PSWD") != "" {
 		cfg.Database.Password = os.Getenv("DB_PSWD")
 	}
-	Log.Errorln("配置文件host:", cfg.Database.DBHost)
-	if os.Getenv("MANAGER_DB_HOST") != "" {
-		cfg.Database.DBHost = os.Getenv("MANAGER_DB_HOST")
+	if os.Getenv("DB_HOST") != "" {
+		cfg.Database.DBHost = os.Getenv("DB_HOST")
 	}
-	Log.Errorln("环境变量MANAGER_DB_HOST：", os.Getenv("MANAGER_DB_HOST"))
-	Log.Errorln("最后采用了 ", cfg.Database.DBHost)
-
 	if os.Getenv("DB_NAME") != "" {
 		cfg.Database.DbName = os.Getenv("DB_NAME")
 	}
-
 	if os.Getenv("REDIS_ADDR") != "" {
 		cfg.RedisConfig.Addr = os.Getenv("REDIS_ADDR")
 	}

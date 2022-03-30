@@ -27,7 +27,6 @@ func InitDB() (err error) {
 		SkipInitializeWithVersion: false,  //
 	}), &gorm.Config{})
 	if err != nil {
-		Log.Errorln(err, "使用的数据库链接语句：", sqlStr)
 		return err
 	}
 	db.Logger.LogMode(3)
