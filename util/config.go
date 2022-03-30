@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -37,10 +36,10 @@ type K8sConfig struct {
 //sql config
 type DatabaseConfig struct {
 	Driver   string `json:"driver"`
-	User     string `json:"user"`
+	DBUser   string `json:"db_user"`
 	Password string `json:"password"`
-	Host     string `json:"host"`
-	Port     string `json:"port"`
+	DBHost   string `json:"db_host"`
+	DBPort   string `json:"db_port"`
 	DbName   string `json:"db_name"`
 	Chartset string `json:"charset"`
 	ShowSql  bool   `json:"show_sql"`
@@ -105,36 +104,17 @@ func InitConfig() {
 	}
 
 	if os.Getenv("DB_USER") != "" {
-		cfg.Database.User = os.Getenv("DB_USER")
+		cfg.Database.DBUser = os.Getenv("DB_USER")
 	}
 	if os.Getenv("DB_PSWD") != "" {
 		cfg.Database.Password = os.Getenv("DB_PSWD")
 	}
-	Log.Errorln("配置文件host:", cfg.Database.Host)
+	Log.Errorln("配置文件host:", cfg.Database.DBHost)
 	if os.Getenv("MANAGER_DB_HOST") != "" {
-		cfg.Database.Host = os.Getenv("MANAGER_DB_HOST")
+		cfg.Database.DBHost = os.Getenv("MANAGER_DB_HOST")
 	}
 	Log.Errorln("环境变量MANAGER_DB_HOST：", os.Getenv("MANAGER_DB_HOST"))
-	Log.Errorln("最后采用了 ", cfg.Database.Host)
-
-	addrs, err := net.InterfaceAddrs()
-
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	for _, address := range addrs {
-
-		// 检查ip地址判断是否回环地址
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
-				Log.Errorln("net.InterfaceAddrs：  ", ipnet.IP.String())
-
-			}
-
-		}
-	}
+	Log.Errorln("最后采用了 ", cfg.Database.DBHost)
 
 	if os.Getenv("DB_NAME") != "" {
 		cfg.Database.DbName = os.Getenv("DB_NAME")

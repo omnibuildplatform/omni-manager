@@ -5,10 +5,10 @@
     "app_port": 8080, 
     "database": {
         "driver": "mysql",
-        "user": "root",
+        "db_user": "root",
         "password": "rootpswd",
-        "host": "192.168.1.193",
-        "port": "3306",
+        "db_host": "192.168.1.193",
+        "db_port": "3306",
         "db_name": "obs_meta_test",
         "charset": "utf8",
         "show_sql": false
