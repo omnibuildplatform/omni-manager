@@ -99,12 +99,9 @@ func UpdateJobStatus(m *ImageMeta) (err error) {
 	return result.Error
 }
 
-// DeleteImageMeta deletes ImageMeta by Id and returns error if
-// the record to be deleted doesn't exist
-func DeleteImageMeta(id int) (err error) {
+// CreateTables
+func CreateTables() (err error) {
 	o := util.GetDB()
-	temp := new(ImageMeta)
-	temp.Id = id
-	result := o.Delete(temp)
-	return result.Error
+	err = o.Migrator().CreateTable(&ImageMeta{})
+	return
 }

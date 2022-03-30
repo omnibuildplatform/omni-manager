@@ -9,9 +9,12 @@
         "password": "rootpswd",
         "host": "192.168.1.193",
         "port": "3306",
-        "db_name": "obs_meta",
+        "db_name": "obs_meta_test",
         "charset": "utf8",
-        "show_sql": false
+        "show_sql": false,
+        "create_table": true
+
+        
     },
     "redis_config": {
         "addr": "192.168.1.193",

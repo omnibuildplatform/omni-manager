@@ -429,28 +429,6 @@ func Query(c *gin.Context) {
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, c.Query("project_name"), c.Query("pkg_name")))
 }
 
-// @Summary delete
-// @Description update single data
-// @Tags  meta Manager
-// @Param	id		path 	string	true		"The key for staticblock"
-// @Accept json
-// @Produce json
-// @Router /v1/images/delete/:id [delete]
-func Delete(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if id <= 0 || err != nil {
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "id must be int type", err))
-		return
-	}
-	err = models.DeleteImageMeta(id)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, err, nil))
-		return
-	}
-	util.Log.Warnf("The  ImageMeta (Id:%d) had been delete ", id)
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", id))
-}
-
 // @Summary QueryMyHistory
 // @Description Query My History
 // @Tags  meta Manager

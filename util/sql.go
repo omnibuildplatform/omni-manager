@@ -33,6 +33,7 @@ func InitDB() (err error) {
 	if err != nil {
 		return err
 	}
+
 	// SetMaxIdleConns
 	sqlDB.SetMaxIdleConns(10)
 	// SetMaxOpenConns

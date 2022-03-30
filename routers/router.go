@@ -27,7 +27,6 @@ func InitRouter() *gin.Engine {
 		v1.POST("/v1/images/startBuild", controllers.StartBuild)
 		v1.GET("/v1/images/get/:id", controllers.Read)
 		v1.GET("/v1/images/query", controllers.Query)
-		v1.DELETE("/v1/images/delete/:id", controllers.Delete)
 		v1.GET("/v1/images/param/getBaseData/", controllers.GetBaseData)
 		v1.GET("/v1/images/param/getCustomePkgList/", controllers.GetCustomePkgList)
 		v1.GET("/v1/images/queryJobStatus/:name", controllers.QueryJobStatus)
