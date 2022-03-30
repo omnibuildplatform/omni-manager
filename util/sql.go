@@ -16,8 +16,8 @@ func GetDB() *gorm.DB {
 
 //connect to database
 func InitDB() (err error) {
-	Log.Errorln("准备使用数据库配置信息:", GetConfig().Database)
 	sqlStr := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", GetConfig().Database.DBUser, GetConfig().Database.Password, GetConfig().Database.DBHost, GetConfig().Database.DBPort, GetConfig().Database.DbName)
+
 	db, err = gorm.Open(mysql.New(mysql.Config{
 		DSN:                       sqlStr, // DSN data source name
 		DefaultStringSize:         256,    // default string size
@@ -29,6 +29,7 @@ func InitDB() (err error) {
 	if err != nil {
 		return err
 	}
+	Log.Errorln("使用的数据库链接语句：", sqlStr)
 	db.Logger.LogMode(3)
 	sqlDB, err := db.DB()
 	if err != nil {
