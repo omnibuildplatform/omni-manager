@@ -19,8 +19,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
-	apconfigcorev1 "k8s.io/client-go/applyconfigurations/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/yaml"
 )
@@ -102,7 +100,7 @@ func StartBuild(c *gin.Context) {
 	}
 
 	insertData.ConfigMapName = fmt.Sprintf("cmname%d", time.Now().UnixMicro())
-	cfgapp := apconfigcorev1.ConfigMap(insertData.ConfigMapName, util.GetConfig().K8sConfig.Namespace)
+	// cfgapp := apconfigcorev1.ConfigMap(insertData.ConfigMapName, util.GetConfig().K8sConfig.Namespace)
 	tempdata := make(map[string]string)
 	tempdata["working_dir"] = "/opt/omni-workspace"
 	tempdata["debug"] = "True"
@@ -114,27 +112,48 @@ func StartBuild(c *gin.Context) {
 	tempdata["installer_script"] = "/etc/omni-imager/runinstaller"
 	tempdata["repo_file"] = fmt.Sprintf("/etc/omni-imager/repos/%s.repo", insertData.Release)
 	tempdataBytes, _ := yaml.Marshal(tempdata)
-	cfgapp.WithData(map[string]string{
-		"conf.yaml":      string(tempdataBytes),
-		"totalrpms.json": string(confYmalConentBytes),
-	})
-	_, err = clientset.CoreV1().ConfigMaps(util.GetConfig().K8sConfig.Namespace).Apply(context.TODO(), cfgapp, metav1.ApplyOptions{
-		FieldManager: "application/apply-patch",
+	// cfgapp.WithData(map[string]string{
+	// 	"conf.yaml":      string(tempdataBytes),
+	// 	"totalrpms.json": string(confYmalConentBytes),
+	// }).WithAPIVersion("v1").WithKind("ConfigMap")
+
+	configMapType := metav1.TypeMeta{
+		APIVersion: "v1",
+		Kind:       "ConfigMap",
+	}
+	var ownerReferenceController bool = true
+	var BlockOwnerDeletion bool = false
+
+	var configImage *v1.ConfigMap
+	configImage = &v1.ConfigMap{
+		TypeMeta: configMapType,
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      insertData.ConfigMapName,
+			Namespace: util.GetConfig().K8sConfig.Namespace,
+		},
+		Data: map[string]string{
+			"conf.yaml":      string(tempdataBytes),
+			"totalrpms.json": string(confYmalConentBytes),
+		},
+	}
+	var cm *v1.ConfigMap
+	cm, err = clientset.CoreV1().ConfigMaps(util.GetConfig().K8sConfig.Namespace).Create(context.TODO(), configImage, metav1.CreateOptions{
+		TypeMeta: configImage.TypeMeta,
 	})
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "json marshal total rpm names Errof: ", err))
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "create job image  Errof: ", err))
 		return
 	}
+	cm.TypeMeta = configMapType
 
 	//---------------------------------
 	omniImager := `omni-imager --package-list /conf/totalrpms.json --config-file /conf/conf.yaml --build-type ` + insertData.BuildType + ` --output-file ` + imageName + ` && curl -vvv -Ffile=@/opt/omni-workspace/` + imageName + ` -Fproject=` + insertData.Release + `  -FfileType=image '` + util.GetConfig().K8sConfig.FfileType + `'`
 	jobs := clientset.BatchV1().Jobs(util.GetConfig().K8sConfig.Namespace)
-	var backOffLimit int32 = 1
+	var backOffLimit int32 = 0
 	var tTLSecondsAfterFinished int32 = 1800
 	var privileged bool = true
-	var ownerReferenceController bool = true
-	var BlockOwnerDeletion bool = false
-	jobSpec := &batchv1.Job{
+
+	jobYaml := &batchv1.Job{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Job",
 			APIVersion: "batch/v1",
@@ -144,11 +163,11 @@ func StartBuild(c *gin.Context) {
 			Namespace: util.GetConfig().K8sConfig.Namespace,
 			OwnerReferences: []metav1.OwnerReference{
 				{
-					APIVersion:         "v1",
-					Kind:               "Job",
-					Name:               "ownerRefName",
+					APIVersion:         configMapType.APIVersion,
+					Kind:               configMapType.Kind,
+					Name:               cm.Name,
 					Controller:         &ownerReferenceController,
-					UID:                types.UID(jobName),
+					UID:                cm.UID,
 					BlockOwnerDeletion: &BlockOwnerDeletion,
 				},
 			},
@@ -178,7 +197,6 @@ func StartBuild(c *gin.Context) {
 					},
 					RestartPolicy: v1.RestartPolicyNever,
 					Volumes: []v1.Volume{
-
 						{
 							Name: "confyaml",
 							VolumeSource: v1.VolumeSource{
@@ -199,12 +217,16 @@ func StartBuild(c *gin.Context) {
 
 	//----------create job
 
-	job, err := jobs.Create(context.TODO(), jobSpec, metav1.CreateOptions{})
+	job, err := jobs.Create(context.TODO(), jobYaml, metav1.CreateOptions{})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "Create job Error", err))
 		return
 
 	}
+
+	// tempbytes, _ := json.Marshal(job)
+	// fmt.Println("--------------:", string(tempbytes))
+
 	insertData.UserName = c.Keys["nm"].(string)
 	insertData.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	insertData.Status = models.JOB_STATUS_RUNNING
