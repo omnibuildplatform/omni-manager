@@ -109,9 +109,13 @@ func InitConfig() {
 	if os.Getenv("DB_PSWD") != "" {
 		cfg.Database.Password = os.Getenv("DB_PSWD")
 	}
+	Log.Errorln("配置文件host:", cfg.Database.Host)
 	if os.Getenv("MANAGER_DB_HOST") != "" {
 		cfg.Database.Host = os.Getenv("MANAGER_DB_HOST")
 	}
+	Log.Errorln("环境变量MANAGER_DB_HOST：", os.Getenv("MANAGER_DB_HOST"))
+	Log.Errorln("最后采用了 ", cfg.Database.Host)
+
 	if os.Getenv("DB_NAME") != "" {
 		cfg.Database.DbName = os.Getenv("DB_NAME")
 	}
