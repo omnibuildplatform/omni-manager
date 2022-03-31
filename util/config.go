@@ -143,6 +143,18 @@ func InitConfig() {
 	if os.Getenv("CUSTOM_RPM_API") != "" {
 		cfg.BuildParam.CustomRpmAPI = os.Getenv("CUSTOM_RPM_API")
 	}
+	if os.Getenv("AUTHING_APP_ID") != "" {
+		cfg.AuthingConfig.AppID = os.Getenv("AUTHING_APP_ID")
+	}
+	if os.Getenv("AUTHING_APP_SECRET") != "" {
+		cfg.AuthingConfig.AppSecret = os.Getenv("AUTHING_APP_SECRET")
+	}
+	if os.Getenv("AUTHING_SECRET") != "" {
+		cfg.AuthingConfig.Secret = os.Getenv("AUTHING_SECRET")
+	}
+	if os.Getenv("AUTHING_USER_POOL_ID") != "" {
+		cfg.AuthingConfig.UserPoolID = os.Getenv("AUTHING_USER_POOL_ID")
+	}
 
 	// load openeuler_minimal.json file from github resp, and reload and update it'data every night at 3:00 / beijing
 	minimalPath := fmt.Sprintf(GetConfig().BuildParam.OpeneulerMinimal, GetConfig().BuildParam.PackageName)
