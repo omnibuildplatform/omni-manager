@@ -113,6 +113,8 @@ func CreateTables() (err error) {
 
 	return
 }
+
+//make ConfigMap
 func MakeConfigMap(release string, customRpms []string) (cm *v1.ConfigMap) {
 	totalPkgs := make(map[string][]string)
 	totalPkgs["packages"] = append(util.GetConfig().DefaultPkgList.Packages, customRpms...)
@@ -161,6 +163,8 @@ func MakeConfigMap(release string, customRpms []string) (cm *v1.ConfigMap) {
 
 	return
 }
+
+//make job yaml and start job
 func MakeJob(cm *v1.ConfigMap, buildtype, release string) (job *batchv1.Job, outputName string, err error) {
 	controllerID := uuid.NewV4().String()
 	var jobName = fmt.Sprintf(`omni-image-%s`, controllerID)

@@ -146,6 +146,7 @@ checkJobStatus:
 
 //connect each websocket
 func wsQueryJobStatus(w http.ResponseWriter, r *http.Request) {
+	util.Log.Errorln(" ------------  wsQueryJobStatus")
 	token := r.URL.Query().Get("token")
 	if token != "tokentest" {
 		return
@@ -169,7 +170,7 @@ func wsQueryJobStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func StartWebSocket() {
-	http.HandleFunc("/wsQueryJobStatus", wsQueryJobStatus)
+	http.HandleFunc("/ws/queryJobStatus", wsQueryJobStatus)
 	addr := fmt.Sprintf(":%d", util.GetConfig().WSConfig.Port)
 	util.Log.Errorf("websocket Listening and serving at %s port ", addr)
 	if err := http.ListenAndServe(addr, nil); err != nil {

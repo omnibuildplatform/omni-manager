@@ -90,6 +90,8 @@ func StartBuild(c *gin.Context) {
 	insertData.CreateTime = job.GetCreationTimestamp().Time
 	insertData.DownloadUrl = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, insertData.Release, time.Now().Format("2006-01-02"), outPutname)
 	jobDBID, err := models.AddBuildLog(&insertData)
+
+	util.Set(fmt.Sprintf("build_log:%s", job.GetName()), insertData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, nil, err))
 		return
