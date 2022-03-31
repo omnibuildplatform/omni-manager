@@ -3,7 +3,6 @@ package controllers
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,13 +13,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	uuid "github.com/satori/go.uuid"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"sigs.k8s.io/yaml"
 )
 
 // @Summary StartBuild Job
@@ -42,7 +37,6 @@ func StartBuild(c *gin.Context) {
 	var insertData models.ImageMeta
 	insertData.UserName = c.Keys["nm"].(string)
 	insertData.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
-
 	insertData.Arch = imageInputData.Arch
 	insertData.Release = imageInputData.Release
 	insertData.BuildType = imageInputData.BuildType
@@ -80,159 +74,23 @@ func StartBuild(c *gin.Context) {
 	}
 
 	insertData.CustomPkg = strings.Join(imageInputData.CustomPkg, ",")
-	controllerID := uuid.NewV4().String()
-	var jobName = fmt.Sprintf(`omni-image-%s`, controllerID)
-	var imageName = fmt.Sprintf(`openEuler-%s.iso`, controllerID)
-	clientset, err := kubernetes.NewForConfig(models.GetK8sConfig())
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "kubernetes.NewForConfig Error:  ", err))
-		return
-	}
-
 	//-------- make custom rpms config first
-
-	totalPkgs := make(map[string][]string)
-	totalPkgs["packages"] = append(util.GetConfig().DefaultPkgList.Packages, imageInputData.CustomPkg...)
-	confYmalConentBytes, err := json.Marshal(totalPkgs)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "json marshal total rpm names Errof: ", err))
-		return
-	}
-
-	insertData.ConfigMapName = fmt.Sprintf("cmname%d", time.Now().UnixMicro())
-	// cfgapp := apconfigcorev1.ConfigMap(insertData.ConfigMapName, util.GetConfig().K8sConfig.Namespace)
-	tempdata := make(map[string]string)
-	tempdata["working_dir"] = "/opt/omni-workspace"
-	tempdata["debug"] = "True"
-	tempdata["user_name"] = "root"
-	tempdata["user_passwd"] = "openEuler"
-	tempdata["installer_configs"] = "/etc/omni-imager/installer_assets/calamares-configs"
-	tempdata["systemd_configs"] = "/etc/omni-imager/installer_assets/systemd-configs"
-	tempdata["init_script"] = "/etc/omni-imager/init"
-	tempdata["installer_script"] = "/etc/omni-imager/runinstaller"
-	tempdata["repo_file"] = fmt.Sprintf("/etc/omni-imager/repos/%s.repo", insertData.Release)
-	tempdataBytes, _ := yaml.Marshal(tempdata)
-	// cfgapp.WithData(map[string]string{
-	// 	"conf.yaml":      string(tempdataBytes),
-	// 	"totalrpms.json": string(confYmalConentBytes),
-	// }).WithAPIVersion("v1").WithKind("ConfigMap")
-
-	configMapType := metav1.TypeMeta{
-		APIVersion: "v1",
-		Kind:       "ConfigMap",
-	}
-	var ownerReferenceController bool = true
-	var BlockOwnerDeletion bool = false
-
-	var configImage *v1.ConfigMap
-	configImage = &v1.ConfigMap{
-		TypeMeta: configMapType,
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      insertData.ConfigMapName,
-			Namespace: util.GetConfig().K8sConfig.Namespace,
-		},
-		Data: map[string]string{
-			"conf.yaml":      string(tempdataBytes),
-			"totalrpms.json": string(confYmalConentBytes),
-		},
-	}
-	var cm *v1.ConfigMap
-	cm, err = clientset.CoreV1().ConfigMaps(util.GetConfig().K8sConfig.Namespace).Create(context.TODO(), configImage, metav1.CreateOptions{
-		TypeMeta: configImage.TypeMeta,
-	})
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "create job image  Errof: ", err))
-		return
-	}
-	cm.TypeMeta = configMapType
-
-	//---------------------------------
-	omniImager := `omni-imager --package-list /conf/totalrpms.json --config-file /conf/conf.yaml --build-type ` + insertData.BuildType + ` --output-file ` + imageName + ` && curl -vvv -Ffile=@/opt/omni-workspace/` + imageName + ` -Fproject=` + insertData.Release + `  -FfileType=image '` + util.GetConfig().K8sConfig.FfileType + `'`
-	jobs := clientset.BatchV1().Jobs(util.GetConfig().K8sConfig.Namespace)
-	var backOffLimit int32 = 0
-	var tTLSecondsAfterFinished int32 = 1800
-	var privileged bool = true
-
-	jobYaml := &batchv1.Job{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Job",
-			APIVersion: "batch/v1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      jobName,
-			Namespace: util.GetConfig().K8sConfig.Namespace,
-			OwnerReferences: []metav1.OwnerReference{
-				{
-					APIVersion:         configMapType.APIVersion,
-					Kind:               configMapType.Kind,
-					Name:               cm.Name,
-					Controller:         &ownerReferenceController,
-					UID:                cm.UID,
-					BlockOwnerDeletion: &BlockOwnerDeletion,
-				},
-			},
-		},
-		Spec: batchv1.JobSpec{
-			Template: v1.PodTemplateSpec{
-				Spec: v1.PodSpec{
-					Containers: []v1.Container{
-						{
-							Name:  jobName,
-							Image: util.GetConfig().K8sConfig.Image,
-							SecurityContext: &corev1.SecurityContext{
-								Privileged: &privileged,
-							},
-							Command: []string{
-								"/bin/sh",
-								"-c",
-								omniImager,
-							},
-							VolumeMounts: []v1.VolumeMount{
-								{
-									Name:      "confyaml",
-									MountPath: "/conf",
-								},
-							},
-						},
-					},
-					RestartPolicy: v1.RestartPolicyNever,
-					Volumes: []v1.Volume{
-						{
-							Name: "confyaml",
-							VolumeSource: v1.VolumeSource{
-								ConfigMap: &v1.ConfigMapVolumeSource{
-									LocalObjectReference: v1.LocalObjectReference{
-										Name: insertData.ConfigMapName,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			BackoffLimit:            &backOffLimit,
-			TTLSecondsAfterFinished: &tTLSecondsAfterFinished,
-		},
-	}
-
-	//----------create job
-
-	job, err := jobs.Create(context.TODO(), jobYaml, metav1.CreateOptions{})
+	cm := models.MakeConfigMap(insertData.Release, imageInputData.CustomPkg)
+	// //----------create job
+	job, outPutname, err := models.MakeJob(cm, insertData.BuildType, insertData.Release)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "Create job Error", err))
 		return
 
 	}
 
-	// tempbytes, _ := json.Marshal(job)
-	// fmt.Println("--------------:", string(tempbytes))
-
+	insertData.ConfigMapName = cm.Name
 	insertData.UserName = c.Keys["nm"].(string)
 	insertData.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	insertData.Status = models.JOB_STATUS_RUNNING
 	insertData.JobName = job.GetName()
 	insertData.CreateTime = job.GetCreationTimestamp().Time
-	insertData.DownloadUrl = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, insertData.Release, time.Now().Format("2006-01-02"), imageName)
+	insertData.DownloadUrl = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, insertData.Release, time.Now().Format("2006-01-02"), outPutname)
 	jobDBID, err := models.AddImageMeta(&insertData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, nil, err))

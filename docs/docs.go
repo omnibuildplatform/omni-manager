@@ -84,31 +84,6 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/v1/images/delete/:id": {
-            "delete": {
-                "description": "update single data",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "meta Manager"
-                ],
-                "summary": "delete",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The key for staticblock",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
         "/v1/images/get/{id}": {
             "get": {
                 "description": "get single one",
@@ -218,6 +193,22 @@ const docTemplate = `{
                         "required": true
                     }
                 ],
+                "responses": {}
+            }
+        },
+        "/v1/images/queryHistory/mine": {
+            "get": {
+                "description": "Query My History",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "meta Manager"
+                ],
+                "summary": "QueryMyHistory",
                 "responses": {}
             }
         },

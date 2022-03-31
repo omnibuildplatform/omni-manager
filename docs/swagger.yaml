@@ -148,23 +148,6 @@ paths:
       summary: login success redirect url
       tags:
       - Authing
-  /v1/images/delete/:id:
-    delete:
-      consumes:
-      - application/json
-      description: update single data
-      parameters:
-      - description: The key for staticblock
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      summary: delete
-      tags:
-      - meta Manager
   /v1/images/get/{id}:
     get:
       consumes:
@@ -241,6 +224,17 @@ paths:
       - application/json
       responses: {}
       summary: query multi datas
+      tags:
+      - meta Manager
+  /v1/images/queryHistory/mine:
+    get:
+      consumes:
+      - application/json
+      description: Query My History
+      produces:
+      - application/json
+      responses: {}
+      summary: QueryMyHistory
       tags:
       - meta Manager
   /v1/images/queryJobLogs/{name}:

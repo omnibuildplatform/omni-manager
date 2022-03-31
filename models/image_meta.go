@@ -1,9 +1,19 @@
 package models
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"omni-manager/util"
 	"time"
+
+	uuid "github.com/satori/go.uuid"
+	"gopkg.in/yaml.v2"
+	batchv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 )
 
 //post this body to backend
@@ -106,6 +116,135 @@ func CreateTables() (err error) {
 		// create table if not exist
 		err = o.Migrator().CreateTable(&ImageMeta{})
 	}
+
+	return
+}
+func MakeConfigMap(release string, customRpms []string) (cm *v1.ConfigMap) {
+	totalPkgs := make(map[string][]string)
+	totalPkgs["packages"] = append(util.GetConfig().DefaultPkgList.Packages, customRpms...)
+	confYmalConentBytes, err := json.Marshal(totalPkgs)
+	if err != nil {
+		return
+	}
+
+	configMapName := fmt.Sprintf("cmname%d", time.Now().UnixMicro())
+	tempdata := make(map[string]string)
+	tempdata["working_dir"] = "/opt/omni-workspace"
+	tempdata["debug"] = "True"
+	tempdata["user_name"] = "root"
+	tempdata["user_passwd"] = "openEuler"
+	tempdata["installer_configs"] = "/etc/omni-imager/installer_assets/calamares-configs"
+	tempdata["systemd_configs"] = "/etc/omni-imager/installer_assets/systemd-configs"
+	tempdata["init_script"] = "/etc/omni-imager/init"
+	tempdata["installer_script"] = "/etc/omni-imager/runinstaller"
+	tempdata["repo_file"] = fmt.Sprintf("/etc/omni-imager/repos/%s.repo", release)
+	tempdataBytes, _ := yaml.Marshal(tempdata)
+
+	configMapType := metav1.TypeMeta{
+		APIVersion: "v1",
+		Kind:       "ConfigMap",
+	}
+	var configImage *v1.ConfigMap
+	configImage = &v1.ConfigMap{
+		TypeMeta: configMapType,
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      configMapName,
+			Namespace: util.GetConfig().K8sConfig.Namespace,
+		},
+		Data: map[string]string{
+			"conf.yaml":      string(tempdataBytes),
+			"totalrpms.json": string(confYmalConentBytes),
+		},
+	}
+	cm, err = clientset.CoreV1().ConfigMaps(util.GetConfig().K8sConfig.Namespace).Create(context.TODO(), configImage, metav1.CreateOptions{
+		TypeMeta: configImage.TypeMeta,
+	})
+	if err != nil {
+		return
+	}
+	cm.TypeMeta = configMapType
+	cm.Name = configMapName
+
+	return
+}
+func MakeJob(cm *v1.ConfigMap, buildtype, release string) (job *batchv1.Job, outputName string, err error) {
+	controllerID := uuid.NewV4().String()
+	var jobName = fmt.Sprintf(`omni-image-%s`, controllerID)
+	outputName = fmt.Sprintf(`openEuler-%s.iso`, controllerID)
+	clientset, err := kubernetes.NewForConfig(GetK8sConfig())
+	if err != nil {
+		return
+	}
+	omniImager := `omni-imager --package-list /conf/totalrpms.json --config-file /conf/conf.yaml --build-type ` + buildtype + ` --output-file ` + outputName + ` && curl -vvv -Ffile=@/opt/omni-workspace/` + outputName + ` -Fproject=` + release + `  -FfileType=image '` + util.GetConfig().K8sConfig.FfileType + `'`
+	jobInterface := clientset.BatchV1().Jobs(util.GetConfig().K8sConfig.Namespace)
+	var backOffLimit int32 = 0
+	var tTLSecondsAfterFinished int32 = 1800
+	var privileged bool = true
+	var ownerReferenceController bool = true
+	var BlockOwnerDeletion bool = false
+	jobYaml := &batchv1.Job{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Job",
+			APIVersion: "batch/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      jobName,
+			Namespace: util.GetConfig().K8sConfig.Namespace,
+			OwnerReferences: []metav1.OwnerReference{
+				{
+					APIVersion:         cm.APIVersion,
+					Kind:               cm.Kind,
+					Name:               cm.Name,
+					Controller:         &ownerReferenceController,
+					UID:                cm.UID,
+					BlockOwnerDeletion: &BlockOwnerDeletion,
+				},
+			},
+		},
+		Spec: batchv1.JobSpec{
+			Template: v1.PodTemplateSpec{
+				Spec: v1.PodSpec{
+					Containers: []v1.Container{
+						{
+							Name:  jobName,
+							Image: util.GetConfig().K8sConfig.Image,
+							SecurityContext: &corev1.SecurityContext{
+								Privileged: &privileged,
+							},
+							Command: []string{
+								"/bin/sh",
+								"-c",
+								omniImager,
+							},
+							VolumeMounts: []v1.VolumeMount{
+								{
+									Name:      "confyaml",
+									MountPath: "/conf",
+								},
+							},
+						},
+					},
+					RestartPolicy: v1.RestartPolicyNever,
+					Volumes: []v1.Volume{
+						{
+							Name: "confyaml",
+							VolumeSource: v1.VolumeSource{
+								ConfigMap: &v1.ConfigMapVolumeSource{
+									LocalObjectReference: v1.LocalObjectReference{
+										Name: cm.Name,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			BackoffLimit:            &backOffLimit,
+			TTLSecondsAfterFinished: &tTLSecondsAfterFinished,
+		},
+	}
+
+	job, err = jobInterface.Create(context.TODO(), jobYaml, metav1.CreateOptions{})
 
 	return
 }

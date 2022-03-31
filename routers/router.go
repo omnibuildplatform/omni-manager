@@ -19,7 +19,7 @@ func InitRouter() *gin.Engine {
 	r.Use(util.LoggerToFile())
 	docs.SwaggerInfo.BasePath = "/api"
 	docs.SwaggerInfo.Title = util.GetConfig().AppName
-	docs.SwaggerInfo.Description = util.GetConfig().AppName
+	docs.SwaggerInfo.Description = "set token name: 'Authorization' at header "
 	//version 1
 	v1 := r.Group(docs.SwaggerInfo.BasePath)
 	{

@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+
+	"github.com/sirupsen/logrus"
 )
 
 //app config
@@ -98,6 +100,14 @@ func InitConfig() {
 			os.Exit(1)
 			return
 		}
+	}
+
+	if cfg.AppModel == "debug" {
+		//info level
+		Log.SetLevel(logrus.InfoLevel)
+	} else {
+		//info level
+		Log.SetLevel(logrus.ErrorLevel)
 	}
 	if os.Getenv("APP_PORT") != "" {
 		cfg.AppPort, _ = strconv.Atoi(os.Getenv("APP_PORT"))
