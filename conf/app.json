@@ -9,7 +9,7 @@
         "password": "rootpswd",
         "db_host": "192.168.1.193",
         "db_port": "3306",
-        "db_name": "obs_meta_test",
+        "db_name": "omni_manager_dev",
         "charset": "utf8",
         "show_sql": false
     },

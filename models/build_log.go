@@ -17,7 +17,7 @@ import (
 )
 
 //post this body to backend
-type ImageInputData struct {
+type BuildParam struct {
 	Id        int      `gorm:"primaryKey"`
 	Arch      string   ` description:"architecture"`
 	Release   string   ` description:"release openEuler Version"`
@@ -25,13 +25,7 @@ type ImageInputData struct {
 	CustomPkg []string ` description:"custom"`
 }
 
-//rpm package
-type pkgData struct {
-	PkgName string
-	PkgMd5  string
-}
-
-type ImageMeta struct {
+type BuildLog struct {
 	Id            int       `gorm:"primaryKey"`
 	Arch          string    ` description:"architecture"`
 	Release       string    ` description:"release openEuler Version"`
@@ -47,59 +41,59 @@ type ImageMeta struct {
 	ConfigMapName string    ` description:"configMap name"`
 }
 
-func (t *ImageMeta) TableName() string {
-	return "image_meta"
+func (t *BuildLog) TableName() string {
+	return "build_log"
 }
 
-func (t *ImageMeta) ToString() string {
+func (t *BuildLog) ToString() string {
 	return fmt.Sprintf("id:%d;Architecture:%s;EulerVersion:%s;OutFormat:%s;UserId:%d;UserName:%s;JobName:%s", t.Id, t.Arch, t.Release, t.BuildType, t.UserId, t.UserName, t.JobName)
 }
 
-// AddImageMeta insert a new ImageMeta into database and returns
+// AddBuildLog insert a new ImageMeta into database and returns
 // last inserted Id on success.
-func AddImageMeta(m *ImageMeta) (id int64, err error) {
+func AddBuildLog(m *BuildLog) (id int64, err error) {
 	o := util.GetDB()
 	result := o.Create(m)
 	return int64(m.Id), result.Error
 }
 
-// GetImageMetaById retrieves ImageMeta by Id. Returns error if
+// GetBuildLogById retrieves ImageMeta by Id. Returns error if
 // Id doesn't exist
-func GetImageMetaById(id int) (v *ImageMeta, err error) {
+func GetBuildLogById(id int) (v *BuildLog, err error) {
 	o := util.GetDB()
-	v = &ImageMeta{Id: id}
+	v = &BuildLog{Id: id}
 	o.First(v, id)
 	return v, err
 }
 
-// GetAllImageMeta retrieves all ImageMeta matches certain condition. Returns empty list if
+// GetAllBuildLog retrieves all ImageMeta matches certain condition. Returns empty list if
 // no records exist
-func GetAllImageMeta(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllBuildLog(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	return nil, err
 }
 
-// GetMyImageMetaHistory query my build history
-func GetMyImageMetaHistory(userid int, offset int, limit int) (ml []*ImageMeta, err error) {
+// GetMyBuildLogs query my build history
+func GetMyBuildLogs(userid int, offset int, limit int) (ml []*BuildLog, err error) {
 	o := util.GetDB()
-	m := new(ImageMeta)
+	m := new(BuildLog)
 	m.UserId = userid
-	ml = make([]*ImageMeta, limit)
+	ml = make([]*BuildLog, limit)
 	sql := fmt.Sprintf("select * from %s where user_id = %d order by id desc limit %d,%d", m.TableName(), userid, offset, limit)
 	o.Raw(sql).Scan(&ml)
 	return ml, nil
 }
 
-// UpdateImageMeta updates ImageMeta by Id and returns error if
+// UpdateBuildLogById updates ImageMeta by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateImageMetaById(m *ImageMeta) (err error) {
+func UpdateBuildLogById(m *BuildLog) (err error) {
 	o := util.GetDB()
 	result := o.Model(m).Updates(m)
 	return result.Error
 }
 
-// UpdateJobStatus
-func UpdateJobStatus(m *ImageMeta) (err error) {
+// UpdateBuildStatus
+func UpdateBuildStatus(m *BuildLog) (err error) {
 	o := util.GetDB()
 	result := o.Model(m).Where("id = ?", m.Id).Update("status", m.Status)
 	if result.Error == nil {
@@ -112,9 +106,9 @@ func UpdateJobStatus(m *ImageMeta) (err error) {
 // CreateTables
 func CreateTables() (err error) {
 	o := util.GetDB()
-	if !o.Migrator().HasTable(&ImageMeta{}) {
+	if !o.Migrator().HasTable(&BuildLog{}) {
 		// create table if not exist
-		err = o.Migrator().CreateTable(&ImageMeta{})
+		err = o.Migrator().CreateTable(&BuildLog{})
 	}
 
 	return
@@ -175,13 +169,14 @@ func MakeJob(cm *v1.ConfigMap, buildtype, release string) (job *batchv1.Job, out
 	if err != nil {
 		return
 	}
+
 	omniImager := `omni-imager --package-list /conf/totalrpms.json --config-file /conf/conf.yaml --build-type ` + buildtype + ` --output-file ` + outputName + ` && curl -vvv -Ffile=@/opt/omni-workspace/` + outputName + ` -Fproject=` + release + `  -FfileType=image '` + util.GetConfig().K8sConfig.FfileType + `'`
 	jobInterface := clientset.BatchV1().Jobs(util.GetConfig().K8sConfig.Namespace)
 	var backOffLimit int32 = 0
 	var tTLSecondsAfterFinished int32 = 1800
 	var privileged bool = true
 	var ownerReferenceController bool = true
-	var BlockOwnerDeletion bool = false
+	var BlockOwnerDeletion bool = true
 	jobYaml := &batchv1.Job{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Job",
@@ -243,7 +238,8 @@ func MakeJob(cm *v1.ConfigMap, buildtype, release string) (job *batchv1.Job, out
 			TTLSecondsAfterFinished: &tTLSecondsAfterFinished,
 		},
 	}
-
+	cmBytes, _ := json.Marshal(jobYaml)
+	fmt.Println("------------cm :", string(cmBytes))
 	job, err = jobInterface.Create(context.TODO(), jobYaml, metav1.CreateOptions{})
 
 	return

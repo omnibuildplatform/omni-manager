@@ -121,7 +121,6 @@ func AuthingGetUserDetail(c *gin.Context) {
 	result["photo"] = userDetail.Photo
 	result["id"] = userDetail.Id
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
-
 }
 
 // @Summary AuthingCreateUser

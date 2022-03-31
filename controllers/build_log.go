@@ -27,14 +27,14 @@ import (
 // @Router /v1/images/startBuild [post]
 func StartBuild(c *gin.Context) {
 
-	var imageInputData models.ImageInputData
+	var imageInputData models.BuildParam
 	err := c.ShouldBindJSON(&imageInputData)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
 		return
 	}
 
-	var insertData models.ImageMeta
+	var insertData models.BuildLog
 	insertData.UserName = c.Keys["nm"].(string)
 	insertData.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	insertData.Arch = imageInputData.Arch
@@ -81,9 +81,7 @@ func StartBuild(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "Create job Error", err))
 		return
-
 	}
-
 	insertData.ConfigMapName = cm.Name
 	insertData.UserName = c.Keys["nm"].(string)
 	insertData.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
@@ -91,12 +89,11 @@ func StartBuild(c *gin.Context) {
 	insertData.JobName = job.GetName()
 	insertData.CreateTime = job.GetCreationTimestamp().Time
 	insertData.DownloadUrl = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, insertData.Release, time.Now().Format("2006-01-02"), outPutname)
-	jobDBID, err := models.AddImageMeta(&insertData)
+	jobDBID, err := models.AddBuildLog(&insertData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, nil, err))
 		return
 	}
-
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, jobDBID, job.GetName(), util.GetConfig().WSConfig))
 }
 
@@ -124,9 +121,9 @@ func QueryJobStatus(c *gin.Context) {
 	// if given jobid . update job status in database
 	jobid, _ := strconv.Atoi(jobidStr)
 	var err error
-	var imageData *models.ImageMeta
+	var imageData *models.BuildLog
 	if jobid > 0 {
-		imageData, err = models.GetImageMetaById(jobid)
+		imageData, err = models.GetBuildLogById(jobid)
 	}
 
 	jobAPI := models.GetClientSet().BatchV1()
@@ -147,29 +144,24 @@ func QueryJobStatus(c *gin.Context) {
 		result["completionTime"] = job.Status.CompletionTime
 		if imageData != nil {
 			result["url"] = imageData.DownloadUrl
-			var updateJob models.ImageMeta
+			var updateJob models.BuildLog
 			updateJob.JobName = jobname
 			updateJob.Id = jobid
 			updateJob.Status = models.JOB_STATUS_SUCCEED
-			models.UpdateJobStatus(&updateJob)
+			models.UpdateBuildStatus(&updateJob)
 		}
 
-		// go func() {
-		//   delete this ConfigMap
-		// 	clientset.CoreV1().ConfigMaps(util.GetConfig().K8sConfig.Namespace).Delete(context.TODO(), insertData.ConfigMapName, *metav1.NewDeleteOptions(0))
-		// }()
-		//no export if success
 		job = nil
 	} else if job.Status.Failed >= *backoffLimit {
 		result["status"] = models.JOB_STATUS_FAILED
 		result["error"] = job.Status.String()
 		result["completionTime"] = job.Status.CompletionTime
 		if imageData != nil {
-			var updateJob models.ImageMeta
+			var updateJob models.BuildLog
 			updateJob.JobName = jobname
 			updateJob.Id = jobid
 			updateJob.Status = models.JOB_STATUS_FAILED
-			models.UpdateJobStatus(&updateJob)
+			models.UpdateBuildStatus(&updateJob)
 		}
 	} else if job.Status.Succeeded == 0 || job.Status.Failed == 0 {
 		result["status"] = models.JOB_STATUS_RUNNING
@@ -230,7 +222,7 @@ func Read(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "id must be int type", err))
 		return
 	}
-	v, err := models.GetImageMetaById(id)
+	v, err := models.GetBuildLogById(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, err, nil))
 		return
@@ -301,7 +293,7 @@ func QueryMyHistory(c *gin.Context) {
 		return
 	}
 
-	result, err := models.GetMyImageMetaHistory(UserId, 0, 10)
+	result, err := models.GetMyBuildLogs(UserId, 0, 10)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, err, nil))
 		return
