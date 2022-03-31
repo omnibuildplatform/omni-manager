@@ -39,35 +39,30 @@ func InitRedis() error {
 	return NewRedisPool(redisURL, redisPassword, redisDB)
 }
 
-// NewRedisPool 返回redis连接池
+// NewRedisPool return redis pool
 func NewRedisPool(redisURL, pswd string, db int) (redisErr error) {
-	fmt.Println("========0=======", redisURL)
 	redisPool = &redis.Pool{
 		MaxIdle:     redisMaxIdle,
 		IdleTimeout: time.Duration(redisIdleTimeoutSec) * time.Second,
 		Dial: func() (redis.Conn, error) {
 			c, err := redis.DialURL(redisURL)
-			fmt.Println("========1=======")
 			if err != nil {
 				err = fmt.Errorf("redis connection error: %s", err)
 				Log.Error(err)
 				return nil, err
 			}
-			fmt.Println("========2=======", pswd)
-			//验证redis密码
+			//check password
 			if _, err = c.Do("AUTH", pswd); err != nil {
 				err = fmt.Errorf("redis auth password error: %s", err)
 				Log.Error(err)
 				return nil, err
 			}
-			fmt.Println("=======3========")
 			if _, err = c.Do("SELECT", db); err != nil {
 				c.Close()
 				err = fmt.Errorf("redis SELECT   error: %s", err)
 				Log.Error(err)
 				return nil, err
 			}
-			fmt.Println("===============", c.Err())
 			return c, nil
 		},
 		TestOnBorrow: func(c redis.Conn, t time.Time) error {
@@ -81,7 +76,7 @@ func NewRedisPool(redisURL, pswd string, db int) (redisErr error) {
 	return
 }
 
-//Set 请加表名前缀 比如employee_***
+//Set key:value
 func Set(k string, data interface{}) error {
 	c := redisPool.Get()
 	defer c.Close()
@@ -93,7 +88,7 @@ func Set(k string, data interface{}) error {
 	return nil
 }
 
-//BatchSet 请加表名前缀 比如employee_***
+//BatchSet
 func BatchSet(k string, data interface{}, c redis.Conn) error {
 
 	value, _ := json.Marshal(data)
