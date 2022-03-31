@@ -140,6 +140,9 @@ func InitConfig() {
 	if os.Getenv("WS_PORT") != "" {
 		cfg.WSConfig.Port, _ = strconv.Atoi(os.Getenv("WS_PORT"))
 	}
+	if os.Getenv("CUSTOM_RPM_API") != "" {
+		cfg.BuildParam.CustomRpmAPI = os.Getenv("CUSTOM_RPM_API")
+	}
 
 	// load openeuler_minimal.json file from github resp, and reload and update it'data every night at 3:00 / beijing
 	minimalPath := fmt.Sprintf(GetConfig().BuildParam.OpeneulerMinimal, GetConfig().BuildParam.PackageName)

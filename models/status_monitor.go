@@ -144,7 +144,6 @@ checkJobStatus:
 
 //connect each websocket
 func wsQueryJobStatus(w http.ResponseWriter, r *http.Request) {
-	util.Log.Errorln(" ------------  wsQueryJobStatus:", r.URL.Query())
 	token := r.URL.Query().Get("token")
 	if token != "tokentest" {
 		return
