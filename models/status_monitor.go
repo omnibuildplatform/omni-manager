@@ -49,6 +49,7 @@ func writeMessage2Client(ws *websocket.Conn, jobDBID, jobname string) {
 	defer func() {
 		ws.Close()
 	}()
+	util.Log.Errorln(" ------------  writeMessage2Client:")
 	//check job status first
 	var reTry = 0
 checkJobStatus:
@@ -116,12 +117,9 @@ checkJobStatus:
 	for {
 		n, err := podLogs.Read(tempBytes)
 		if err != nil {
-			//wait some seconds for update the job status
-			time.Sleep(time.Second * 5)
-			// resp, err := http.Get("http://localhost:8080/api/v1/images/queryJobStatus/" + jobname)
-			// jobstatusResp, _ := ioutil.ReadAll(resp.Body)
-			// defer resp.Body.Close()
-			// fmt.Println(string(jobstatusResp))
+			// //wait some seconds for update the job status
+			// time.Sleep(time.Second * 2)
+			CheckPodStatus(jobname)
 			//----------------------------------------
 			// if some  err occured,then tell client to call follow api to query job status
 			result["data"] = "/api/v1/images/queryJobStatus/" + jobname + "?id=" + jobDBID
@@ -146,7 +144,7 @@ checkJobStatus:
 
 //connect each websocket
 func wsQueryJobStatus(w http.ResponseWriter, r *http.Request) {
-	util.Log.Errorln(" ------------  wsQueryJobStatus")
+	util.Log.Errorln(" ------------  wsQueryJobStatus:", r.URL.Query())
 	token := r.URL.Query().Get("token")
 	if token != "tokentest" {
 		return

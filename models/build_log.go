@@ -92,17 +92,6 @@ func UpdateBuildLogById(m *BuildLog) (err error) {
 	return result.Error
 }
 
-// UpdateBuildStatus
-func UpdateBuildStatus(m *BuildLog) (err error) {
-	o := util.GetDB()
-	result := o.Model(m).Where("id = ?", m.Id).Update("status", m.Status)
-	if result.Error == nil {
-		//record log after update status
-		util.Log.Infof("jobid:%d,jobname:%s, update status = %s ", m.Id, m.JobName, m.Status)
-	}
-	return result.Error
-}
-
 // CreateTables
 func CreateTables() (err error) {
 	o := util.GetDB()
@@ -242,9 +231,55 @@ func MakeJob(cm *v1.ConfigMap, buildtype, release string) (job *batchv1.Job, out
 			TTLSecondsAfterFinished: &tTLSecondsAfterFinished,
 		},
 	}
-	cmBytes, _ := json.Marshal(jobYaml)
-	fmt.Println("------------cm :", string(cmBytes))
+	// cmBytes, _ := json.Marshal(jobYaml)
+	// fmt.Println("------------cm :", string(cmBytes))
 	job, err = jobInterface.Create(context.TODO(), jobYaml, metav1.CreateOptions{})
 
+	return
+}
+func CheckPodStatus(jobname string) (err error) {
+	jobAPI := GetClientSet().BatchV1()
+	var job *batchv1.Job
+	job, err = jobAPI.Jobs(util.GetConfig().K8sConfig.Namespace).Get(context.TODO(), jobname, metav1.GetOptions{})
+	if err != nil {
+		return
+	}
+	jobRedisBytes, redisErr := util.GetJsonByte(fmt.Sprintf("build_log:%s", jobname))
+	if redisErr != nil {
+		return redisErr
+	}
+
+	buildLog := new(BuildLog)
+	err = json.Unmarshal(jobRedisBytes, buildLog)
+	if err != nil {
+		return
+	}
+	completions := job.Spec.Completions
+	backoffLimit := job.Spec.BackoffLimit
+	result := make(map[string]interface{})
+	result["name"] = jobname
+	result["startTime"] = job.Status.StartTime
+	// check status
+	if job.Status.Succeeded >= *completions {
+		result["status"] = JOB_STATUS_SUCCEED
+		result["completionTime"] = job.Status.CompletionTime
+		if buildLog != nil {
+			result["url"] = buildLog.DownloadUrl
+			buildLog.Status = JOB_STATUS_SUCCEED
+			AddBuildLog(buildLog)
+		}
+
+		job = nil
+	} else if job.Status.Failed >= *backoffLimit {
+		result["status"] = JOB_STATUS_FAILED
+		result["error"] = job.Status.String()
+		result["completionTime"] = job.Status.CompletionTime
+		if buildLog != nil {
+			buildLog.Status = JOB_STATUS_FAILED
+			AddBuildLog(buildLog)
+		}
+	} else if job.Status.Succeeded == 0 || job.Status.Failed == 0 {
+		result["status"] = JOB_STATUS_RUNNING
+	}
 	return
 }

@@ -89,14 +89,14 @@ func StartBuild(c *gin.Context) {
 	insertData.JobName = job.GetName()
 	insertData.CreateTime = job.GetCreationTimestamp().Time
 	insertData.DownloadUrl = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, insertData.Release, time.Now().Format("2006-01-02"), outPutname)
-	jobDBID, err := models.AddBuildLog(&insertData)
+	// jobDBID, err := models.AddBuildLog(&insertData)
 
 	util.Set(fmt.Sprintf("build_log:%s", job.GetName()), insertData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, nil, err))
 		return
 	}
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, jobDBID, job.GetName(), util.GetConfig().WSConfig))
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, 0, job.GetName(), util.GetConfig().WSConfig))
 }
 
 // @Summary QueryJobStatus
@@ -146,11 +146,6 @@ func QueryJobStatus(c *gin.Context) {
 		result["completionTime"] = job.Status.CompletionTime
 		if imageData != nil {
 			result["url"] = imageData.DownloadUrl
-			var updateJob models.BuildLog
-			updateJob.JobName = jobname
-			updateJob.Id = jobid
-			updateJob.Status = models.JOB_STATUS_SUCCEED
-			models.UpdateBuildStatus(&updateJob)
 		}
 
 		job = nil
@@ -158,13 +153,7 @@ func QueryJobStatus(c *gin.Context) {
 		result["status"] = models.JOB_STATUS_FAILED
 		result["error"] = job.Status.String()
 		result["completionTime"] = job.Status.CompletionTime
-		if imageData != nil {
-			var updateJob models.BuildLog
-			updateJob.JobName = jobname
-			updateJob.Id = jobid
-			updateJob.Status = models.JOB_STATUS_FAILED
-			models.UpdateBuildStatus(&updateJob)
-		}
+
 	} else if job.Status.Succeeded == 0 || job.Status.Failed == 0 {
 		result["status"] = models.JOB_STATUS_RUNNING
 	}
