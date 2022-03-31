@@ -170,6 +170,7 @@ func wsQueryJobStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func StartWebSocket() {
+	http.HandleFunc("/wsQueryJobStatus", wsQueryJobStatus)
 	http.HandleFunc("/ws/queryJobStatus", wsQueryJobStatus)
 	addr := fmt.Sprintf(":%d", util.GetConfig().WSConfig.Port)
 	util.Log.Errorf("websocket Listening and serving at %s port ", addr)
