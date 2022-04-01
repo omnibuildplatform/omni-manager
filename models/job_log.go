@@ -98,6 +98,16 @@ func CreateTables() (err error) {
 	return
 }
 
+//Persistence a Job_log  from redis to db
+func PersistenceJob(m *JobLog) (err error) {
+	err = util.DelKey(CreateRedisJobName(m.JobName), nil)
+	if err != nil {
+		return
+	}
+	return AddJobLog(m)
+
+}
+
 //make ConfigMap
 func MakeConfigMap(release string, customRpms []string) (cm *v1.ConfigMap) {
 	totalPkgs := make(map[string][]string)
@@ -232,6 +242,9 @@ func MakeJob(cm *v1.ConfigMap, buildtype, release string) (job *batchv1.Job, out
 
 	return
 }
+func CreateRedisJobName(jobname string) string {
+	return fmt.Sprintf("build_log:%s", jobname)
+}
 func CheckPodStatus(ns, jobname string) (result map[string]interface{}, job *batchv1.Job, err error) {
 	jobAPI := GetClientSet().BatchV1()
 	// var job *batchv1.Job
@@ -239,7 +252,7 @@ func CheckPodStatus(ns, jobname string) (result map[string]interface{}, job *bat
 	if err != nil {
 		return
 	}
-	jobRedisBytes, redisErr := util.GetJsonByte(fmt.Sprintf("build_log:%s", jobname))
+	jobRedisBytes, redisErr := util.GetJsonByte(CreateRedisJobName(jobname))
 	if redisErr != nil {
 		return nil, nil, redisErr
 	}
@@ -261,9 +274,8 @@ func CheckPodStatus(ns, jobname string) (result map[string]interface{}, job *bat
 		if JobLog != nil {
 			result["url"] = JobLog.DownloadUrl
 			JobLog.Status = JOB_STATUS_SUCCEED
-			AddJobLog(JobLog)
+			PersistenceJob(JobLog)
 		}
-
 		job = nil
 	} else if job.Status.Failed > *backoffLimit {
 		result["status"] = JOB_STATUS_FAILED
@@ -271,7 +283,7 @@ func CheckPodStatus(ns, jobname string) (result map[string]interface{}, job *bat
 		result["completionTime"] = job.Status.CompletionTime
 		if JobLog != nil {
 			JobLog.Status = JOB_STATUS_FAILED
-			AddJobLog(JobLog)
+			PersistenceJob(JobLog)
 		}
 	} else if job.Status.Succeeded == 0 || job.Status.Failed == 0 {
 		result["status"] = JOB_STATUS_RUNNING
