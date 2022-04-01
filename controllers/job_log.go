@@ -88,7 +88,8 @@ func StartBuild(c *gin.Context) {
 	insertData.JobName = job.GetName()
 	insertData.CreateTime = job.GetCreationTimestamp().Time
 	insertData.DownloadUrl = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, insertData.Release, time.Now().Format("2006-01-02"), outPutname)
-	util.Set(models.CreateRedisJobName(job.GetName()), insertData)
+	// util.Set(models.CreateRedisJobName(job.GetName()), insertData)
+	models.AddJobLog(&insertData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, nil, err))
 		return

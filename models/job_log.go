@@ -252,16 +252,17 @@ func CheckPodStatus(ns, jobname string) (result map[string]interface{}, job *bat
 	if err != nil {
 		return
 	}
-	jobRedisBytes, redisErr := util.GetJsonByte(CreateRedisJobName(jobname))
-	if redisErr != nil {
-		return nil, nil, redisErr
-	}
+	// jobRedisBytes, redisErr := util.GetJsonByte(CreateRedisJobName(jobname))
+	// if redisErr != nil {
+	// 	return nil, nil, redisErr
+	// }
 
-	JobLog := new(JobLog)
-	err = json.Unmarshal(jobRedisBytes, JobLog)
-	if err != nil {
-		return
-	}
+	// err = json.Unmarshal(jobRedisBytes, JobLog)
+	// if err != nil {
+	// 	return
+	// }
+	var JobLog *JobLog
+	JobLog, err = GetJobLogByJobName(jobname)
 	completions := job.Spec.Completions
 	backoffLimit := job.Spec.BackoffLimit
 	result = make(map[string]interface{})
@@ -273,18 +274,18 @@ func CheckPodStatus(ns, jobname string) (result map[string]interface{}, job *bat
 		result["completionTime"] = job.Status.CompletionTime
 		if JobLog != nil {
 			result["url"] = JobLog.DownloadUrl
-			JobLog.Status = JOB_STATUS_SUCCEED
-			PersistenceJob(JobLog)
+			// JobLog.Status = JOB_STATUS_SUCCEED
+			// 	PersistenceJob(JobLog)
 		}
 		job = nil
 	} else if job.Status.Failed > *backoffLimit {
 		result["status"] = JOB_STATUS_FAILED
 		result["error"] = job.Status.String()
 		result["completionTime"] = job.Status.CompletionTime
-		if JobLog != nil {
-			JobLog.Status = JOB_STATUS_FAILED
-			PersistenceJob(JobLog)
-		}
+		// if JobLog != nil {
+		// JobLog.Status = JOB_STATUS_FAILED
+		// PersistenceJob(JobLog)
+		// }
 	} else if job.Status.Succeeded == 0 || job.Status.Failed == 0 {
 		result["status"] = JOB_STATUS_RUNNING
 	}
