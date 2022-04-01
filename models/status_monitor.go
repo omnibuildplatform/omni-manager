@@ -31,12 +31,12 @@ func writeMessage2Client(ws *websocket.Conn, jobname string) {
 		ws.Close()
 	}()
 
+	heart := make(map[string]interface{})
 	//send heart data
 	go func() {
 		for {
-			time.Sleep(time.Second * 10)
-			heart := make(map[string]interface{})
-			heart["data"] = "nihao"
+			time.Sleep(time.Second * 30)
+			heart["data"] = ""
 			heart["code"] = 99
 			heartBytes, err := json.Marshal(heart)
 			if err = ws.WriteMessage(websocket.TextMessage, heartBytes); err != nil {

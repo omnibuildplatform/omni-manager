@@ -66,6 +66,15 @@ func GetBuildLogById(id int) (v *BuildLog, err error) {
 	return v, err
 }
 
+func GetBuildLogByJobName(jobname string) (v *BuildLog, err error) {
+	o := util.GetDB()
+	v = new(BuildLog)
+	sql := fmt.Sprintf("select * from %s where job_name = '%s' order by id desc limit 1", v.TableName(), jobname)
+	tx := o.Debug().Raw(sql).Scan(v)
+	fmt.Println(tx.Error, "==============", v)
+	return v, tx.Error
+}
+
 // GetAllBuildLog retrieves all ImageMeta matches certain condition. Returns empty list if
 // no records exist
 func GetAllBuildLog(query map[string]string, fields []string, sortby []string, order []string,

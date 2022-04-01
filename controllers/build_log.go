@@ -90,7 +90,6 @@ func StartBuild(c *gin.Context) {
 	insertData.CreateTime = job.GetCreationTimestamp().Time
 	insertData.DownloadUrl = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, insertData.Release, time.Now().Format("2006-01-02"), outPutname)
 	// jobDBID, err := models.AddBuildLog(&insertData)
-
 	util.Set(fmt.Sprintf("build_log:%s", job.GetName()), insertData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, nil, err))
@@ -119,17 +118,14 @@ func QueryJobStatus(c *gin.Context) {
 		//if no special,then use config namespace
 		jobNamespace = util.GetConfig().K8sConfig.Namespace
 	}
-	jobidStr, _ := c.GetQuery("id")
-	// if given jobid . update job status in database
-	jobid, _ := strconv.Atoi(jobidStr)
-	var err error
-	var imageData *models.BuildLog
-	if jobid > 0 {
-		imageData, err = models.GetBuildLogById(jobid)
+	buildLog, err := models.GetBuildLogByJobName(jobname)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, " not found job name:", jobname))
+		return
 	}
-
 	jobAPI := models.GetClientSet().BatchV1()
 	var job *batchv1.Job
+
 	job, err = jobAPI.Jobs(jobNamespace).Get(context.TODO(), jobname, metav1.GetOptions{})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, " QueryJobStatus Error:", err))
@@ -144,12 +140,12 @@ func QueryJobStatus(c *gin.Context) {
 	if job.Status.Succeeded >= *completions {
 		result["status"] = models.JOB_STATUS_SUCCEED
 		result["completionTime"] = job.Status.CompletionTime
-		if imageData != nil {
-			result["url"] = imageData.DownloadUrl
+		if buildLog != nil {
+			result["url"] = buildLog.DownloadUrl
 		}
 
 		job = nil
-	} else if job.Status.Failed >= *backoffLimit {
+	} else if job.Status.Failed > *backoffLimit {
 		result["status"] = models.JOB_STATUS_FAILED
 		result["error"] = job.Status.String()
 		result["completionTime"] = job.Status.CompletionTime
