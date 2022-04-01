@@ -108,6 +108,9 @@ func InitConfig(path string) {
 		}
 	}
 
+	if os.Getenv("GIN_MODE") != "" {
+		cfg.AppModel = os.Getenv("GIN_MODE")
+	}
 	if cfg.AppModel == "debug" {
 		//info level
 		Log.SetLevel(logrus.InfoLevel)

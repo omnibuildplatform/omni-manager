@@ -2,6 +2,8 @@ FROM golang:alpine3.13 as builder
 LABEL maintainer="luonancom<luonancom@qq.com>"
 WORKDIR /app
 COPY . /app
+ENV GOPROXY=https://goproxy.cn,direct  
+ENV GIN_MODE=release
 RUN go mod download
 RUN CGO_ENABLED=0 go build -o omni-manager
 
