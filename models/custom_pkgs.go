@@ -34,19 +34,23 @@ func getSigs() (err error) {
 	var req *http.Request
 	req, err = http.NewRequest("GET", util.GetConfig().BuildParam.CustomRpmAPI+"/sigs", nil)
 	if err != nil {
+		util.Log.Errorln("1 get custom rpms error:", err)
 		return
 	}
 	var resp *http.Response
 	resp, err = http.DefaultClient.Do(req)
 	if err != nil {
+		util.Log.Errorln("2 get custom rpms error:", err)
 		return
 	}
 	defer resp.Body.Close()
 	bodyData, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		util.Log.Errorln("3 get custom rpms error:", err)
 		return
 	}
 	err = json.Unmarshal(bodyData, &CustomSigList)
+	util.Log.Errorln("4 get custom rpms error:", err)
 	return
 }
 

@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"omni-manager/util"
-	"strconv"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -35,21 +34,35 @@ var (
 )
 
 // write Message to Client
-func writeMessage2Client(ws *websocket.Conn, jobDBID, jobname string) {
+func writeMessage2Client(ws *websocket.Conn, jobname string) {
 	result := make(map[string]interface{}, 0)
-	jobid, _ := strconv.Atoi(jobDBID)
-	if jobid <= 0 {
-		result["data"] = "job id not integer"
-		result["code"] = -1
-		resultBytes, err := json.Marshal(result)
-		if err = ws.WriteMessage(websocket.TextMessage, resultBytes); err != nil {
-			return
-		}
-	}
+	// jobid, _ := strconv.Atoi(jobDBID)
+	// if jobid <= 0 {
+	// 	result["data"] = "job id not integer"
+	// 	result["code"] = -1
+	// 	resultBytes, err := json.Marshal(result)
+	// 	if err = ws.WriteMessage(websocket.TextMessage, resultBytes); err != nil {
+	// 		return
+	// 	}
+	// }
 	defer func() {
 		ws.Close()
 	}()
-	util.Log.Errorln(" ------------  writeMessage2Client:")
+
+	//send heart data
+	go func() {
+		for {
+			time.Sleep(time.Second * 10)
+			heart := make(map[string]interface{})
+			heart["data"] = "nihao"
+			heart["code"] = 99
+			heartBytes, err := json.Marshal(heart)
+			if err = ws.WriteMessage(websocket.TextMessage, heartBytes); err != nil {
+				return
+			}
+		}
+	}()
+
 	//check job status first
 	var reTry = 0
 checkJobStatus:
@@ -122,7 +135,7 @@ checkJobStatus:
 			CheckPodStatus(jobname)
 			//----------------------------------------
 			// if some  err occured,then tell client to call follow api to query job status
-			result["data"] = "/api/v1/images/queryJobStatus/" + jobname + "?id=" + jobDBID
+			result["data"] = "/api/v1/images/queryJobStatus/" + jobname
 			result["code"] = 1
 			resultBytes, err := json.Marshal(result)
 			if err = ws.WriteMessage(websocket.TextMessage, resultBytes); err != nil {
@@ -145,9 +158,16 @@ checkJobStatus:
 //connect each websocket
 func wsQueryJobStatus(w http.ResponseWriter, r *http.Request) {
 	token := r.URL.Query().Get("token")
-	if token != "tokentest" {
+	if len(token) < 20 {
 		return
 	}
+	_, err := CheckAuthorization(token)
+	if err != nil {
+		//非法用户
+		util.Log.Warnln(" unAuthing user :", err)
+		return
+	}
+
 	jobname := r.URL.Query().Get("jobname")
 	if jobname == "" {
 		return
@@ -163,7 +183,7 @@ func wsQueryJobStatus(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	writeMessage2Client(ws, jobDBID, jobname)
+	writeMessage2Client(ws, jobname)
 }
 
 func StartWebSocket() {
