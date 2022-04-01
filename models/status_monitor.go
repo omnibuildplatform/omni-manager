@@ -120,7 +120,7 @@ queryNextLog:
 	for {
 		n, err := podLogs.Read(tempBytes)
 		if err != nil {
-			CheckPodStatus(jobname)
+			CheckPodStatus(util.GetConfig().K8sConfig.Namespace, jobname)
 			//----------------------------------------
 			// if some  err occured,then tell client to call follow api to query job status
 			result["data"] = "/api/v1/images/queryJobStatus/" + jobname

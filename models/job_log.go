@@ -24,9 +24,8 @@ type BuildParam struct {
 	BuildType string   ` description:"iso , zip ...."`
 	CustomPkg []string ` description:"custom"`
 }
-
-type BuildLog struct {
-	Id            int       `gorm:"primaryKey"`
+type JobLog struct {
+	JobName       string    ` description:"pod name" gorm:"primaryKey"`
 	Arch          string    ` description:"architecture"`
 	Release       string    ` description:"release openEuler Version"`
 	BuildType     string    ` description:"iso , zip ...."`
@@ -36,66 +35,55 @@ type BuildLog struct {
 	UserName      string    ` description:"user name"`
 	CreateTime    time.Time ` description:"create time"`
 	Status        string    ` description:"current status :running ,success, failed"`
-	JobName       string    ` description:"pod name"`
 	DownloadUrl   string    ` description:"download the result of build iso file"`
 	ConfigMapName string    ` description:"configMap name"`
 }
 
-func (t *BuildLog) TableName() string {
-	return "build_log"
+func (t *JobLog) TableName() string {
+	return "job_log"
 }
 
-func (t *BuildLog) ToString() string {
-	return fmt.Sprintf("id:%d;Architecture:%s;EulerVersion:%s;OutFormat:%s;UserId:%d;UserName:%s;JobName:%s", t.Id, t.Arch, t.Release, t.BuildType, t.UserId, t.UserName, t.JobName)
+func (t *JobLog) ToString() string {
+	return fmt.Sprintf(" Architecture:%s;EulerVersion:%s;OutFormat:%s;UserId:%d;UserName:%s;JobName:%s", t.Arch, t.Release, t.BuildType, t.UserId, t.UserName, t.JobName)
 }
 
-// AddBuildLog insert a new ImageMeta into database and returns
+// AddJobLog insert a new ImageMeta into database and returns
 // last inserted Id on success.
-func AddBuildLog(m *BuildLog) (id int64, err error) {
+func AddJobLog(m *JobLog) (err error) {
 	o := util.GetDB()
-	result := o.Create(m)
-	return int64(m.Id), result.Error
+	result := o.FirstOrCreate(m)
+	return result.Error
 }
 
-// GetBuildLogById retrieves ImageMeta by Id. Returns error if
-// Id doesn't exist
-func GetBuildLogById(id int) (v *BuildLog, err error) {
+func GetJobLogByJobName(jobname string) (v *JobLog, err error) {
 	o := util.GetDB()
-	v = &BuildLog{Id: id}
-	o.First(v, id)
-	return v, err
-}
-
-func GetBuildLogByJobName(jobname string) (v *BuildLog, err error) {
-	o := util.GetDB()
-	v = new(BuildLog)
+	v = new(JobLog)
 	sql := fmt.Sprintf("select * from %s where job_name = '%s' order by id desc limit 1", v.TableName(), jobname)
 	tx := o.Debug().Raw(sql).Scan(v)
-	fmt.Println(tx.Error, "==============", v)
 	return v, tx.Error
 }
 
-// GetAllBuildLog retrieves all ImageMeta matches certain condition. Returns empty list if
+// GetAllJobLog retrieves all ImageMeta matches certain condition. Returns empty list if
 // no records exist
-func GetAllBuildLog(query map[string]string, fields []string, sortby []string, order []string,
+func GetAllJobLog(query map[string]string, fields []string, sortby []string, order []string,
 	offset int64, limit int64) (ml []interface{}, err error) {
 	return nil, err
 }
 
-// GetMyBuildLogs query my build history
-func GetMyBuildLogs(userid int, offset int, limit int) (ml []*BuildLog, err error) {
+// GetMyJobLogs query my build history
+func GetMyJobLogs(userid int, offset int, limit int) (ml []*JobLog, err error) {
 	o := util.GetDB()
-	m := new(BuildLog)
+	m := new(JobLog)
 	m.UserId = userid
-	ml = make([]*BuildLog, limit)
+	ml = make([]*JobLog, limit)
 	sql := fmt.Sprintf("select * from %s where user_id = %d order by id desc limit %d,%d", m.TableName(), userid, offset, limit)
 	o.Raw(sql).Scan(&ml)
 	return ml, nil
 }
 
-// UpdateBuildLogById updates ImageMeta by Id and returns error if
+// UpdateJobLogById updates ImageMeta by Id and returns error if
 // the record to be updated doesn't exist
-func UpdateBuildLogById(m *BuildLog) (err error) {
+func UpdateJobLogById(m *JobLog) (err error) {
 	o := util.GetDB()
 	result := o.Model(m).Updates(m)
 	return result.Error
@@ -104,11 +92,9 @@ func UpdateBuildLogById(m *BuildLog) (err error) {
 // CreateTables
 func CreateTables() (err error) {
 	o := util.GetDB()
-	if !o.Migrator().HasTable(&BuildLog{}) {
-		// create table if not exist
-		err = o.Migrator().CreateTable(&BuildLog{})
+	if !o.Migrator().HasTable(&JobLog{}) {
+		err = o.Migrator().CreateTable(&JobLog{})
 	}
-
 	return
 }
 
@@ -177,7 +163,7 @@ func MakeJob(cm *v1.ConfigMap, buildtype, release string) (job *batchv1.Job, out
 	var backOffLimit int32 = 0
 	var tTLSecondsAfterFinished int32 = 1800
 	var privileged bool = true
-	var ownerReferenceController bool = true
+	var ownerReferenceController bool = false
 	var BlockOwnerDeletion bool = true
 	jobYaml := &batchv1.Job{
 		TypeMeta: metav1.TypeMeta{
@@ -246,46 +232,46 @@ func MakeJob(cm *v1.ConfigMap, buildtype, release string) (job *batchv1.Job, out
 
 	return
 }
-func CheckPodStatus(jobname string) (err error) {
+func CheckPodStatus(ns, jobname string) (result map[string]interface{}, job *batchv1.Job, err error) {
 	jobAPI := GetClientSet().BatchV1()
-	var job *batchv1.Job
-	job, err = jobAPI.Jobs(util.GetConfig().K8sConfig.Namespace).Get(context.TODO(), jobname, metav1.GetOptions{})
+	// var job *batchv1.Job
+	job, err = jobAPI.Jobs(ns).Get(context.TODO(), jobname, metav1.GetOptions{})
 	if err != nil {
 		return
 	}
 	jobRedisBytes, redisErr := util.GetJsonByte(fmt.Sprintf("build_log:%s", jobname))
 	if redisErr != nil {
-		return redisErr
+		return nil, nil, redisErr
 	}
 
-	buildLog := new(BuildLog)
-	err = json.Unmarshal(jobRedisBytes, buildLog)
+	JobLog := new(JobLog)
+	err = json.Unmarshal(jobRedisBytes, JobLog)
 	if err != nil {
 		return
 	}
 	completions := job.Spec.Completions
 	backoffLimit := job.Spec.BackoffLimit
-	result := make(map[string]interface{})
+	result = make(map[string]interface{})
 	result["name"] = jobname
 	result["startTime"] = job.Status.StartTime
 	// check status
 	if job.Status.Succeeded >= *completions {
 		result["status"] = JOB_STATUS_SUCCEED
 		result["completionTime"] = job.Status.CompletionTime
-		if buildLog != nil {
-			result["url"] = buildLog.DownloadUrl
-			buildLog.Status = JOB_STATUS_SUCCEED
-			AddBuildLog(buildLog)
+		if JobLog != nil {
+			result["url"] = JobLog.DownloadUrl
+			JobLog.Status = JOB_STATUS_SUCCEED
+			AddJobLog(JobLog)
 		}
 
 		job = nil
-	} else if job.Status.Failed >= *backoffLimit {
+	} else if job.Status.Failed > *backoffLimit {
 		result["status"] = JOB_STATUS_FAILED
 		result["error"] = job.Status.String()
 		result["completionTime"] = job.Status.CompletionTime
-		if buildLog != nil {
-			buildLog.Status = JOB_STATUS_FAILED
-			AddBuildLog(buildLog)
+		if JobLog != nil {
+			JobLog.Status = JOB_STATUS_FAILED
+			AddJobLog(JobLog)
 		}
 	} else if job.Status.Succeeded == 0 || job.Status.Failed == 0 {
 		result["status"] = JOB_STATUS_RUNNING

@@ -84,18 +84,14 @@ func InitAuthing(userpoolid, secret string) {
 		secret = util.GetConfig().AuthingConfig.Secret
 	}
 	AuthingClient = management.NewClient(userpoolid, secret)
-	AppClient, _ = AuthingClient.FindApplicationById("623d6bf75c72636ebb8c5e4b")
+	AppClient, _ = AuthingClient.FindApplicationById(util.GetConfig().AuthingConfig.AppID)
 	UserClient = authentication.NewClient(util.GetConfig().AuthingConfig.AppID, util.GetConfig().AuthingConfig.Secret)
 
 }
 func ParseAuthingUserInput(userinput *CreateUserInput) *model.CreateUserRequest {
-	fmt.Println(*(userinput.Address), "------ParseAuthingUserInput----------", userinput)
-
 	var testuser model.CreateUserRequest
 	testuser.UserInfo.Username = userinput.Username
-
 	testuser.UserInfo.Email = userinput.Email
-
 	return &testuser
 }
 
@@ -122,13 +118,11 @@ func Authorize() gin.HandlerFunc {
 		// loginStatus, err := UserClient.CheckLoginStatus(token)
 		// local
 		userInfo, err := CheckAuthorization(token)
-
 		if err != nil {
 			c.Abort()
 			c.JSON(http.StatusUnauthorized, util.ExportData(util.CodeStatusClientError, "forbidden", err))
 			return
 		}
-
 		c.Keys = userInfo
 	}
 }
