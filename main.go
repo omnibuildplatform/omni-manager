@@ -15,7 +15,7 @@ func main() {
 	flag.IntVar(&httpPort, "p", 0, "Input http port")
 	flag.Parse()
 	//load config file
-	util.InitConfig()
+	util.InitConfig("")
 	if httpPort <= 0 {
 		//use flag port first ,if not then use config port
 		httpPort = util.GetConfig().AppPort

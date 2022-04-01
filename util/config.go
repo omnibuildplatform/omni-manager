@@ -90,10 +90,16 @@ type JwtConfig struct {
 	JwtKey string `json:"jwtKey"`
 }
 
-func InitConfig() {
+func InitConfig(path string) {
 	//app.json must be set right folder
+
 	if dir, err := os.Getwd(); err == nil {
-		dir = dir + "/conf/app.json"
+		if path == "" {
+			dir = dir + "/conf/app.json"
+		} else {
+			dir = path
+		}
+
 		err = parseConfig(dir)
 		if err != nil {
 			Log.Errorf("load app.json failed, app must exit .please check app.json path:%s,and error:%s", dir, err)

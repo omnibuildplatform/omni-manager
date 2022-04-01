@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -21,7 +20,7 @@ import (
 // @Summary StartBuild Job
 // @Description start a image build job
 // @Tags  meta Manager
-// @Param	body		body 	models.ImageInputData	true		"body for ImageMeta content"
+// @Param	body		body 	models.BuildParam	true		"body for ImageMeta content"
 // @Accept json
 // @Produce json
 // @Router /v1/images/startBuild [post]
@@ -34,7 +33,7 @@ func StartBuild(c *gin.Context) {
 		return
 	}
 
-	var insertData models.BuildLog
+	var insertData models.JobLog
 	insertData.UserName = c.Keys["nm"].(string)
 	insertData.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	insertData.Arch = imageInputData.Arch
@@ -118,42 +117,13 @@ func QueryJobStatus(c *gin.Context) {
 		//if no special,then use config namespace
 		jobNamespace = util.GetConfig().K8sConfig.Namespace
 	}
-	buildLog, err := models.GetBuildLogByJobName(jobname)
+	result, job, err := models.CheckPodStatus(jobNamespace, jobname)
+
+	// buildLog, err := models.GetJobLogByJobName(jobname)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, " not found job name:", jobname))
 		return
 	}
-	jobAPI := models.GetClientSet().BatchV1()
-	var job *batchv1.Job
-
-	job, err = jobAPI.Jobs(jobNamespace).Get(context.TODO(), jobname, metav1.GetOptions{})
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, " QueryJobStatus Error:", err))
-		return
-	}
-	completions := job.Spec.Completions
-	backoffLimit := job.Spec.BackoffLimit
-	result := make(map[string]interface{})
-	result["name"] = jobname
-	result["startTime"] = job.Status.StartTime
-	// check status
-	if job.Status.Succeeded >= *completions {
-		result["status"] = models.JOB_STATUS_SUCCEED
-		result["completionTime"] = job.Status.CompletionTime
-		if buildLog != nil {
-			result["url"] = buildLog.DownloadUrl
-		}
-
-		job = nil
-	} else if job.Status.Failed > *backoffLimit {
-		result["status"] = models.JOB_STATUS_FAILED
-		result["error"] = job.Status.String()
-		result["completionTime"] = job.Status.CompletionTime
-
-	} else if job.Status.Succeeded == 0 || job.Status.Failed == 0 {
-		result["status"] = models.JOB_STATUS_RUNNING
-	}
-
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result, job))
 }
 
@@ -194,27 +164,6 @@ func QueryJobLogs(c *gin.Context) {
 		}
 	}
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", buf.String()))
-}
-
-// @Summary get
-// @Description get single one
-// @Tags  meta Manager
-// @Param	id		path 	string	true		"The key for staticblock"
-// @Accept json
-// @Produce json
-// @Router /v1/images/get/{id} [get]
-func Read(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if id <= 0 || err != nil {
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "id must be int type", err))
-		return
-	}
-	v, err := models.GetBuildLogById(id)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, err, nil))
-		return
-	}
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, id, v))
 }
 
 // @Summary GetBaseData param
@@ -279,7 +228,7 @@ func QueryMyHistory(c *gin.Context) {
 		c.JSON(http.StatusForbidden, util.ExportData(util.CodeStatusClientError, " forbidden ", nil))
 		return
 	}
-	result, err := models.GetMyBuildLogs(UserId, 0, 10)
+	result, err := models.GetMyJobLogs(UserId, 0, 10)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, err, nil))
 		return

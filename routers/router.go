@@ -25,7 +25,6 @@ func InitRouter() *gin.Engine {
 	{
 		v1.Use(models.Authorize()) //
 		v1.POST("/v1/images/startBuild", controllers.StartBuild)
-		v1.GET("/v1/images/get/:id", controllers.Read)
 		v1.GET("/v1/images/query", controllers.Query)
 		v1.GET("/v1/images/param/getBaseData/", controllers.GetBaseData)
 		v1.GET("/v1/images/param/getCustomePkgList/", controllers.GetCustomePkgList)

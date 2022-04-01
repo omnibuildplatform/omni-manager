@@ -84,31 +84,6 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/v1/images/get/{id}": {
-            "get": {
-                "description": "get single one",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "meta Manager"
-                ],
-                "summary": "get",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The key for staticblock",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
         "/v1/images/param/getBaseData/": {
             "get": {
                 "description": "get architecture, release Version, output Format ,and default package name list",
@@ -294,7 +269,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.ImageInputData"
+                            "$ref": "#/definitions/models.BuildParam"
                         }
                     }
                 ],
@@ -303,6 +278,29 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.BuildParam": {
+            "type": "object",
+            "properties": {
+                "arch": {
+                    "type": "string"
+                },
+                "buildType": {
+                    "type": "string"
+                },
+                "customPkg": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "release": {
+                    "type": "string"
+                }
+            }
+        },
         "models.CreateUserInput": {
             "type": "object",
             "properties": {
@@ -427,29 +425,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "zoneinfo": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.ImageInputData": {
-            "type": "object",
-            "properties": {
-                "arch": {
-                    "type": "string"
-                },
-                "buildType": {
-                    "type": "string"
-                },
-                "customPkg": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "release": {
                     "type": "string"
                 }
             }
