@@ -283,7 +283,6 @@ func QueryMyHistory(c *gin.Context) {
 		c.JSON(http.StatusForbidden, util.ExportData(util.CodeStatusClientError, " forbidden ", nil))
 		return
 	}
-
 	result, err := models.GetMyBuildLogs(UserId, 0, 10)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, err, nil))

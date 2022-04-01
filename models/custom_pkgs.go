@@ -32,7 +32,7 @@ func InitCustomPkgs() error {
 // get sig list
 func getSigs() (err error) {
 	url := util.GetConfig().BuildParam.CustomRpmAPI + "/sigs"
-	util.Log.Errorln("0 get custom rpms url:", url)
+	util.Log.Infoln("get custom rpms from:", url)
 	var req *http.Request
 	req, err = http.NewRequest("GET", url, nil)
 
@@ -53,7 +53,11 @@ func getSigs() (err error) {
 		return
 	}
 	err = json.Unmarshal(bodyData, &CustomSigList)
-	util.Log.Errorln("4 get custom rpms error:", err)
+	if err != nil {
+		util.Log.Errorln("4 get custom rpms error:", err)
+		return
+	}
+
 	return
 }
 

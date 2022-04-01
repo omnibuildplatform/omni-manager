@@ -10,7 +10,7 @@
             (function() {
                 var codeui = document.getElementById("codeui");
 				 var data = document.getElementById("fileData");
-                var conn = new WebSocket("ws://localhost:8888/ws/queryJobStatus?token=tokentest&jobname=omni-image-d483157e-8f73-4022-b50f-aeb55bb86c6b");
+                var conn = new WebSocket("ws://192.168.1.193:8888/ws/queryJobStatus?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NDg4MjI0NjEsImlhdCI6MTY0ODc3OTI2MSwiaWQiOiIxMTEiLCJubSI6IumZiOWFtiJ9.X-Dk_EmB4J9hRi1fAj8egnZUglhB0xLIO7bA1K87prk&jobname=omni-image-1a9a91cf-640d-439e-839b-9d91a97d1d2c");
                 conn.onclose = function(evt) {
                     //data.textContent = 'Connection closed';
                 }

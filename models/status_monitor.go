@@ -23,28 +23,10 @@ const (
 	JOB_STATUS_FAILED  = "failed"
 )
 
-var (
-	upgrader = websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-		CheckOrigin: func(r *http.Request) bool {
-			return util.GetConfig().WSConfig.CheckOrigin
-		},
-	}
-)
-
 // write Message to Client
 func writeMessage2Client(ws *websocket.Conn, jobname string) {
 	result := make(map[string]interface{}, 0)
-	// jobid, _ := strconv.Atoi(jobDBID)
-	// if jobid <= 0 {
-	// 	result["data"] = "job id not integer"
-	// 	result["code"] = -1
-	// 	resultBytes, err := json.Marshal(result)
-	// 	if err = ws.WriteMessage(websocket.TextMessage, resultBytes); err != nil {
-	// 		return
-	// 	}
-	// }
+
 	defer func() {
 		ws.Close()
 	}()
@@ -62,7 +44,6 @@ func writeMessage2Client(ws *websocket.Conn, jobname string) {
 			}
 		}
 	}()
-
 	//check job status first
 	var reTry = 0
 checkJobStatus:
@@ -70,68 +51,75 @@ checkJobStatus:
 	_, err := jobAPI.Jobs(util.GetConfig().K8sConfig.Namespace).Get(context.TODO(), jobname, metav1.GetOptions{})
 	if err != nil {
 		//retry 10 times if some err , one time.second each time
-		if reTry < 10 {
-			result["data"] = "----------checking job status ----"
+		if reTry < 30 {
+			result["data"] = "----------checking job status ----\n"
 			result["code"] = 0
 		} else {
 			result["data"] = "/api/v1/images/queryJobStatus/" + jobname
 			result["code"] = 1
 		}
-		resultBytes, err := json.Marshal(result)
+		resultBytes, _ := json.Marshal(result)
 		if err = ws.WriteMessage(websocket.TextMessage, resultBytes); err != nil {
+			util.Log.Warnln("4.1 wsQueryJobStatus token :", err)
 			return
 		}
 		time.Sleep(time.Second)
-		if reTry < 10 {
+		if reTry < 30 {
 			goto checkJobStatus
-		} else {
-			return
 		}
 	}
-
 	listopt := metav1.ListOptions{}
 	listopt.LabelSelector = "job-name=" + jobname
+	reTry = 0
+queryNext:
 	pods, err := GetClientSet().CoreV1().Pods(util.GetConfig().K8sConfig.Namespace).List(context.TODO(), listopt)
 	if err != nil {
-		result["data"] = err.Error()
-		result["code"] = -1
+		result["data"] = err.Error() + "\n"
+		result["code"] = -2
 		resultBytes, err := json.Marshal(result)
 		if err = ws.WriteMessage(websocket.TextMessage, resultBytes); err != nil {
+			util.Log.Warnln("5 WriteMessage token :", err)
 			return
 		}
-		return
+		if reTry < 30 {
+			time.Sleep(time.Second)
+			goto queryNext
+		}
 	}
-
 	// buf := new(bytes.Buffer)
 	if len(pods.Items) == 0 {
 		result["data"] = []byte("no items in this job name:" + jobname)
 		result["code"] = -1
 		resultBytes, err := json.Marshal(result)
 		if err = ws.WriteMessage(websocket.TextMessage, resultBytes); err != nil {
+			util.Log.Warnln("6 WriteMessage token :", err)
 			return
 		}
 	}
 	// for _, pod := range pods.Items {
 	pod := pods.Items[0]
 	req := GetClientSet().CoreV1().Pods(util.GetConfig().K8sConfig.Namespace).GetLogs(pod.Name, &corev1.PodLogOptions{Follow: true})
+	reTry = 0
+queryNextLog:
 	podLogs, err := req.Stream(context.TODO())
-
 	if err != nil {
-		result["data"] = err.Error()
-		result["code"] = -1
+		result["data"] = err.Error() + "\n"
+		result["code"] = -2
 		resultBytes, err := json.Marshal(result)
 		if err = ws.WriteMessage(websocket.TextMessage, resultBytes); err != nil {
+			util.Log.Warnln("7 WriteMessage token :", err)
 			return
 		}
-		return
+		if reTry < 30 {
+			time.Sleep(time.Second)
+			goto queryNextLog
+		}
 	}
 	defer podLogs.Close()
 	tempBytes := make([]byte, 1024)
 	for {
 		n, err := podLogs.Read(tempBytes)
 		if err != nil {
-			// //wait some seconds for update the job status
-			// time.Sleep(time.Second * 2)
 			CheckPodStatus(jobname)
 			//----------------------------------------
 			// if some  err occured,then tell client to call follow api to query job status
@@ -157,7 +145,8 @@ checkJobStatus:
 
 //connect each websocket
 func wsQueryJobStatus(w http.ResponseWriter, r *http.Request) {
-	token := r.URL.Query().Get("token")
+
+	token := r.Header.Get("Sec-WebSocket-Protocol")
 	if len(token) < 20 {
 		return
 	}
@@ -167,15 +156,19 @@ func wsQueryJobStatus(w http.ResponseWriter, r *http.Request) {
 		util.Log.Warnln(" unAuthing user :", err)
 		return
 	}
-
 	jobname := r.URL.Query().Get("jobname")
 	if jobname == "" {
 		return
 	}
-	jobDBID := r.URL.Query().Get("jobDBID")
-	if jobDBID == "" {
-		return
+	upgrader := websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+		Subprotocols:    []string{r.Header.Get("Sec-WebSocket-Protocol")},
+		CheckOrigin: func(r *http.Request) bool {
+			return util.GetConfig().WSConfig.CheckOrigin
+		},
 	}
+
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		if _, ok := err.(websocket.HandshakeError); !ok {
