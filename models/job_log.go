@@ -58,7 +58,7 @@ func AddJobLog(m *JobLog) (err error) {
 func GetJobLogByJobName(jobname string) (v *JobLog, err error) {
 	o := util.GetDB()
 	v = new(JobLog)
-	sql := fmt.Sprintf("select * from %s where job_name = '%s' order by id desc limit 1", v.TableName(), jobname)
+	sql := fmt.Sprintf("select * from %s where job_name = '%s' order by create_time desc limit 1", v.TableName(), jobname)
 	tx := o.Debug().Raw(sql).Scan(v)
 	return v, tx.Error
 }
@@ -76,7 +76,7 @@ func GetMyJobLogs(userid int, offset int, limit int) (ml []*JobLog, err error) {
 	m := new(JobLog)
 	m.UserId = userid
 	ml = make([]*JobLog, limit)
-	sql := fmt.Sprintf("select * from %s where user_id = %d order by id desc limit %d,%d", m.TableName(), userid, offset, limit)
+	sql := fmt.Sprintf("select * from %s where user_id = %d order by create_time desc limit %d,%d", m.TableName(), userid, offset, limit)
 	o.Raw(sql).Scan(&ml)
 	return ml, nil
 }
@@ -251,6 +251,7 @@ func CheckPodStatus(ns, jobname string) (result map[string]interface{}, job *bat
 	// var job *batchv1.Job
 	job, err = jobAPI.Jobs(ns).Get(context.TODO(), jobname, metav1.GetOptions{})
 	if err != nil {
+		fmt.Println("------------:", err)
 		return
 	}
 	// jobRedisBytes, redisErr := util.GetJsonByte(CreateRedisJobName(jobname))
