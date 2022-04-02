@@ -27,23 +27,22 @@ const (
 func writeMessage2Client(ws *websocket.Conn, jobname string) {
 	result := make(map[string]interface{}, 0)
 	defer func() {
-		ws.SetWriteDeadline(time.Time{})
 		ws.Close()
 	}()
 
-	// heart := make(map[string]interface{})
-	//send heart data
-	// go func() {
-	// 	for {
-	// 		time.Sleep(time.Second * 30)
-	// 		heart["data"] = ""
-	// 		heart["code"] = 99
-	// 		heartBytes, err := json.Marshal(heart)
-	// 		if err = sendNormalData(ws, heartBytes); err != nil {
-	// 			return
-	// 		}
-	// 	}
-	// }()
+	// send heart data
+	heart := make(map[string]interface{})
+	go func() {
+		for {
+			time.Sleep(time.Second * 30)
+			heart["data"] = ""
+			heart["code"] = 99
+			heartBytes, err := json.Marshal(heart)
+			if err = sendNormalData(ws, heartBytes); err != nil {
+				return
+			}
+		}
+	}()
 
 	//check job status first
 	var reTry = 0
@@ -148,7 +147,7 @@ queryNextLog:
 	// }
 }
 func sendNormalData(ws *websocket.Conn, msg []byte) error {
-	ws.SetWriteDeadline(time.Now().Add(50 * time.Second))
+	ws.SetWriteDeadline(time.Now().Add(5550 * time.Second))
 	return ws.WriteMessage(websocket.TextMessage, msg)
 }
 
