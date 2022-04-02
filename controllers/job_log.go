@@ -71,7 +71,7 @@ func StartBuild(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "buildType not supported  ", util.GetConfig().BuildParam.BuildType))
 		return
 	}
-
+	insertData.BasePkg = strings.Join(util.GetConfig().DefaultPkgList.Packages, ",")
 	insertData.CustomPkg = strings.Join(imageInputData.CustomPkg, ",")
 	//-------- make custom rpms config first
 	cm := models.MakeConfigMap(insertData.Release, imageInputData.CustomPkg)
@@ -88,8 +88,7 @@ func StartBuild(c *gin.Context) {
 	insertData.JobName = job.GetName()
 	insertData.CreateTime = job.GetCreationTimestamp().Time
 	insertData.DownloadUrl = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, insertData.Release, time.Now().Format("2006-01-02"), outPutname)
-	// util.Set(models.CreateRedisJobName(job.GetName()), insertData)
-	models.AddJobLog(&insertData)
+	err = models.AddJobLog(&insertData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, nil, err))
 		return

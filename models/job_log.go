@@ -29,8 +29,8 @@ type JobLog struct {
 	Arch          string    ` description:"architecture"`
 	Release       string    ` description:"release openEuler Version"`
 	BuildType     string    ` description:"iso , zip ...."`
-	BasePkg       string    ` description:"default package"`
-	CustomPkg     string    ` description:"custom"`
+	BasePkg       string    ` gorm:"size:5055"  description:"default package"`
+	CustomPkg     string    ` gorm:"size:5055" description:"custom"`
 	UserId        int       ` description:"user id"`
 	UserName      string    ` description:"user name"`
 	CreateTime    time.Time ` description:"create time"`
