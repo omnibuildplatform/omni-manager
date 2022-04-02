@@ -95,6 +95,7 @@ func CreateTables() (err error) {
 	if !o.Migrator().HasTable(&JobLog{}) {
 		err = o.Migrator().CreateTable(&JobLog{})
 	}
+
 	return
 }
 

@@ -29,7 +29,7 @@
         "arch": [
             "x86_64"
         ],
-        "release": [
+        "release": [ 
             "openEuler2003-LTS-SP3",
             "openEuler2009",
             "openEuler2103",
@@ -46,7 +46,7 @@
     },
     "k8s":{
         "namespace":"omni-manager",
-        "image":"tommylike/omni-worker:0.1.4",
+        "image":"tommylike/omni-worker:0.1.6",
         "ffileType":"http://omni-repository.omni-repository.svc.cluster.local/data/upload?token=316462d0c029ba707ad2"
     },
     "authing":{
