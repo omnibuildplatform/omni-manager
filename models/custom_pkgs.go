@@ -32,7 +32,7 @@ func InitCustomPkgs() error {
 // get sig list
 func getSigs() (err error) {
 	url := util.GetConfig().BuildParam.CustomRpmAPI + "/sigs"
-	util.Log.Infoln("get custom rpms from:", url)
+	util.Log.Println("get custom rpms from:", url)
 	var req *http.Request
 	req, err = http.NewRequest("GET", url, nil)
 
@@ -72,8 +72,8 @@ func GetCustomePkgList(release, arch, sig string) (customPkgList *CustomPkg, err
 	q := req.URL.Query()
 	q.Add("release", release)
 	q.Add("arch", arch)
-	// q.Add("sig", sig)
-	q.Add("sig", "DB")
+	q.Add("sig", sig)
+	// q.Add("sig", "DB")
 	req.URL.RawQuery = q.Encode()
 	resp, err = http.DefaultClient.Do(req)
 	if err != nil {

@@ -10,8 +10,10 @@
             (function() {
                 var codeui = document.getElementById("codeui");
 				 var data = document.getElementById("fileData");
-                var conn = new WebSocket("ws://192.168.1.193:8888/ws/queryJobStatus?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NDg4MjI0NjEsImlhdCI6MTY0ODc3OTI2MSwiaWQiOiIxMTEiLCJubSI6IumZiOWFtiJ9.X-Dk_EmB4J9hRi1fAj8egnZUglhB0xLIO7bA1K87prk&jobname=omni-image-1a9a91cf-640d-439e-839b-9d91a97d1d2c");
-                conn.onclose = function(evt) {
+                var conn = new WebSocket("ws://192.168.1.113:8888/ws/queryJobStatus?jobname=omni-image-571dd465-858d-4fbc-91bf-136322eeae3f", ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NDg5MjgyNzMsImlhdCI6MTY0ODg4NTA3MywiaWQiOiIxMTUiLCJubSI6Iue9l-aloCJ9.OK6Wne8Rz3Ol0gYsH9V8MJetkv6ARPyi6y5knvEBCi4"]);
+     
+ 
+				conn.onclose = function(evt) {
                     //data.textContent = 'Connection closed';
                 }
                 conn.onmessage = function(evt) { 

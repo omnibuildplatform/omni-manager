@@ -26,10 +26,12 @@ const (
 // write Message to Client
 func writeMessage2Client(ws *websocket.Conn, jobname string) {
 	result := make(map[string]interface{}, 0)
-
 	defer func() {
+		ws.SetWriteDeadline(time.Time{})
 		ws.Close()
 	}()
+
+	ws.SetWriteDeadline(time.Now().Add(50 * time.Second))
 
 	heart := make(map[string]interface{})
 	//send heart data
@@ -55,6 +57,7 @@ checkJobStatus:
 		if reTry < 30 {
 			result["data"] = "----------checking job status ----\n"
 			result["code"] = 0
+			result["other"] = err
 		} else {
 			result["data"] = "/api/v1/images/queryJobStatus/" + jobname
 			result["code"] = 1

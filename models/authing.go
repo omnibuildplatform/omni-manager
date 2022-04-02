@@ -114,9 +114,6 @@ func GetUserInfoByToekn(token string) error {
 func Authorize() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.GetHeader("Authorization")
-		// authing.cn
-		// loginStatus, err := UserClient.CheckLoginStatus(token)
-		// local
 		userInfo, err := CheckAuthorization(token)
 		if err != nil {
 			c.Abort()
