@@ -89,6 +89,15 @@ func UpdateJobLogById(m *JobLog) (err error) {
 	return result.Error
 }
 
+// UpdateJobLogStatusById
+func UpdateJobLogStatusById(jobname, newStatus string) (err error) {
+	o := util.GetDB()
+	m := new(JobLog)
+	sql := fmt.Sprintf("update %s set status='%s' where job_name = '%s'", m.TableName(), newStatus, jobname)
+	result := o.Model(m).Exec(sql)
+	return result.Error
+}
+
 // CreateTables
 func CreateTables() (err error) {
 	o := util.GetDB()
@@ -251,18 +260,10 @@ func CheckPodStatus(ns, jobname string) (result map[string]interface{}, job *bat
 	// var job *batchv1.Job
 	job, err = jobAPI.Jobs(ns).Get(context.TODO(), jobname, metav1.GetOptions{})
 	if err != nil {
-		fmt.Println("------------:", err)
+		util.Log.Errorf("CheckPodStatus Error:%s", err)
 		return
 	}
-	// jobRedisBytes, redisErr := util.GetJsonByte(CreateRedisJobName(jobname))
-	// if redisErr != nil {
-	// 	return nil, nil, redisErr
-	// }
 
-	// err = json.Unmarshal(jobRedisBytes, JobLog)
-	// if err != nil {
-	// 	return
-	// }
 	var JobLog *JobLog
 	JobLog, err = GetJobLogByJobName(jobname)
 	completions := job.Spec.Completions
@@ -276,18 +277,14 @@ func CheckPodStatus(ns, jobname string) (result map[string]interface{}, job *bat
 		result["completionTime"] = job.Status.CompletionTime
 		if JobLog != nil {
 			result["url"] = JobLog.DownloadUrl
-			// JobLog.Status = JOB_STATUS_SUCCEED
-			// 	PersistenceJob(JobLog)
+			UpdateJobLogStatusById(jobname, JOB_STATUS_SUCCEED)
 		}
 		job = nil
 	} else if job.Status.Failed > *backoffLimit {
 		result["status"] = JOB_STATUS_FAILED
 		result["error"] = job.Status.String()
 		result["completionTime"] = job.Status.CompletionTime
-		// if JobLog != nil {
-		// JobLog.Status = JOB_STATUS_FAILED
-		// PersistenceJob(JobLog)
-		// }
+		UpdateJobLogStatusById(jobname, JOB_STATUS_FAILED)
 	} else if job.Status.Succeeded == 0 || job.Status.Failed == 0 {
 		result["status"] = JOB_STATUS_RUNNING
 	}

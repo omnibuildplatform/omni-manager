@@ -36,4 +36,8 @@ func TestAddJobLog(t *testing.T) {
 		return
 	}
 
+	UpdateJobLogStatusById(item.JobName, JOB_STATUS_FAILED)
+
+	UpdateJobLogStatusById(item.JobName, JOB_STATUS_FAILED)
+
 }
