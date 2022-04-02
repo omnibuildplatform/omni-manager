@@ -119,6 +119,7 @@ queryNextLog:
 	defer podLogs.Close()
 	tempBytes := make([]byte, 1024)
 	for {
+
 		n, err := podLogs.Read(tempBytes)
 		if err != nil {
 			CheckPodStatus(util.GetConfig().K8sConfig.Namespace, jobname)
