@@ -44,6 +44,7 @@ func writeMessage2Client(ws *websocket.Conn, jobname string) {
 			}
 		}
 	}()
+
 	//check job status first
 	var reTry = 0
 checkJobStatus:
@@ -127,8 +128,10 @@ queryNextLog:
 			result["code"] = 1
 			resultBytes, err := json.Marshal(result)
 			if err = ws.WriteMessage(websocket.TextMessage, resultBytes); err != nil {
+				util.Log.Warnln("8.9 close websocket :", err)
 				break
 			}
+			util.Log.Warnln("9 close websocket :", err)
 			return
 		}
 		if n > 0 {
