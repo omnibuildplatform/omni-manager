@@ -31,8 +31,6 @@ func writeMessage2Client(ws *websocket.Conn, jobname string) {
 		ws.Close()
 	}()
 
-	ws.SetWriteDeadline(time.Now().Add(50 * time.Second))
-
 	heart := make(map[string]interface{})
 	//send heart data
 	go func() {
@@ -122,7 +120,7 @@ queryNextLog:
 	defer podLogs.Close()
 	tempBytes := make([]byte, 1024)
 	for {
-
+		ws.SetWriteDeadline(time.Now().Add(50 * time.Second))
 		n, err := podLogs.Read(tempBytes)
 		if err != nil {
 			CheckPodStatus(util.GetConfig().K8sConfig.Namespace, jobname)
