@@ -72,7 +72,8 @@ func GetCustomePkgList(release, arch, sig string) (customPkgList *CustomPkg, err
 	q := req.URL.Query()
 	q.Add("release", release)
 	q.Add("arch", arch)
-	q.Add("sig", sig)
+	// q.Add("sig", sig)
+	q.Add("sig", "DB")
 	req.URL.RawQuery = q.Encode()
 	resp, err = http.DefaultClient.Do(req)
 	if err != nil {
