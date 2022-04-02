@@ -31,19 +31,19 @@ func writeMessage2Client(ws *websocket.Conn, jobname string) {
 		ws.Close()
 	}()
 
-	heart := make(map[string]interface{})
+	// heart := make(map[string]interface{})
 	//send heart data
-	go func() {
-		for {
-			time.Sleep(time.Second * 30)
-			heart["data"] = ""
-			heart["code"] = 99
-			heartBytes, err := json.Marshal(heart)
-			if err = sendNormalData(ws, heartBytes); err != nil {
-				return
-			}
-		}
-	}()
+	// go func() {
+	// 	for {
+	// 		time.Sleep(time.Second * 30)
+	// 		heart["data"] = ""
+	// 		heart["code"] = 99
+	// 		heartBytes, err := json.Marshal(heart)
+	// 		if err = sendNormalData(ws, heartBytes); err != nil {
+	// 			return
+	// 		}
+	// 	}
+	// }()
 
 	//check job status first
 	var reTry = 0
