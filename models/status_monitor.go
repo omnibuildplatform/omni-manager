@@ -122,7 +122,7 @@ queryNextLog:
 				result["code"] = 1
 				resultBytes, err := json.Marshal(result)
 				if err = sendNormalData(ws, resultBytes); err != nil {
-					util.Log.Warnln("8.9 close websocket :", err)
+					util.Log.Warnln("8.91 close websocket :", err)
 				}
 				return
 			} else {
@@ -132,7 +132,7 @@ queryNextLog:
 					result["code"] = -1
 					resultBytes, err := json.Marshal(result)
 					if err = sendNormalData(ws, resultBytes); err != nil {
-						util.Log.Warnln("8.9 close websocket :", err)
+						util.Log.Warnln("8.92 close websocket :", err)
 					}
 					return
 				}
