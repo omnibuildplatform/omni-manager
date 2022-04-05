@@ -114,7 +114,18 @@ queryNextLog:
 			statusResult, _, err := CheckPodStatus(util.GetConfig().K8sConfig.Namespace, jobname)
 			if err != nil {
 				util.Log.Warnln("8.9 close websocket :", err)
-				return
+				if reTry > 30 {
+					result["data"] = "CheckPodStatus error:" + err.Error()
+					result["code"] = -1
+					resultBytes, err := json.Marshal(result)
+					if err = sendNormalData(ws, resultBytes); err != nil {
+						util.Log.Warnln("8.91 close websocket :", err)
+					}
+					return
+				}
+				reTry++
+				time.Sleep(time.Second)
+				continue
 			}
 			if statusResult["status"] != JOB_STATUS_RUNNING {
 				// if not running statu. then  tell client to call follow api to query job status. and return
@@ -122,7 +133,7 @@ queryNextLog:
 				result["code"] = 1
 				resultBytes, err := json.Marshal(result)
 				if err = sendNormalData(ws, resultBytes); err != nil {
-					util.Log.Warnln("8.91 close websocket :", err)
+					util.Log.Warnln("8.92 close websocket :", err)
 				}
 				return
 			} else {
@@ -132,11 +143,12 @@ queryNextLog:
 					result["code"] = -1
 					resultBytes, err := json.Marshal(result)
 					if err = sendNormalData(ws, resultBytes); err != nil {
-						util.Log.Warnln("8.92 close websocket :", err)
+						util.Log.Warnln("8.93 close websocket :", err)
 					}
 					return
 				}
 				time.Sleep(time.Second)
+				reTry++
 				continue
 			}
 
