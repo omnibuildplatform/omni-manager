@@ -110,10 +110,14 @@ queryNextLog:
 		n, readErr := podLogs.Read(tempBytes)
 
 		if readErr != nil {
-			if readErr.Error() == "EOF" {
-				CheckPodStatus(util.GetConfig().K8sConfig.Namespace, jobname)
-				//----------------------------------------
-				// if EOF err occured,then tell client to call follow api to query job status
+			// if some err occured, check job status .
+			statusResult, _, err := CheckPodStatus(util.GetConfig().K8sConfig.Namespace, jobname)
+			if err != nil {
+				util.Log.Warnln("8.9 close websocket :", err)
+				return
+			}
+			if statusResult["status"] != JOB_STATUS_RUNNING {
+				// if not running statu. then  tell client to call follow api to query job status. and return
 				result["data"] = "/api/v1/images/queryJobStatus/" + jobname
 				result["code"] = 1
 				resultBytes, err := json.Marshal(result)
@@ -122,8 +126,20 @@ queryNextLog:
 				}
 				return
 			} else {
-				util.Log.Warnln("8.8 podLogs.Read :", readErr)
+				// continue read log 30 times
+				if reTry > 30 {
+					result["data"] = "some error:" + readErr.Error()
+					result["code"] = -1
+					resultBytes, err := json.Marshal(result)
+					if err = sendNormalData(ws, resultBytes); err != nil {
+						util.Log.Warnln("8.9 close websocket :", err)
+					}
+					return
+				}
+				time.Sleep(time.Second)
+				continue
 			}
+
 		}
 		if n > 0 {
 			result["data"] = string(tempBytes[:n])
@@ -134,6 +150,7 @@ queryNextLog:
 
 			}
 		}
+		reTry = 0
 	}
 	// }
 }
