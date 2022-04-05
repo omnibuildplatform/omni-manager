@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>jobs log</title>
+    </head>
+    <body>
+	 <pre id="closeUI"></pre>
+        <pre id="countUI"></pre>
+		<pre id="heartUI"></pre>
+        <script type="text/javascript">
+var heart =0;
+		var count =0;
+            (function() {
+                var closeUI = document.getElementById("closeUI");
+				 var countUI = document.getElementById("countUI");
+				 var heartUI = document.getElementById("heartUI");
+                var conn = new WebSocket("ws://www.tianfu.space:8000/ws/queryJobStatus?jobname=omni-image-f40a027d-74b4-4122-87c0-4091aab727d9", ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NDg5MjgyNzMsImlhdCI6MTY0ODg4NTA3MywiaWQiOiIxMTUiLCJubSI6Iue9l-aloCJ9.OK6Wne8Rz3Ol0gYsH9V8MJetkv6ARPyi6y5knvEBCi4"]);
+     
+ 
+				conn.onclose = function(evt) {
+				var now =new Date();
+				closeUI.textContent = now.getFullYear()+"年"+(now.getMonth()+1)+"月"+now.getDay()+"日 "+now.getHours()+":"+now.getMinutes()
+			 
+				 
+                }
+                conn.onmessage = function(evt) { 
+					var result = JSON.parse(evt.data)
+					switch(result.c){
+					case 0:
+					count++;
+					countUI.textContent = count ;
+					 break;
+				  
+					 case 1:
+					 heart++;
+					 heartUI.textContent = heart;
+					 break;
+					
+					}
+                   
+					codeui.textContent = result.code;
+                }
+            })();
+        </script>
+    </body>
+</html>

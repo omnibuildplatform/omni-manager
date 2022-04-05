@@ -30,20 +30,6 @@ func writeMessage2Client(ws *websocket.Conn, jobname string) {
 		ws.Close()
 	}()
 
-	// send heart data
-	heart := make(map[string]interface{})
-	go func() {
-		for {
-			time.Sleep(time.Second * 30)
-			heart["data"] = ""
-			heart["code"] = 99
-			heartBytes, err := json.Marshal(heart)
-			if err = sendNormalData(ws, heartBytes); err != nil {
-				return
-			}
-		}
-	}()
-
 	//check job status first
 	var reTry = 0
 checkJobStatus:
@@ -118,36 +104,41 @@ queryNextLog:
 	}
 	defer podLogs.Close()
 	tempBytes := make([]byte, 1024)
+
 	for {
 
-		n, err := podLogs.Read(tempBytes)
-		if err != nil {
-			CheckPodStatus(util.GetConfig().K8sConfig.Namespace, jobname)
-			//----------------------------------------
-			// if some  err occured,then tell client to call follow api to query job status
-			result["data"] = "/api/v1/images/queryJobStatus/" + jobname
-			result["code"] = 1
-			resultBytes, err := json.Marshal(result)
-			if err = sendNormalData(ws, resultBytes); err != nil {
-				util.Log.Warnln("8.9 close websocket :", err)
-				break
+		n, readErr := podLogs.Read(tempBytes)
+
+		if readErr != nil {
+			if readErr.Error() == "EOF" {
+				CheckPodStatus(util.GetConfig().K8sConfig.Namespace, jobname)
+				//----------------------------------------
+				// if EOF err occured,then tell client to call follow api to query job status
+				result["data"] = "/api/v1/images/queryJobStatus/" + jobname
+				result["code"] = 1
+				resultBytes, err := json.Marshal(result)
+				if err = sendNormalData(ws, resultBytes); err != nil {
+					util.Log.Warnln("8.9 close websocket :", err)
+				}
+				return
+			} else {
+				util.Log.Warnln("8.8 podLogs.Read :", readErr)
 			}
-			util.Log.Warnln("9 close websocket :", err)
-			return
 		}
 		if n > 0 {
 			result["data"] = string(tempBytes[:n])
 			result["code"] = 0
 			resultBytes, err := json.Marshal(result)
 			if err = sendNormalData(ws, resultBytes); err != nil {
-				break
+				util.Log.Warnln("9.1 close websocket :", err)
+
 			}
 		}
 	}
 	// }
 }
 func sendNormalData(ws *websocket.Conn, msg []byte) error {
-	ws.SetWriteDeadline(time.Now().Add(5550 * time.Second))
+	ws.SetWriteDeadline(time.Now().Add(6000 * time.Second))
 	return ws.WriteMessage(websocket.TextMessage, msg)
 }
 
