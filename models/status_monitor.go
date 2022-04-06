@@ -27,6 +27,7 @@ const (
 func writeMessage2Client(ws *websocket.Conn, jobname string) {
 	result := make(map[string]interface{}, 0)
 	defer func() {
+		util.Log.Errorln("---------writeMessage2Client----defer--ws.Close()--")
 		ws.Close()
 	}()
 
@@ -191,7 +192,7 @@ func wsQueryJobStatus(w http.ResponseWriter, r *http.Request) {
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
-		Subprotocols:    []string{r.Header.Get("Sec-WebSocket-Protocol")},
+		Subprotocols:    []string{token},
 		CheckOrigin: func(r *http.Request) bool {
 			return util.GetConfig().WSConfig.CheckOrigin
 		},
