@@ -122,6 +122,7 @@ queryNextLog:
 					if err = sendNormalData(ws, resultBytes); err != nil {
 						util.Log.Warnln("8.91 close websocket :", err)
 					}
+					util.Log.Warnln("8.912 close websocket :===========")
 					return
 				}
 				reTry++
@@ -136,6 +137,7 @@ queryNextLog:
 				if err = sendNormalData(ws, resultBytes); err != nil {
 					util.Log.Warnln("8.92 close websocket :", err)
 				}
+				util.Log.Warnln("8.921 close websocket :---------")
 				return
 			} else {
 				// continue read log 30 times
@@ -146,6 +148,7 @@ queryNextLog:
 					if err = sendNormalData(ws, resultBytes); err != nil {
 						util.Log.Warnln("8.93 close websocket :", err)
 					}
+					util.Log.Warnln("8.94 close websocket reTry > 30:")
 					return
 				}
 				time.Sleep(time.Second)
