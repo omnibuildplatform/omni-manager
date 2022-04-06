@@ -129,7 +129,7 @@ queryNextLog:
 				time.Sleep(time.Second)
 				continue
 			}
-			if statusResult["status"] != JOB_STATUS_RUNNING {
+			if statusResult["status"] == JOB_STATUS_FAILED || statusResult["status"] == JOB_STATUS_SUCCEED {
 				// if not running statu. then  tell client to call follow api to query job status. and return
 				result["data"] = "/api/v1/images/queryJobStatus/" + jobname
 				result["code"] = 1
@@ -138,7 +138,7 @@ queryNextLog:
 					util.Log.Warnln("8.92 close websocket :", err)
 				}
 				util.Log.Warnln("8.921 close websocket :---------", statusResult)
-				continue
+				return
 			} else {
 				// continue read log 30 times
 				if reTry > 30 {
