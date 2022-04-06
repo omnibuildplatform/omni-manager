@@ -103,10 +103,10 @@ queryNextLog:
 		}
 	}
 	defer podLogs.Close()
-	tempBytes := make([]byte, 1024)
+	var tempBytes []byte
 
 	for {
-
+		tempBytes = make([]byte, 618)
 		n, readErr := podLogs.Read(tempBytes)
 
 		if readErr != nil {
