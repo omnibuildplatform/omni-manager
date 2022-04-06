@@ -168,7 +168,7 @@ queryNextLog:
 	// }
 }
 func sendNormalData(ws *websocket.Conn, msg []byte) error {
-	// ws.SetWriteDeadline(time.Now().Add(6000 * time.Second))
+	ws.SetWriteDeadline(time.Now().Add(600 * time.Second))
 	return ws.WriteMessage(websocket.TextMessage, msg)
 }
 
