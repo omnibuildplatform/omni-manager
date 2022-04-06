@@ -10,26 +10,14 @@
             (function() {
                 var codeui = document.getElementById("codeui");
 				 var data = document.getElementById("fileData");
-                var conn = new WebSocket("ws://192.168.1.113:8888/ws/queryJobStatus?jobname=omni-image-f40a027d-74b4-4122-87c0-4091aab727d9", ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NDg5MjgyNzMsImlhdCI6MTY0ODg4NTA3MywiaWQiOiIxMTUiLCJubSI6Iue9l-aloCJ9.OK6Wne8Rz3Ol0gYsH9V8MJetkv6ARPyi6y5knvEBCi4"]);
+                var conn = new WebSocket("wss://omni.test.osinfra.cn/ws/queryJobStatus?jobname=omni-image-9914ab65-6924-48e4-8a98-b06dda3d43f0", ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NDkyNTQ3MTksImlhdCI6MTY0OTIxMTUxOSwiaWQiOiIxMTUiLCJubSI6Iue9l-aloCJ9.HIG-tGeMsLYdR3HUWesvUMM520ZAq3zm99Loz47GUfc"]);
      
  
 				conn.onclose = function(evt) {
                     //data.textContent = 'Connection closed';
                 }
                 conn.onmessage = function(evt) { 
-					var result = JSON.parse(evt.data)
-					switch(result.code){
-					case 0:
-					 data.textContent =  data.textContent +result.data;
-					 break;
-					 case -1:
-					 data.textContent =  data.textContent +result.data;
-					 break;
-					 case 1:
-					 //data.textContent = "call api:"+  result.url;
-					 break;
-					
-					}
+				 
                    
 					codeui.textContent = result.code;
                 }

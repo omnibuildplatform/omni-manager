@@ -167,7 +167,7 @@ queryNextLog:
 	// }
 }
 func sendNormalData(ws *websocket.Conn, msg []byte) error {
-	ws.SetWriteDeadline(time.Now().Add(6000 * time.Second))
+	// ws.SetWriteDeadline(time.Now().Add(6000 * time.Second))
 	return ws.WriteMessage(websocket.TextMessage, msg)
 }
 
@@ -211,7 +211,7 @@ func StartWebSocket() {
 	http.HandleFunc("/wsQueryJobStatus", wsQueryJobStatus)
 	http.HandleFunc("/ws/queryJobStatus", wsQueryJobStatus)
 	addr := fmt.Sprintf(":%d", util.GetConfig().WSConfig.Port)
-	util.Log.Errorf("websocket Listening and serving at %s port ", addr)
+	util.Log.Printf("websocket Listening and serving at %s port ", addr)
 	if err := http.ListenAndServe(addr, nil); err != nil {
 		util.Log.Fatalf("websocket startup failed ,error: %s", err)
 	}
