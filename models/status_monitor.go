@@ -137,8 +137,8 @@ queryNextLog:
 				if err = sendNormalData(ws, resultBytes); err != nil {
 					util.Log.Warnln("8.92 close websocket :", err)
 				}
-				util.Log.Warnln("8.921 close websocket :---------")
-				return
+				util.Log.Warnln("8.921 close websocket :---------", statusResult)
+				continue
 			} else {
 				// continue read log 30 times
 				if reTry > 30 {
