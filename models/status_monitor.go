@@ -23,6 +23,10 @@ const (
 	JOB_STATUS_FAILED  = "failed"
 )
 
+func readMessageFromClient(ws *websocket.Conn, jobname string) {
+
+}
+
 // write Message to Client
 func writeMessage2Client(ws *websocket.Conn, jobname string) {
 	result := make(map[string]interface{}, 0)
@@ -180,7 +184,7 @@ queryNextLog:
 	// }
 }
 func sendNormalData(ws *websocket.Conn, msg []byte) error {
-	ws.SetWriteDeadline(time.Now().Add(600 * time.Second))
+	ws.SetWriteDeadline(time.Now().Add(1200 * time.Second))
 	return ws.WriteMessage(websocket.TextMessage, msg)
 }
 
@@ -217,7 +221,11 @@ func wsQueryJobStatus(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	// ctx, finishFunc := context.WithCancel(context.Background())
+
+	// go readMessageFromClient(ws, ctx, jobname)
 	writeMessage2Client(ws, jobname)
+
 }
 
 func StartWebSocket() {
