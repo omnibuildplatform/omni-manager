@@ -152,6 +152,7 @@ queryNextLog:
 				// 	time.Sleep(time.Minute)
 				// }
 
+				return
 			} else {
 				// continue read log 30 times
 				if reTry > 30 {
