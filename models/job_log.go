@@ -177,8 +177,8 @@ func MakeJob(cm *v1.ConfigMap, buildtype, release string) (job *batchv1.Job, out
 	if err != nil {
 		return
 	}
-
-	omniImager := `omni-imager --package-list /conf/totalrpms.json --config-file /conf/conf.yaml --build-type ` + buildtype + ` --output-file ` + outputName + ` && curl -vvv -Ffile=@/opt/omni-workspace/` + outputName + ` -Fproject=` + release + `  -FfileType=image '` + util.GetConfig().K8sConfig.FfileType + `'`
+	omniImager := `omni-imager --package-list /conf/totalrpms.json --config-file /conf/conf.yaml --build-type ` + buildtype + ` --output-file ` + outputName
+	omniCurl := `curl -vvv -Ffile=@/opt/omni-workspace/` + outputName + ` -Fproject=` + release + `  -FfileType=image '` + util.GetConfig().K8sConfig.FfileType + `'`
 	jobInterface := clientset.BatchV1().Jobs(util.GetConfig().K8sConfig.Namespace)
 	var backOffLimit int32 = 0
 	var tTLSecondsAfterFinished int32 = 1800
@@ -218,6 +218,7 @@ func MakeJob(cm *v1.ConfigMap, buildtype, release string) (job *batchv1.Job, out
 								"/bin/sh",
 								"-c",
 								omniImager,
+								omniCurl,
 							},
 							VolumeMounts: []v1.VolumeMount{
 								{

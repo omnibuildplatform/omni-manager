@@ -141,16 +141,16 @@ queryNextLog:
 				if err = sendNormalData(ws, resultBytes); err != nil {
 					util.Log.Warnln("8.92 close websocket :", err)
 				}
-				util.Log.Warnln("8.921 close websocket :---------", statusResult)
-				for {
-					result["data"] = "这是我在等客户端"
-					result["code"] = 0
-					resultBytes, err := json.Marshal(result)
-					if err = sendNormalData(ws, resultBytes); err != nil {
-						util.Log.Warnln("8.9211 close websocket :", err)
-					}
-					time.Sleep(time.Minute)
-				}
+				// util.Log.Warnln("8.921 close websocket :---------", statusResult)
+				// for {
+				// 	result["data"] = "这是我在等客户端"
+				// 	result["code"] = 0
+				// 	resultBytes, err := json.Marshal(result)
+				// 	if err = sendNormalData(ws, resultBytes); err != nil {
+				// 		util.Log.Warnln("8.9211 close websocket :", err)
+				// 	}
+				// 	time.Sleep(time.Minute)
+				// }
 
 			} else {
 				// continue read log 30 times
