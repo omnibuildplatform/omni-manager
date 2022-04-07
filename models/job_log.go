@@ -226,14 +226,14 @@ func MakeJob(cm *v1.ConfigMap, buildtype, release string) (job *batchv1.Job, out
 									Name:      "confyaml",
 									MountPath: "/conf",
 								},
-								{
-									Name:      "cce-obs-omni-manager-backend",
-									MountPath: "/opt/omni-backup",
-								},
-								{
-									Name:      "cce-sfs-rootfs",
-									MountPath: "/opt/rootfs_cache",
-								},
+								// {
+								// 	Name:      "cce-obs-omni-manager-backend",
+								// 	MountPath: "/opt/omni-backup",
+								// },
+								// {
+								// 	Name:      "cce-sfs-rootfs",
+								// 	MountPath: "/opt/rootfs_cache",
+								// },
 							},
 						},
 					},
