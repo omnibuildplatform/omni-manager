@@ -226,6 +226,14 @@ func MakeJob(cm *v1.ConfigMap, buildtype, release string) (job *batchv1.Job, out
 									Name:      "confyaml",
 									MountPath: "/conf",
 								},
+								{
+									Name:      "pvcdata",
+									MountPath: "/opt/omni-backup",
+								},
+								{
+									Name:      "rootfs",
+									MountPath: "/opt/rootfs_cache",
+								},
 							},
 						},
 					},
@@ -238,6 +246,22 @@ func MakeJob(cm *v1.ConfigMap, buildtype, release string) (job *batchv1.Job, out
 									LocalObjectReference: v1.LocalObjectReference{
 										Name: cm.Name,
 									},
+								},
+							},
+						},
+						{
+							Name: "pvcdata",
+							VolumeSource: v1.VolumeSource{
+								PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
+									ClaimName: "cce-obs-omni-manager-backend",
+								},
+							},
+						},
+						{
+							Name: "rootfs",
+							VolumeSource: v1.VolumeSource{
+								PersistentVolumeClaim: &v1.PersistentVolumeClaimVolumeSource{
+									ClaimName: "cce-sfs-rootfs",
 								},
 							},
 						},
