@@ -177,8 +177,7 @@ func MakeJob(cm *v1.ConfigMap, buildtype, release string) (job *batchv1.Job, out
 	if err != nil {
 		return
 	}
-	cacheCurl := `curl -vvv -Ffile=@/opt/rootfs_cache/` + outputName + ` -Fproject=` + release + `  -FfileType=image '` + util.GetConfig().K8sConfig.FfileType + `'`
-	_ = cacheCurl
+	// cacheCurl := `curl -vvv -Ffile=@/opt/rootfs_cache/rootfs.tar.gz  -FfileType=image '` + util.GetConfig().K8sConfig.FfileType + `'`
 	omniImager := `omni-imager --package-list /conf/totalrpms.json --config-file /conf/conf.yaml --build-type ` + buildtype + ` --output-file ` + outputName
 	omniCurl := `curl -vvv -Ffile=@/opt/omni-workspace/` + outputName + ` -Fproject=` + release + `  -FfileType=image '` + util.GetConfig().K8sConfig.FfileType + `'`
 	jobInterface := clientset.BatchV1().Jobs(util.GetConfig().K8sConfig.Namespace)
@@ -219,6 +218,7 @@ func MakeJob(cm *v1.ConfigMap, buildtype, release string) (job *batchv1.Job, out
 							Command: []string{
 								"/bin/sh",
 								"-c",
+								// cacheCurl,
 								omniImager,
 								omniCurl,
 							},
@@ -226,6 +226,14 @@ func MakeJob(cm *v1.ConfigMap, buildtype, release string) (job *batchv1.Job, out
 								{
 									Name:      "confyaml",
 									MountPath: "/conf",
+								},
+								{
+									Name:      "cce-obs-omni-manager-backend",
+									MountPath: "/opt/omni-backup",
+								},
+								{
+									Name:      "cce-sfs-rootfs",
+									MountPath: "/opt/rootfs_cache",
 								},
 							},
 						},
@@ -249,8 +257,6 @@ func MakeJob(cm *v1.ConfigMap, buildtype, release string) (job *batchv1.Job, out
 			TTLSecondsAfterFinished: &tTLSecondsAfterFinished,
 		},
 	}
-	// cmBytes, _ := json.Marshal(jobYaml)
-	// fmt.Println("------------cm :", string(cmBytes))
 	job, err = jobInterface.Create(context.TODO(), jobYaml, metav1.CreateOptions{})
 
 	return
