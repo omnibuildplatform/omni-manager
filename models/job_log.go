@@ -138,6 +138,9 @@ func MakeConfigMap(release string, customRpms []string) (cm *v1.ConfigMap) {
 	tempdata["init_script"] = "/etc/omni-imager/init"
 	tempdata["installer_script"] = "/etc/omni-imager/runinstaller"
 	tempdata["repo_file"] = fmt.Sprintf("/etc/omni-imager/repos/%s.repo", release)
+	tempdata["use_cached_rootfs"] = "True"
+	tempdata["cached_rootfs_gz"] = "/opt/rootfs_cache/rootfs.tar.gz"
+
 	tempdataBytes, _ := yaml.Marshal(tempdata)
 
 	configMapType := metav1.TypeMeta{
