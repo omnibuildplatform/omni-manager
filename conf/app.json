@@ -45,7 +45,7 @@
     },
     "k8s":{
         "namespace":"omni-manager",
-        "image":"tommylike/omni-worker:0.1.6",
+        "image":"tommylike/omni-worker:0.2.2",
         "ffileType":"http://omni-repository.omni-repository.svc.cluster.local/data/upload?token=316462d0c029ba707ad2"
     },
     "authing":{
