@@ -56,6 +56,7 @@ checkJobStatus:
 			return
 		}
 		time.Sleep(time.Second)
+		reTry++
 		if reTry < 30 {
 			goto checkJobStatus
 		}
@@ -73,6 +74,7 @@ queryNext:
 			util.Log.Warnln("5 WriteMessage token :", err)
 			return
 		}
+		reTry++
 		if reTry < 30 {
 			time.Sleep(time.Second)
 			goto queryNext
@@ -102,6 +104,7 @@ queryNextLog:
 			util.Log.Warnln("7 WriteMessage token :", err)
 			return
 		}
+		reTry++
 		if reTry < 30 {
 			time.Sleep(time.Second)
 			goto queryNextLog
@@ -141,16 +144,6 @@ queryNextLog:
 				if err = sendNormalData(ws, resultBytes); err != nil {
 					util.Log.Warnln("8.92 close websocket :", err)
 				}
-				// util.Log.Warnln("8.921 close websocket :---------", statusResult)
-				// for {
-				// 	result["data"] = "这是我在等客户端"
-				// 	result["code"] = 0
-				// 	resultBytes, err := json.Marshal(result)
-				// 	if err = sendNormalData(ws, resultBytes); err != nil {
-				// 		util.Log.Warnln("8.9211 close websocket :", err)
-				// 	}
-				// 	time.Sleep(time.Minute)
-				// }
 
 				return
 			} else {
