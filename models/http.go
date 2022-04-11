@@ -3,16 +3,17 @@ package models
 import (
 	"bytes"
 	"encoding/json"
-	"fmt" 
+	"fmt"
 	"io/ioutil"
-	"net/http" 
+	"net/http"
+	"omni-manager/util"
 	"strconv"
 )
 
 //HTTPPost post request
 func HTTPPost(url string, requestBody string) (map[string]interface{}, error) {
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte(requestBody)))
-	 
+
 	if err != nil {
 		return nil, err
 	}
@@ -20,31 +21,31 @@ func HTTPPost(url string, requestBody string) (map[string]interface{}, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		logs.Error("Post request failed, err: ", err, "body: ", requestBody)
+		util.Log.Error("Post request failed, err: ", err, "body: ", requestBody)
 		return nil, err
 	}
 	defer resp.Body.Close()
-	logs.Info("HTTPPost, response Status:", resp.Status)
-	logs.Info("HTTPPost, response Headers:", resp.Header)
+	util.Log.Info("HTTPPost, response Status:", resp.Status)
+	util.Log.Info("HTTPPost, response Headers:", resp.Header)
 	status, _ := strconv.Atoi(resp.Status)
 	if status > 300 {
-		logs.Error("Post request failed, err: ", err, "body: ", requestBody)
+		util.Log.Error("Post request failed, err: ", err, "body: ", requestBody)
 		return nil, err
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	fmt.Println("response Body:", string(body))
 	if err != nil || body == nil {
-		logs.Error("post failed, err: ", err, "body: ", requestBody)
+		util.Log.Error("post failed, err: ", err, "body: ", requestBody)
 		return nil, err
 	}
-	logs.Info("post successed!, body: ", string(body))
+	util.Log.Info("post successed!, body: ", string(body))
 	var bodyStr map[string]interface{}
 	err = json.Unmarshal(body, &bodyStr)
 	if err != nil {
-		logs.Error(err, string(body))
+		util.Log.Error(err, string(body))
 		return nil, err
 	}
-	logs.Info(bodyStr)
+	util.Log.Info(bodyStr)
 	return bodyStr, nil
 }
 
@@ -52,24 +53,24 @@ func HTTPPost(url string, requestBody string) (map[string]interface{}, error) {
 func HTTPGitGet(url string) (col map[string]interface{}, err error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		logs.Error("HTTPGitGet, error: ", err)
+		util.Log.Error("HTTPGitGet, error: ", err)
 		return nil, err
 	}
 	defer resp.Body.Close()
 	status, _ := strconv.Atoi(resp.Status)
 	if status > 300 {
-		logs.Error("resp.Status: ", resp.Status, resp.Header)
+		util.Log.Error("resp.Status: ", resp.Status, resp.Header)
 		return nil, err
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil || body == nil {
-		logs.Error("err: ", err)
+		util.Log.Error("err: ", err)
 		return nil, err
 	}
-	//logs.Info("url: ", url, "\n body: \n", string(body))
+	//util.Log.Info("url: ", url, "\n body: \n", string(body))
 	err = json.Unmarshal(body, &col)
 	if err != nil {
-		logs.Error("HTTPGitGet,err: ", err)
+		util.Log.Error("HTTPGitGet,err: ", err)
 		return col, err
 	}
 	return col, nil
