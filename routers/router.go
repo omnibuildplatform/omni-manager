@@ -20,27 +20,38 @@ func InitRouter() *gin.Engine {
 	docs.SwaggerInfo.BasePath = "/api"
 	docs.SwaggerInfo.Title = util.GetConfig().AppName
 	docs.SwaggerInfo.Description = "set token name: 'Authorization' at header "
-	//version 1
-	v1 := r.Group(docs.SwaggerInfo.BasePath)
-	{
-		v1.Use(models.Authorize()) //
-		v1.POST("/v1/images/startBuild", controllers.StartBuild)
-		v1.GET("/v1/images/query", controllers.Query)
-		v1.GET("/v1/images/param/getBaseData/", controllers.GetBaseData)
-		v1.GET("/v1/images/param/getCustomePkgList/", controllers.GetCustomePkgList)
-		v1.GET("/v1/images/queryJobStatus/:name", controllers.QueryJobStatus)
-		v1.GET("/v1/images/queryJobLogs/:name", controllers.QueryJobLogs)
-		v1.GET("/v1/images/queryHistory/mine", controllers.QueryMyHistory)
-
-	}
 	auth := r.Group(docs.SwaggerInfo.BasePath)
 	{
 		auth.GET("/v1/auth/loginok", controllers.AuthingLoginOk)
 		auth.GET("/v1/auth/getDetail/:authingUserId", controllers.AuthingGetUserDetail)
 		auth.Use(models.Authorize()) //
 		auth.POST("/v1/auth/createUser", controllers.AuthingCreateUser)
-
 	}
+	//version 1 . call k8s api
+	v1 := r.Group(docs.SwaggerInfo.BasePath + "/v1")
+	{
+		v1.Use(models.Authorize()) //
+		v1.POST("/images/startBuild", controllers.StartBuild)
+		v1.GET("/images/query", controllers.Query)
+		v1.GET("/images/param/getBaseData/", controllers.GetBaseData)
+		v1.GET("/images/param/getCustomePkgList/", controllers.GetCustomePkgList)
+		v1.GET("/images/queryJobStatus/:name", controllers.QueryJobStatus)
+		v1.GET("/images/queryJobLogs/:name", controllers.QueryJobLogs)
+		v1.GET("/images/queryHistory/mine", controllers.QueryMyHistory)
+	}
+	//version 2. call owner api
+	v2 := r.Group(docs.SwaggerInfo.BasePath + "/v2")
+	{
+		v2.Use(models.Authorize()) //
+		v2.POST("/images/startBuild", controllers.StartBuild)
+		v2.GET("/images/query", controllers.Query)
+		v2.GET("/images/param/getBaseData/", controllers.GetBaseData)
+		v2.GET("/images/param/getCustomePkgList/", controllers.GetCustomePkgList)
+		v2.GET("/images/queryJobStatus/:name", controllers.QueryJobStatus)
+		v2.GET("/images/queryJobLogs/:name", controllers.QueryJobLogs)
+		v2.GET("/images/queryHistory/mine", controllers.QueryMyHistory)
+	}
+
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	return r
 }

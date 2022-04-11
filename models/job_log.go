@@ -37,6 +37,8 @@ type JobLog struct {
 	Status        string    ` description:"current status :running ,success, failed"`
 	DownloadUrl   string    ` description:"download the result of build iso file"`
 	ConfigMapName string    ` description:"configMap name"`
+	JobLabel      string    ` description:"job label"`
+	JobDesc       string    ` description:"job description"`
 }
 
 func (t *JobLog) TableName() string {
