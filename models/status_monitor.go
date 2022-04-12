@@ -23,15 +23,10 @@ const (
 	JOB_STATUS_FAILED  = "failed"
 )
 
-func readMessageFromClient(ws *websocket.Conn, jobname string) {
-
-}
-
 // write Message to Client
 func writeMessage2Client(ws *websocket.Conn, jobname string) {
 	result := make(map[string]interface{}, 0)
 	defer func() {
-		util.Log.Errorln("---------writeMessage2Client----defer--ws.Close()--")
 		ws.Close()
 	}()
 
@@ -52,7 +47,6 @@ checkJobStatus:
 		}
 		resultBytes, _ := json.Marshal(result)
 		if err = sendNormalData(ws, resultBytes); err != nil {
-			util.Log.Warnln("4.1 wsQueryJobStatus token :", err)
 			return
 		}
 		time.Sleep(time.Second)
@@ -71,7 +65,6 @@ queryNext:
 		result["code"] = -2
 		resultBytes, err := json.Marshal(result)
 		if err = sendNormalData(ws, resultBytes); err != nil {
-			util.Log.Warnln("5 WriteMessage token :", err)
 			return
 		}
 		reTry++
@@ -84,9 +77,9 @@ queryNext:
 	if len(pods.Items) == 0 {
 		result["data"] = []byte("no items in this job name:" + jobname)
 		result["code"] = -1
-		resultBytes, err := json.Marshal(result)
+		resultBytes, _ := json.Marshal(result)
 		if err = sendNormalData(ws, resultBytes); err != nil {
-			util.Log.Warnln("6 WriteMessage token :", err)
+
 			return
 		}
 	}
@@ -99,9 +92,8 @@ queryNextLog:
 	if err != nil {
 		result["data"] = err.Error() + "\n"
 		result["code"] = -2
-		resultBytes, err := json.Marshal(result)
+		resultBytes, _ := json.Marshal(result)
 		if err = sendNormalData(ws, resultBytes); err != nil {
-			util.Log.Warnln("7 WriteMessage token :", err)
 			return
 		}
 		reTry++
@@ -121,15 +113,11 @@ queryNextLog:
 			// if some err occured, check job status .
 			statusResult, _, err := CheckPodStatus(util.GetConfig().K8sConfig.Namespace, jobname)
 			if err != nil {
-				util.Log.Warnln("8.9 close websocket :", err)
 				if reTry > 30 {
 					result["data"] = "CheckPodStatus error:" + err.Error()
 					result["code"] = -1
-					resultBytes, err := json.Marshal(result)
-					if err = sendNormalData(ws, resultBytes); err != nil {
-						util.Log.Warnln("8.91 close websocket :", err)
-					}
-					util.Log.Warnln("8.912 close websocket :===========")
+					resultBytes, _ := json.Marshal(result)
+					sendNormalData(ws, resultBytes)
 					return
 				}
 				reTry++
@@ -140,10 +128,8 @@ queryNextLog:
 				// if not running statu. then  tell client to call follow api to query job status. and return
 				result["data"] = "/api/v1/images/queryJobStatus/" + jobname
 				result["code"] = 1
-				resultBytes, err := json.Marshal(result)
-				if err = sendNormalData(ws, resultBytes); err != nil {
-					util.Log.Warnln("8.92 close websocket :", err)
-				}
+				resultBytes, _ := json.Marshal(result)
+				sendNormalData(ws, resultBytes)
 
 				return
 			} else {
@@ -151,11 +137,8 @@ queryNextLog:
 				if reTry > 30 {
 					result["data"] = "some error:" + readErr.Error()
 					result["code"] = -1
-					resultBytes, err := json.Marshal(result)
-					if err = sendNormalData(ws, resultBytes); err != nil {
-						util.Log.Warnln("8.93 close websocket :", err)
-					}
-					util.Log.Warnln("8.94 close websocket reTry > 30:")
+					resultBytes, _ := json.Marshal(result)
+					sendNormalData(ws, resultBytes)
 					return
 				}
 				time.Sleep(time.Second)
@@ -167,11 +150,8 @@ queryNextLog:
 		if n > 0 {
 			result["data"] = string(tempBytes[:n])
 			result["code"] = 0
-			resultBytes, err := json.Marshal(result)
-			if err = sendNormalData(ws, resultBytes); err != nil {
-				util.Log.Warnln("9.1 close websocket :", err)
-
-			}
+			resultBytes, _ := json.Marshal(result)
+			sendNormalData(ws, resultBytes)
 		}
 		reTry = 0
 	}
@@ -179,7 +159,11 @@ queryNextLog:
 }
 func sendNormalData(ws *websocket.Conn, msg []byte) error {
 	ws.SetWriteDeadline(time.Now().Add(1200 * time.Second))
-	return ws.WriteMessage(websocket.TextMessage, msg)
+	err := ws.WriteMessage(websocket.TextMessage, msg)
+	if err != nil {
+		util.Log.Warnln(" websocket sendNormalData Error :", err)
+	}
+	return err
 }
 
 //connect each websocket

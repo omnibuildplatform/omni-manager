@@ -233,13 +233,13 @@ func MakeJob(cm *v1.ConfigMap, buildtype, release string) (job *batchv1.Job, out
 									MountPath: "/opt/rootfs_cache",
 								},
 							},
-							Lifecycle: &v1.Lifecycle{
-								PreStop: &v1.LifecycleHandler{
-									Exec: &v1.ExecAction{
-										Command: []string{},
-									},
-								},
-							},
+							// Lifecycle: &v1.Lifecycle{
+							// 	PreStop: &v1.LifecycleHandler{
+							// 		Exec: &v1.ExecAction{
+							// 			Command: []string{},
+							// 		},
+							// 	},
+							// },
 						},
 					},
 					RestartPolicy: v1.RestartPolicyNever,
