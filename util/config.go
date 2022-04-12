@@ -164,6 +164,9 @@ func InitConfig(path string) {
 	if os.Getenv("AUTHING_USER_POOL_ID") != "" {
 		cfg.AuthingConfig.UserPoolID = os.Getenv("AUTHING_USER_POOL_ID")
 	}
+	if os.Getenv("JWT_KEY") != "" {
+		cfg.JwtConfig.JwtKey = os.Getenv("JWT_KEY")
+	}
 
 	// load openeuler_minimal.json file from github resp, and reload and update it'data every night at 3:00 / beijing
 	minimalPath := fmt.Sprintf(GetConfig().BuildParam.OpeneulerMinimal, GetConfig().BuildParam.PackageName)
