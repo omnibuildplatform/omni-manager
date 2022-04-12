@@ -106,7 +106,13 @@ func CreateTables() (err error) {
 	if !o.Migrator().HasTable(&JobLog{}) {
 		err = o.Migrator().CreateTable(&JobLog{})
 	}
+	if !o.Migrator().HasColumn(&JobLog{}, "job_label") {
+		err = o.Migrator().AddColumn(&JobLog{}, "job_label")
+	}
 
+	if !o.Migrator().HasColumn(&JobLog{}, "job_desc") {
+		err = o.Migrator().AddColumn(&JobLog{}, "job_desc")
+	}
 	return
 }
 
