@@ -19,7 +19,7 @@ import (
 
 // @Summary StartBuild Job
 // @Description start a image build job
-// @Tags  meta Manager
+// @Tags  v1 job
 // @Param	body		body 	models.BuildParam	true		"body for ImageMeta content"
 // @Accept json
 // @Produce json
@@ -57,7 +57,7 @@ func StartBuild(c *gin.Context) {
 		}
 	}
 	if !validate {
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "arch not supported  ", util.GetConfig().BuildParam.Arch))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "arch not be supported  ", util.GetConfig().BuildParam.Arch))
 		return
 	}
 	validate = false //reset for buildtype
@@ -68,7 +68,7 @@ func StartBuild(c *gin.Context) {
 		}
 	}
 	if !validate {
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "buildType not supported  ", util.GetConfig().BuildParam.BuildType))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "buildType not be supported  ", util.GetConfig().BuildParam.BuildType))
 		return
 	}
 	insertData.BasePkg = strings.Join(util.GetConfig().DefaultPkgList.Packages, ",")
@@ -98,7 +98,7 @@ func StartBuild(c *gin.Context) {
 
 // @Summary QueryJobStatus
 // @Description QueryJobStatus for given job name
-// @Tags  meta Manager
+// @Tags  v1 job
 // @Param	name		path 	string	true		"The name for job"
 // @Param	id		query 	string	false		"The id for job in database. "
 // @Param	ns		query 	string	false		"job namespace "
@@ -128,7 +128,7 @@ func QueryJobStatus(c *gin.Context) {
 
 // @Summary QueryJobLogs
 // @Description QueryJobLogs for given job name
-// @Tags  meta Manager
+// @Tags  v1 job
 // @Param	name		path 	string	true		"The name for job"
 // @Accept json
 // @Produce json
@@ -167,7 +167,7 @@ func QueryJobLogs(c *gin.Context) {
 
 // @Summary GetBaseData param
 // @Description get architecture, release Version, output Format ,and default package name list
-// @Tags  meta Manager
+// @Tags  v1 job
 // @Accept json
 // @Produce json
 // @Router /v1/images/param/getBaseData/ [get]
@@ -179,7 +179,7 @@ func GetBaseData(c *gin.Context) {
 
 // @Summary GetCustomePkgList param
 // @Description get custom package name list
-// @Tags  meta Manager
+// @Tags  v1 job
 // @Param	arch		query 	string	true		" arch ,e g:x86_64"
 // @Param	release		query 	string	true		"release  "
 // @Param	sig		query 	string	true		"custom group  "
@@ -201,22 +201,9 @@ func GetCustomePkgList(c *gin.Context) {
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", customlist))
 }
 
-// @Summary query multi datas
-// @Description use param to query multi datas
-// @Tags  meta Manager
-// @Param	project_name		query 	string	true		"project name"
-// @Param	pkg_name		query 	string	true		"package name"
-// @Accept json
-// @Produce json
-// @Router /v1/images/query [get]
-func Query(c *gin.Context) {
-	//...... emplty . wait for query param
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, c.Query("project_name"), c.Query("pkg_name")))
-}
-
 // @Summary QueryMyHistory
 // @Description Query My History
-// @Tags  meta Manager
+// @Tags  v1 job
 // @Accept json
 // @Produce json
 // @Router /v1/images/queryHistory/mine [get]

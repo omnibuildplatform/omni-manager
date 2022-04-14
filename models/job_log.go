@@ -39,6 +39,8 @@ type JobLog struct {
 	ConfigMapName string    ` description:"configMap name"`
 	JobLabel      string    ` description:"job label"`
 	JobDesc       string    ` description:"job description"`
+	StartTime     time.Time ` description:"create time"`
+	EndTime       time.Time ` description:"create time"`
 }
 
 func (t *JobLog) TableName() string {

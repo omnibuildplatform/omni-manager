@@ -120,6 +120,7 @@ func AuthingGetUserDetail(c *gin.Context) {
 	result["token"] = jwtString
 	result["photo"] = userDetail.Photo
 	result["id"] = userDetail.Id
+	// util.Log.Infof("appId%s,action:login,time:%s,user:%v", util.GetConfig().AuthingConfig.AppID, time.Now().Format("2006-01-02 15:04:05"), userDetail)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
 }
 

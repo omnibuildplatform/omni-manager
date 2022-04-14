@@ -159,7 +159,7 @@ paths:
       responses: {}
       summary: GetBaseData param
       tags:
-      - meta Manager
+      - v1 job
   /v1/images/param/getCustomePkgList/:
     get:
       consumes:
@@ -186,29 +186,7 @@ paths:
       responses: {}
       summary: GetCustomePkgList param
       tags:
-      - meta Manager
-  /v1/images/query:
-    get:
-      consumes:
-      - application/json
-      description: use param to query multi datas
-      parameters:
-      - description: project name
-        in: query
-        name: project_name
-        required: true
-        type: string
-      - description: package name
-        in: query
-        name: pkg_name
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      summary: query multi datas
-      tags:
-      - meta Manager
+      - v1 job
   /v1/images/queryHistory/mine:
     get:
       consumes:
@@ -219,7 +197,7 @@ paths:
       responses: {}
       summary: QueryMyHistory
       tags:
-      - meta Manager
+      - v1 job
   /v1/images/queryJobLogs/{name}:
     get:
       consumes:
@@ -236,7 +214,7 @@ paths:
       responses: {}
       summary: QueryJobLogs
       tags:
-      - meta Manager
+      - v1 job
   /v1/images/queryJobStatus/{name}:
     get:
       consumes:
@@ -261,7 +239,7 @@ paths:
       responses: {}
       summary: QueryJobStatus
       tags:
-      - meta Manager
+      - v1 job
   /v1/images/startBuild:
     post:
       consumes:
@@ -279,5 +257,67 @@ paths:
       responses: {}
       summary: StartBuild Job
       tags:
-      - meta Manager
+      - v1 job
+  /v2/images/createJob:
+    post:
+      consumes:
+      - application/json
+      description: start a image build job
+      parameters:
+      - description: body for ImageMeta content
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.BuildParam'
+      produces:
+      - application/json
+      responses: {}
+      summary: Create Job
+      tags:
+      - v2 Job
+  /v2/images/getLogsOf/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get single job logs
+      parameters:
+      - description: job id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: job id
+        in: query
+        name: stepID
+        required: true
+        type: string
+      - description: max Record number
+        in: query
+        name: maxRecord
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: get single job logs
+      tags:
+      - v2 job
+  /v2/images/getOne/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get single job detail
+      parameters:
+      - description: job id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: get single job detail
+      tags:
+      - v2 job
 swagger: "2.0"

@@ -27,6 +27,8 @@ type Config struct {
 	K8sConfig      K8sConfig     `json:"k8s"`
 	AuthingConfig  AuthingConfig `json:"authing"`
 	JwtConfig      JwtConfig     `json:"jwt"`
+	BuildServer    BuildServer   `json:"buildServer"`
+	Statistic      Statistic     `json:"statistic"`
 }
 
 type K8sConfig struct {
@@ -88,6 +90,19 @@ type AuthingConfig struct {
 type JwtConfig struct {
 	Expire int    `json:"expire"`
 	JwtKey string `json:"jwtKey"`
+}
+
+//Build Server
+type BuildServer struct {
+	ApiUrl string `json:"apiUrl"`
+}
+
+//Statistic function
+type Statistic struct {
+	Dir           string `json:"dir"`
+	LogFile       string `json:"log_file"`
+	LogFileSize   int64  `json:"log_file_size"`
+	LogFileSuffix string `json:"log_file_suffix"`
 }
 
 func InitConfig(path string) {

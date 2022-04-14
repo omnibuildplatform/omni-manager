@@ -152,8 +152,9 @@ queryNextLog:
 			result["code"] = 0
 			resultBytes, _ := json.Marshal(result)
 			sendNormalData(ws, resultBytes)
+			//reset when normal
+			reTry = 0
 		}
-		reTry = 0
 	}
 	// }
 }

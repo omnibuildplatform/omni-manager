@@ -94,7 +94,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "meta Manager"
+                    "v1 job"
                 ],
                 "summary": "GetBaseData param",
                 "responses": {}
@@ -110,7 +110,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "meta Manager"
+                    "v1 job"
                 ],
                 "summary": "GetCustomePkgList param",
                 "parameters": [
@@ -139,38 +139,6 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/v1/images/query": {
-            "get": {
-                "description": "use param to query multi datas",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "meta Manager"
-                ],
-                "summary": "query multi datas",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "project name",
-                        "name": "project_name",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "package name",
-                        "name": "pkg_name",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
         "/v1/images/queryHistory/mine": {
             "get": {
                 "description": "Query My History",
@@ -181,7 +149,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "meta Manager"
+                    "v1 job"
                 ],
                 "summary": "QueryMyHistory",
                 "responses": {}
@@ -197,7 +165,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "meta Manager"
+                    "v1 job"
                 ],
                 "summary": "QueryJobLogs",
                 "parameters": [
@@ -222,7 +190,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "meta Manager"
+                    "v1 job"
                 ],
                 "summary": "QueryJobStatus",
                 "parameters": [
@@ -259,7 +227,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "meta Manager"
+                    "v1 job"
                 ],
                 "summary": "StartBuild Job",
                 "parameters": [
@@ -271,6 +239,97 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/models.BuildParam"
                         }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v2/images/createJob": {
+            "post": {
+                "description": "start a image build job",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v2 Job"
+                ],
+                "summary": "Create Job",
+                "parameters": [
+                    {
+                        "description": "body for ImageMeta content",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.BuildParam"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v2/images/getLogsOf/{id}": {
+            "get": {
+                "description": "get single job logs",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v2 job"
+                ],
+                "summary": "get single job logs",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "stepID",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "max Record number",
+                        "name": "maxRecord",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v2/images/getOne/{id}": {
+            "get": {
+                "description": "get single job detail",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v2 job"
+                ],
+                "summary": "get single job detail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {}

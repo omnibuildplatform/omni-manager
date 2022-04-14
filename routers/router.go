@@ -32,7 +32,6 @@ func InitRouter() *gin.Engine {
 	{
 		v1.Use(models.Authorize()) //
 		v1.POST("/images/startBuild", controllers.StartBuild)
-		v1.GET("/images/query", controllers.Query)
 		v1.GET("/images/param/getBaseData/", controllers.GetBaseData)
 		v1.GET("/images/param/getCustomePkgList/", controllers.GetCustomePkgList)
 		v1.GET("/images/queryJobStatus/:name", controllers.QueryJobStatus)
@@ -43,9 +42,9 @@ func InitRouter() *gin.Engine {
 	v2 := r.Group(docs.SwaggerInfo.BasePath + "/v2")
 	{
 		v2.Use(models.Authorize()) //
-		v2.POST("/images/startBuild", controllers.StartBuild)
-		v2.GET("/images/query", controllers.Query)
-		v2.GET("/images/param/getBaseData/", controllers.GetBaseData)
+		v2.POST("/images/createJob", controllers.CreateJob)
+		v2.GET("/images/getOne/:id", controllers.GetOne)
+		v2.GET("/images/getLogsOf/:id", controllers.GetJobLogs)
 		v2.GET("/images/param/getCustomePkgList/", controllers.GetCustomePkgList)
 		v2.GET("/images/queryJobStatus/:name", controllers.QueryJobStatus)
 		v2.GET("/images/queryJobLogs/:name", controllers.QueryJobLogs)
