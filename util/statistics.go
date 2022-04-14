@@ -23,8 +23,11 @@ type StatisticsData struct {
 	Body          string
 }
 
-func init() {
+var configPath string
 
+func init() {
+	configPath = GetConfig().Statistic.Dir
+	CreateDir(configPath)
 }
 
 var statisticsLogFile *os.File
@@ -58,8 +61,6 @@ func writeStatistLog(filePath string, byteData []byte) error {
 }
 
 func createStatistLog(logFile string) (string, error) {
-	configPath := GetConfig().Statistic.Dir
-	CreateDir(configPath)
 	if len(logFile) == 0 {
 		logFile = GetCurDate() + "_" + GetConfig().Statistic.LogFile
 	}

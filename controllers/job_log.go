@@ -93,6 +93,13 @@ func StartBuild(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, nil, err))
 		return
 	}
+	sd := util.StatisticsData{}
+	sd.UserName = insertData.UserName
+	sd.UserId = insertData.UserId
+	sd.EventType = "使用v1构建"
+	sd.Value = fmt.Sprintf("jobID:%s", job.Name)
+	sd.OperationTime = time.Now().Format("2006-01-02 15:04:05")
+	util.StatisticsLog(&sd)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, 0, job.GetName(), util.GetConfig().WSConfig))
 }
 
@@ -197,6 +204,13 @@ func GetCustomePkgList(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, err, nil))
 		return
 	}
+	sd := util.StatisticsData{}
+	sd.UserName = c.Keys["nm"].(string)
+	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
+	sd.EventType = "查询CustmPkg"
+	sd.Value = fmt.Sprintf("release: %s, arch:%s, sig:%s", release, arch, sig)
+	sd.OperationTime = time.Now().Format("2006-01-02 15:04:05")
+	util.StatisticsLog(&sd)
 
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", customlist))
 }
@@ -204,6 +218,8 @@ func GetCustomePkgList(c *gin.Context) {
 // @Summary QueryMyHistory
 // @Description Query My History
 // @Tags  v1 job
+// @Param	offset		query 	int	true		"offset "
+// @Param	limit		query 	int	true		"limit"
 // @Accept json
 // @Produce json
 // @Router /v1/images/queryHistory/mine [get]
@@ -214,10 +230,28 @@ func QueryMyHistory(c *gin.Context) {
 		c.JSON(http.StatusForbidden, util.ExportData(util.CodeStatusClientError, " forbidden ", nil))
 		return
 	}
-	result, err := models.GetMyJobLogs(UserId, 0, 10)
+
+	offset, err := strconv.Atoi(c.Query("offset"))
+	if err != nil {
+		offset = 0
+	}
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	if limit <= 0 {
+		limit = 10
+	}
+
+	result, err := models.GetMyJobLogs(UserId, offset, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, err, nil))
 		return
 	}
+
+	sd := util.StatisticsData{}
+	sd.UserName = c.Keys["nm"].(string)
+	sd.UserId = UserId
+	sd.EventType = "查询自己的构建历史"
+	sd.Value = fmt.Sprintf("offset: %d, limit:%d, result number:%d", offset, limit, len(result))
+	sd.OperationTime = time.Now().Format("2006-01-02 15:04:05")
+	util.StatisticsLog(&sd)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
 }
