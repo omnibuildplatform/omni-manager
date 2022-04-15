@@ -50,6 +50,7 @@ func main() {
 	models.InitAuthing("", "")
 	//init kubernetes client-go
 	models.InitK8sClient()
+	util.InitStatisticsLog()
 	//startup a webscoket server to wait client ws
 	go models.StartWebSocket()
 	//init router

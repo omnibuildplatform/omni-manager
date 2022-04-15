@@ -63,7 +63,7 @@
     },
     "statistic": {
         "dir": "statisticslog",
-        "log_file": "omni-manager-statistics.log",
+        "log_file": "omni-manager",
         "log_file_size": 10000000,
         "log_file_suffix": "00000001"
     }

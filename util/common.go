@@ -32,7 +32,7 @@ func GetCurTime() string {
 	return time.Now().Format(DATE_FORMAT)
 }
 
-func CreateDir(dir string) error {
+func createDir(dir string) error {
 	_, err := os.Stat(dir)
 	if err != nil {
 		if os.IsNotExist(err) {

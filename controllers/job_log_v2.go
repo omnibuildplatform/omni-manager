@@ -92,7 +92,6 @@ func CreateJob(c *gin.Context) {
 	}
 
 	// resultBytes, _ := json.Marshal(result)
-
 	// fmt.Println(string(paramBytes), "-------------:", string(resultBytes))
 	insertData.JobName = result["id"].(string)
 	outputName := fmt.Sprintf(`openEuler-%s.iso`, result["id"])
@@ -110,7 +109,8 @@ func CreateJob(c *gin.Context) {
 	sd.UserName = c.Keys["nm"].(string)
 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	sd.EventType = "构建OpenEuler"
-	sd.Value = fmt.Sprintf("jobID:%s", result["id"])
+	param["customRpms"] = imageInputData.CustomPkg
+	sd.Body = param
 	sd.OperationTime = time.Now().Format("2006-01-02 15:04:05")
 	util.StatisticsLog(&sd)
 
@@ -144,7 +144,7 @@ func GetOne(c *gin.Context) {
 	sd.UserName = c.Keys["nm"].(string)
 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	sd.EventType = "查询job详情"
-	sd.Value = fmt.Sprintf("jobID:%s", id)
+	sd.Body = param
 	sd.OperationTime = time.Now().Format("2006-01-02 15:04:05")
 	util.StatisticsLog(&sd)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
@@ -197,7 +197,7 @@ func GetJobLogs(c *gin.Context) {
 	sd.UserName = c.Keys["nm"].(string)
 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	sd.EventType = "查询构建日志"
-	sd.Value = fmt.Sprintf("jobID:%s", id)
+	sd.Body = param
 	sd.OperationTime = time.Now().Format("2006-01-02 15:04:05")
 	util.StatisticsLog(&sd)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", string(resultBytes)))
