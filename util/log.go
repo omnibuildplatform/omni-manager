@@ -132,6 +132,9 @@ func LoggerToFile() gin.HandlerFunc {
 }
 
 func StatisticsLog(sd *StatisticsData) error {
+	if sd.State == "" {
+		sd.State = "success"
+	}
 	mapData := make(map[string]interface{})
 	mapData["OperationTime"] = fmt.Sprintf("%v", sd.OperationTime)
 	mapData["UserId"] = fmt.Sprintf("%v", sd.UserId)

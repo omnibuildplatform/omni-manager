@@ -1,30 +1,23 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"omni-manager/models"
 	"omni-manager/routers"
 	"omni-manager/util"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	var httpPort int
-	flag.IntVar(&httpPort, "p", 0, "Input http port")
-	flag.Parse()
-	//load config file
-	util.InitConfig("")
-	if httpPort <= 0 {
-		//use flag port first ,if not then use config port
-		httpPort = util.GetConfig().AppPort
+	if util.GetConfig().AppModel == "dev" {
+		util.Log.SetLevel(logrus.DebugLevel)
+		util.GetConfig().AppModel = gin.DebugMode
+	} else {
+		util.Log.SetLevel(logrus.WarnLevel)
+		util.GetConfig().AppModel = gin.ReleaseMode
 	}
-	if httpPort <= 0 {
-		//if config port not set,then set a default 8080
-		httpPort = 8080
-	}
-	address := fmt.Sprintf(":%d", httpPort)
 
 	//init database
 	err := util.InitDB()
@@ -53,10 +46,9 @@ func main() {
 	util.InitStatisticsLog()
 	//startup a webscoket server to wait client ws
 	go models.StartWebSocket()
-	//init router
 	gin.SetMode(util.GetConfig().AppModel)
-
 	r := routers.InitRouter()
+	address := fmt.Sprintf(":%d", util.GetConfig().AppPort)
 	util.Log.Printf(" startup meta http service at port %s .and %s mode \n", address, util.GetConfig().AppModel)
 	if err := r.Run(address); err != nil {
 		util.Log.Printf("startup meta  http service failed, err:%v\n", err)
