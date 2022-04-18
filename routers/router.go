@@ -44,11 +44,11 @@ func InitRouter() *gin.Engine {
 		v2.Use(models.Authorize()) //
 		v2.POST("/images/createJob", controllers.CreateJob)
 		v2.GET("/images/getOne/:id", controllers.GetOne)
+		v2.GET("/images/getJobParam/:id", controllers.GetJobParam)
 		v2.GET("/images/getLogsOf/:id", controllers.GetJobLogs)
-		v2.GET("/images/param/getCustomePkgList/", controllers.GetCustomePkgList)
-		v2.GET("/images/queryJobStatus/:name", controllers.QueryJobStatus)
-		v2.GET("/images/queryJobLogs/:name", controllers.QueryJobLogs)
-		v2.GET("/images/queryHistory/mine", controllers.QueryMyHistory)
+		v2.DELETE("/images/deleteJob/:id", controllers.DeleteJobLogs)
+		v2.GET("/images/getMySummary", controllers.GetMySummary)
+
 	}
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))

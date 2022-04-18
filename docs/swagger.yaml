@@ -2,6 +2,7 @@ definitions:
   models.BuildParam:
     properties:
       arch:
+        description: Id        int      `gorm:"primaryKey"`
         type: string
       buildType:
         type: string
@@ -9,8 +10,10 @@ definitions:
         items:
           type: string
         type: array
-      id:
-        type: integer
+      desc:
+        type: string
+      label:
+        type: string
       release:
         type: string
     type: object
@@ -192,6 +195,17 @@ paths:
       consumes:
       - application/json
       description: Query My History
+      parameters:
+      - description: 'offset '
+        in: query
+        name: offset
+        required: true
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        required: true
+        type: integer
       produces:
       - application/json
       responses: {}
@@ -275,7 +289,41 @@ paths:
       responses: {}
       summary: Create Job
       tags:
-      - v2 Job
+      - v2 job
+  /v2/images/deleteJob/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete a job build record
+      parameters:
+      - description: job id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: deleteRecord
+      tags:
+      - v2 job
+  /v2/images/getJobParam/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get job build param
+      parameters:
+      - description: job id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: GetJobParam
+      tags:
+      - v2 job
   /v2/images/getLogsOf/{id}:
     get:
       consumes:
@@ -301,6 +349,17 @@ paths:
       - application/json
       responses: {}
       summary: get single job logs
+      tags:
+      - v2 job
+  /v2/images/getMySummary:
+    get:
+      consumes:
+      - application/json
+      description: get my summary
+      produces:
+      - application/json
+      responses: {}
+      summary: MySummary
       tags:
       - v2 job
   /v2/images/getOne/{id}:

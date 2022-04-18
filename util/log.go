@@ -19,7 +19,7 @@ type StatisticsData struct {
 	UserName      string
 	UserProvider  string
 	UserEmail     string
-	OperationTime string
+	OperationTime time.Time
 	EventType     string
 	State         string
 	StateMessage  string
@@ -87,7 +87,7 @@ func InitStatisticsLog() {
 	}
 	//new log
 	SLog = logrus.New()
-	SLog.Out = io.MultiWriter(os.Stdout, src)
+	SLog.Out = io.MultiWriter(src)
 	SLog.SetFormatter(&logrus.JSONFormatter{
 		DisableTimestamp: true,
 		PrettyPrint:      true,
@@ -136,15 +136,14 @@ func StatisticsLog(sd *StatisticsData) error {
 		sd.State = "success"
 	}
 	mapData := make(map[string]interface{})
-	mapData["OperationTime"] = fmt.Sprintf("%v", sd.OperationTime)
-	mapData["UserId"] = fmt.Sprintf("%v", sd.UserId)
-	mapData["UserName"] = fmt.Sprintf("%v", sd.UserName)
-	mapData["UserProvider"] = fmt.Sprintf("%v", sd.UserProvider)
-	mapData["EventType"] = fmt.Sprintf("%v", sd.EventType)
-	mapData["Body"] = sd.Body
-	mapData["AppId"] = GetConfig().AuthingConfig.AppID
-	mapData["State"] = sd.State
-	mapData["StateMessage"] = sd.StateMessage
+	mapData["operationTime"] = sd.OperationTime.Local()
+	mapData["userId"] = fmt.Sprintf("%v", sd.UserId)
+	mapData["userProvider"] = fmt.Sprintf("%v", sd.UserProvider)
+	mapData["eventType"] = fmt.Sprintf("%v", sd.EventType)
+	mapData["body"] = sd.Body
+	mapData["appId"] = GetConfig().AuthingConfig.AppID
+	mapData["state"] = sd.State
+	mapData["stateMessage"] = sd.StateMessage
 	data, err := json.Marshal(mapData)
 	if err != nil {
 		Log.Error("StatisticsLog Marshal err: ", err)

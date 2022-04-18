@@ -30,15 +30,14 @@ type tokenItem struct {
 // @Router /v1/auth/loginok [get]
 func AuthingLoginOk(c *gin.Context) {
 	code, _ := c.GetQuery("code")
-
 	// authorization_code
 	resp, err := http.PostForm("https://openeuler-omni-manager.authing.cn/oidc/token",
 		url.Values{
 			"code":          {code},
-			"client_id":     {"623d6bf75c72636ebb8c5e4b"},
-			"client_secret": {"374a74fb1131916139d4789ef870820e"},
+			"client_id":     {util.GetConfig().AuthingConfig.AppID},
+			"client_secret": {util.GetConfig().AuthingConfig.AppSecret},
 			"grant_type":    {"authorization_code"},
-			"redirect_uri":  {"http://192.168.1.193:8080/api/v1/auth/loginok"}})
+			"redirect_uri":  {util.GetConfig().AuthingConfig.RedirectURI}})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "login err", err))
 		return
@@ -62,22 +61,11 @@ func AuthingLoginOk(c *gin.Context) {
 		return util.GetConfig().AuthingConfig.AppSecret, nil
 	})
 
-	// var jwtToken jwt.Token
-	// if len(token.AccessToken) > 20 {
-	// 	fmt.Println("------------jwtToken:", jwtToken)
-	// 	fmt.Println("------------models.AuthingJWKSItem:", models.AuthingJWKSItem)
-
-	// 	signStr, err := jwtToken.SignedString(models.AuthingJWKSItem)
 	if err != nil {
 		fmt.Println(util.GetConfig().AuthingConfig.AppSecret, "---------jwtToken Parse---:", err)
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "jwtToken Parse", err))
 		return
 	}
-	// 	jwtToken.Method.Verify(token.AccessToken, signStr, map[string]string{
-	// 		"issuer":   "https://openeuler-omni-manager.authing.cn/oidc",
-	// 		"audience": "623d6bf75c72636ebb8c5e4b",
-	// 	})
-
 	if jwtToken.Valid {
 		userinfo, ok := jwtToken.Claims.(jwt.MapClaims)
 		if !ok {

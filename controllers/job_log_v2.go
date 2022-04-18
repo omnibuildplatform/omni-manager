@@ -17,7 +17,7 @@ import (
 
 // @Summary Create Job
 // @Description start a image build job
-// @Tags  v2 Job
+// @Tags  v2 job
 // @Param	body		body 	models.BuildParam	true		"body for ImageMeta content"
 // @Accept json
 // @Produce json
@@ -37,6 +37,8 @@ func CreateJob(c *gin.Context) {
 	insertData.Arch = imageInputData.Arch
 	insertData.Release = imageInputData.Release
 	insertData.BuildType = imageInputData.BuildType
+	insertData.JobLabel = imageInputData.Label
+	insertData.JobDesc = imageInputData.Desc
 	insertData.CreateTime = time.Now()
 	if len(insertData.Release) == 0 {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "Release not allowed empty ", nil))
@@ -90,12 +92,12 @@ func CreateJob(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "HTTPPost Error", err))
 		return
 	}
-
-	// resultBytes, _ := json.Marshal(result)
-	// fmt.Println(string(paramBytes), "-------------:", string(resultBytes))
 	insertData.JobName = result["id"].(string)
 	outputName := fmt.Sprintf(`openEuler-%s.iso`, result["id"])
 	insertData.Status = result["state"].(string)
+	if insertData.Status == "" {
+		insertData.Status = "running"
+	}
 	insertData.StartTime, _ = time.Parse("2006-01-02T15:04:05Z", result["startTime"].(string))
 	insertData.EndTime, _ = time.Parse("2006-01-02T15:04:05Z", result["endTime"].(string))
 	insertData.DownloadUrl = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, insertData.Release, time.Now().Format("2006-01-02"), outputName)
@@ -106,15 +108,41 @@ func CreateJob(c *gin.Context) {
 	}
 
 	sd := util.StatisticsData{}
-	sd.UserName = c.Keys["nm"].(string)
 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	sd.EventType = "构建OpenEuler"
 	param["customRpms"] = imageInputData.CustomPkg
 	sd.Body = param
-	sd.OperationTime = time.Now().Format("2006-01-02 15:04:05")
+	sd.OperationTime = time.Now()
 	util.StatisticsLog(&sd)
 
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, 0, insertData))
+}
+
+// @Summary GetJobParam
+// @Description get job build param
+// @Tags  v2 job
+// @Param	id		path 	string	true		"job id"
+// @Accept json
+// @Produce json
+// @Router /v2/images/getJobParam/{id} [get]
+func GetJobParam(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, " job id must be fill:", nil))
+		return
+	}
+	result, err := models.GetJobLogByJobName(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, nil, err))
+		return
+	}
+	sd := util.StatisticsData{}
+	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
+	sd.EventType = "查询构建详情"
+	sd.Body = id
+	sd.OperationTime = time.Now()
+	util.StatisticsLog(&sd)
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
 }
 
 // @Summary get single job detail
@@ -141,11 +169,10 @@ func GetOne(c *gin.Context) {
 		return
 	}
 	sd := util.StatisticsData{}
-	sd.UserName = c.Keys["nm"].(string)
 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
-	sd.EventType = "查询job详情"
+	sd.EventType = "查询构建日志"
 	sd.Body = param
-	sd.OperationTime = time.Now().Format("2006-01-02 15:04:05")
+	sd.OperationTime = time.Now()
 	util.StatisticsLog(&sd)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
 }
@@ -194,11 +221,69 @@ func GetJobLogs(c *gin.Context) {
 	defer resp.Body.Close()
 	resultBytes, _ := ioutil.ReadAll(resp.Body)
 	sd := util.StatisticsData{}
-	sd.UserName = c.Keys["nm"].(string)
 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
-	sd.EventType = "查询构建日志"
+	sd.EventType = "查询构建日志详情"
 	sd.Body = param
-	sd.OperationTime = time.Now().Format("2006-01-02 15:04:05")
+	sd.OperationTime = time.Now()
 	util.StatisticsLog(&sd)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", string(resultBytes)))
+}
+
+// @Summary deleteRecord
+// @Description delete a job build record
+// @Tags  v2 job
+// @Param	id		path 	string	true		"job id"
+// @Accept json
+// @Produce json
+// @Router /v2/images/deleteJob/{id} [delete]
+func DeleteJobLogs(c *gin.Context) {
+	id := c.Param("id")
+	if len(id) < 10 {
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, " job id must be fill:", nil))
+		return
+	}
+
+	err := models.DeleteJobLogById(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "error", err))
+		return
+	}
+	sd := util.StatisticsData{}
+	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
+	sd.EventType = "删除构建历史"
+	body := make(map[string]interface{})
+	body["userid"] = sd.UserId
+	body["jobID"] = id
+
+	sd.Body = body
+	sd.OperationTime = time.Now()
+	util.StatisticsLog(&sd)
+
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", id))
+
+}
+
+// @Summary MySummary
+// @Description get my summary
+// @Tags  v2 job
+// @Accept json
+// @Produce json
+// @Router /v2/images/getMySummary [get]
+func GetMySummary(c *gin.Context) {
+	userId, _ := strconv.Atoi((c.Keys["id"]).(string))
+	result, err := models.CountSummaryStatus(userId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "error", err))
+		return
+	}
+	sd := util.StatisticsData{}
+	sd.UserId = userId
+	sd.EventType = "获取构建统计"
+	body := make(map[string]interface{})
+	body["userid"] = userId
+	sd.Body = body
+	sd.OperationTime = time.Now()
+	util.StatisticsLog(&sd)
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
+
 }

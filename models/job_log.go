@@ -18,11 +18,13 @@ import (
 
 //post this body to backend
 type BuildParam struct {
-	Id        int      `gorm:"primaryKey"`
+	// Id        int      `gorm:"primaryKey"`
 	Arch      string   ` description:"architecture"`
 	Release   string   ` description:"release openEuler Version"`
 	BuildType string   ` description:"iso , zip ...."`
 	CustomPkg []string ` description:"custom"`
+	Label     string   ` description:"name"`
+	Desc      string   ` description:"description"`
 }
 type JobLog struct {
 	JobName       string    ` description:"pod name" gorm:"primaryKey"`
@@ -41,6 +43,11 @@ type JobLog struct {
 	JobDesc       string    ` description:"job description"`
 	StartTime     time.Time ` description:"create time"`
 	EndTime       time.Time ` description:"create time"`
+}
+type SummaryStatus struct {
+	Success int
+	Running int
+	Failed  int
 }
 
 func (t *JobLog) TableName() string {
@@ -79,17 +86,17 @@ func GetMyJobLogs(userid int, offset int, limit int) (ml []*JobLog, err error) {
 	o := util.GetDB()
 	m := new(JobLog)
 	m.UserId = userid
-	ml = make([]*JobLog, limit)
 	sql := fmt.Sprintf("select * from %s where user_id = %d order by create_time desc limit %d,%d", m.TableName(), userid, offset, limit)
 	o.Raw(sql).Scan(&ml)
 	return ml, nil
 }
 
-// UpdateJobLogById updates ImageMeta by Id and returns error if
-// the record to be updated doesn't exist
-func UpdateJobLogById(m *JobLog) (err error) {
+// DeleteJobLogById
+func DeleteJobLogById(jobName string) (err error) {
 	o := util.GetDB()
-	result := o.Model(m).Updates(m)
+	m := new(JobLog)
+	m.JobName = jobName
+	result := o.Delete(m)
 	return result.Error
 }
 
@@ -100,6 +107,16 @@ func UpdateJobLogStatusById(jobname, newStatus string) (err error) {
 	sql := fmt.Sprintf("update %s set status='%s' where job_name = '%s'", m.TableName(), newStatus, jobname)
 	result := o.Model(m).Exec(sql)
 	return result.Error
+}
+
+// CountSummaryStatus
+func CountSummaryStatus(userid int) (result *SummaryStatus, err error) {
+	o := util.GetDB()
+	m := new(JobLog)
+	sql := fmt.Sprintf("select  count(case when status ='running' then '1' end) as 'running', count(case when status ='failed' then '1' end) as 'failed', count(case when status ='' then '1' end) as 'success'  FROM %s where user_id = %d ", m.TableName(), userid)
+	result = new(SummaryStatus)
+	tx := o.Raw(sql).Scan(result)
+	return result, tx.Error
 }
 
 // CreateTables

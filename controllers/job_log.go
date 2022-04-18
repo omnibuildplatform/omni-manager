@@ -98,7 +98,7 @@ func StartBuild(c *gin.Context) {
 	sd.UserId = insertData.UserId
 	sd.EventType = "使用v1构建"
 	sd.Body = fmt.Sprintf("jobID:%s", job.Name)
-	sd.OperationTime = time.Now().Format("2006-01-02 15:04:05")
+	sd.OperationTime = time.Now()
 	util.StatisticsLog(&sd)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, 0, job.GetName(), util.GetConfig().WSConfig))
 }
@@ -205,11 +205,11 @@ func GetCustomePkgList(c *gin.Context) {
 		return
 	}
 	sd := util.StatisticsData{}
-	sd.UserName = c.Keys["nm"].(string)
+
 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	sd.EventType = "查询CustmPkg"
 	sd.Body = fmt.Sprintf("release: %s, arch:%s, sig:%s", release, arch, sig)
-	sd.OperationTime = time.Now().Format("2006-01-02 15:04:05")
+	sd.OperationTime = time.Now()
 	util.StatisticsLog(&sd)
 
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", customlist))
@@ -247,11 +247,15 @@ func QueryMyHistory(c *gin.Context) {
 	}
 
 	sd := util.StatisticsData{}
-	sd.UserName = c.Keys["nm"].(string)
 	sd.UserId = UserId
 	sd.EventType = "查询自己的构建历史"
 	sd.Body = fmt.Sprintf("offset: %d, limit:%d, result number:%d", offset, limit, len(result))
-	sd.OperationTime = time.Now().Format("2006-01-02 15:04:05")
+	sd.OperationTime = time.Now()
 	util.StatisticsLog(&sd)
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
+	if len(result) == 0 {
+		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", "[]"))
+	} else {
+		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
+	}
+
 }

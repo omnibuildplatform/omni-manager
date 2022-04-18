@@ -10,7 +10,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+func init() {
+	util.InitConfig("")
+}
 func main() {
+
 	if util.GetConfig().AppModel == "dev" {
 		util.Log.SetLevel(logrus.DebugLevel)
 		util.GetConfig().AppModel = gin.DebugMode
@@ -37,8 +41,11 @@ func main() {
 		util.Log.Errorf("Redis connect failed , err:%v\n", err)
 		return
 	}
-	//init customPkgs
-	models.InitCustomPkgs()
+	fmt.Println("===", util.GetConfig().AppModel)
+	if util.GetConfig().AppModel != gin.DebugMode {
+		//init customPkgs
+		models.InitCustomPkgs()
+	}
 	//init Authing.cn config
 	models.InitAuthing("", "")
 	//init kubernetes client-go

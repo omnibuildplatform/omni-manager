@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
@@ -80,10 +81,11 @@ type WSConfig struct {
 
 //Authing Config
 type AuthingConfig struct {
-	UserPoolID string `json:"userPoolID"`
-	Secret     string `json:"secret"`
-	AppID      string `json:"appID"`
-	AppSecret  string `json:"appSecret"`
+	UserPoolID  string `json:"userPoolID"`
+	Secret      string `json:"secret"`
+	AppID       string `json:"appID"`
+	AppSecret   string `json:"appSecret"`
+	RedirectURI string `json:"redirect_uri"`
 }
 
 //Jwt Jwt
@@ -126,7 +128,7 @@ func InitConfig(path string) {
 	if os.Getenv("GIN_MODE") != "" {
 		cfg.AppModel = os.Getenv("GIN_MODE")
 	}
-	if cfg.AppModel == "debug" {
+	if cfg.AppModel == gin.DebugMode {
 		//info level
 		Log.SetLevel(logrus.InfoLevel)
 	} else {

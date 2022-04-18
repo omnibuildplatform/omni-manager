@@ -152,6 +152,22 @@ const docTemplate = `{
                     "v1 job"
                 ],
                 "summary": "QueryMyHistory",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "offset ",
+                        "name": "offset",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {}
             }
         },
@@ -254,7 +270,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "v2 Job"
+                    "v2 job"
                 ],
                 "summary": "Create Job",
                 "parameters": [
@@ -266,6 +282,56 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/models.BuildParam"
                         }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v2/images/deleteJob/{id}": {
+            "delete": {
+                "description": "delete a job build record",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v2 job"
+                ],
+                "summary": "deleteRecord",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v2/images/getJobParam/{id}": {
+            "get": {
+                "description": "get job build param",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v2 job"
+                ],
+                "summary": "GetJobParam",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {}
@@ -310,6 +376,22 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/v2/images/getMySummary": {
+            "get": {
+                "description": "get my summary",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v2 job"
+                ],
+                "summary": "MySummary",
+                "responses": {}
+            }
+        },
         "/v2/images/getOne/{id}": {
             "get": {
                 "description": "get single job detail",
@@ -341,6 +423,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "arch": {
+                    "description": "Id        int      ` + "`" + `gorm:\"primaryKey\"` + "`" + `",
                     "type": "string"
                 },
                 "buildType": {
@@ -352,8 +435,11 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "id": {
-                    "type": "integer"
+                "desc": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
                 },
                 "release": {
                     "type": "string"
