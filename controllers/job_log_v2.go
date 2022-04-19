@@ -95,12 +95,10 @@ func CreateJob(c *gin.Context) {
 	insertData.JobName = result["id"].(string)
 	outputName := fmt.Sprintf(`openEuler-%s.iso`, result["id"])
 	insertData.Status = result["state"].(string)
-	if insertData.Status == "" {
-		insertData.Status = "running"
-	}
 	insertData.StartTime, _ = time.Parse("2006-01-02T15:04:05Z", result["startTime"].(string))
 	insertData.EndTime, _ = time.Parse("2006-01-02T15:04:05Z", result["endTime"].(string))
 	insertData.DownloadUrl = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, insertData.Release, time.Now().Format("2006-01-02"), outputName)
+	insertData.Status = models.JOB_STATUS_START
 	err = models.AddJobLog(&insertData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, nil, err))
@@ -111,11 +109,13 @@ func CreateJob(c *gin.Context) {
 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	sd.EventType = "构建OpenEuler"
 	param["customRpms"] = imageInputData.CustomPkg
+	delete(specMap, "packages")
+	param["spec"] = specMap
 	sd.Body = param
 	sd.OperationTime = time.Now()
 	util.StatisticsLog(&sd)
-
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, 0, insertData))
+
 }
 
 // @Summary GetJobParam
@@ -175,6 +175,7 @@ func GetOne(c *gin.Context) {
 	sd.OperationTime = time.Now()
 	util.StatisticsLog(&sd)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
+
 }
 
 // @Summary get single job logs
@@ -193,12 +194,12 @@ func GetJobLogs(c *gin.Context) {
 		return
 	}
 	stepID, _ := strconv.Atoi(c.Query("stepID"))
-	if stepID < 1 {
-		stepID = 1
-	}
+	// if stepID < 1 {
+	// 	stepID = 1
+	// }
 	maxRecord, _ := strconv.Atoi(c.Query("maxRecord"))
 	if maxRecord < 1 {
-		maxRecord = 1
+		maxRecord = 99999999
 	}
 	param := url.Values{}
 	param.Set("service", "omni")
@@ -219,14 +220,23 @@ func GetJobLogs(c *gin.Context) {
 		return
 	}
 	defer resp.Body.Close()
+
 	resultBytes, _ := ioutil.ReadAll(resp.Body)
 	sd := util.StatisticsData{}
 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	sd.EventType = "查询构建日志详情"
 	sd.Body = param
 	sd.OperationTime = time.Now()
-	util.StatisticsLog(&sd)
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", string(resultBytes)))
+	result := string(resultBytes)
+	if resp.StatusCode == 200 {
+		util.StatisticsLog(&sd)
+		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
+	} else {
+		sd.State = "failed"
+		sd.StateMessage = result
+		util.StatisticsLog(&sd)
+		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, "error", result))
+	}
 }
 
 // @Summary deleteRecord
@@ -252,13 +262,11 @@ func DeleteJobLogs(c *gin.Context) {
 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	sd.EventType = "删除构建历史"
 	body := make(map[string]interface{})
-	body["userid"] = sd.UserId
+	body["userID"] = sd.UserId
 	body["jobID"] = id
-
 	sd.Body = body
 	sd.OperationTime = time.Now()
 	util.StatisticsLog(&sd)
-
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", id))
 
 }

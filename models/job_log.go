@@ -4,7 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"omni-manager/util"
+	"strings"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -45,9 +48,18 @@ type JobLog struct {
 	EndTime       time.Time ` description:"create time"`
 }
 type SummaryStatus struct {
-	Success int
-	Running int
-	Failed  int
+	Succeed int `json:"succeed"`
+	Running int `json:"running"`
+	Failed  int `json:"failed"`
+	Created int `json:"created"`
+	Stopped int `json:"stopped"`
+}
+
+type JobStatuItem struct {
+	Id        string `json:"id"`
+	State     string `json:"state"`
+	StartTime string `json:"startTime"`
+	EndTime   string `json:"endTime"`
 }
 
 func (t *JobLog) TableName() string {
@@ -113,7 +125,7 @@ func UpdateJobLogStatusById(jobname, newStatus string) (err error) {
 func CountSummaryStatus(userid int) (result *SummaryStatus, err error) {
 	o := util.GetDB()
 	m := new(JobLog)
-	sql := fmt.Sprintf("select  count(case when status ='running' then '1' end) as 'running', count(case when status ='failed' then '1' end) as 'failed', count(case when status ='' then '1' end) as 'success'  FROM %s where user_id = %d ", m.TableName(), userid)
+	sql := fmt.Sprintf("select  count(case when status ='running' then '1' end) as 'running', count(case when status ='failed' then '1' end) as 'failed', count(case when status ='succeed' then '1' end) as 'succeed' ,  count(case when status ='created' then '1' end) as 'created',  count(case when status ='stopped' then '1' end) as 'stopped'  FROM %s where user_id = %d ", m.TableName(), userid)
 	result = new(SummaryStatus)
 	tx := o.Raw(sql).Scan(result)
 	return result, tx.Error
@@ -335,4 +347,90 @@ func CheckPodStatus(ns, jobname string) (result map[string]interface{}, job *bat
 		result["status"] = JOB_STATUS_RUNNING
 	}
 	return
+}
+
+func SyncJobStatus() {
+	m := new(JobLog)
+	sql := fmt.Sprintf("select job_name from %s where status<>'%s' and status<>'%s'  ", m.TableName(), JOB_STATUS_SUCCEED, JOB_STATUS_FAILED)
+	var jobIdList []string
+	param := make(map[string]interface{})
+	param["service"] = "omni"
+	param["domain"] = "omni-build"
+	param["task"] = "buildImage"
+
+	for {
+		o := util.GetDB()
+		o.Debug().Raw(sql).Scan(&jobIdList)
+		if len(jobIdList) == 0 {
+			time.Sleep(time.Minute * 1)
+			continue
+		}
+		param["IDs"] = jobIdList
+
+		paramBytes, _ := json.Marshal(param)
+
+		var req *http.Request
+		var err error
+		req, err = http.NewRequest("POST", util.GetConfig().BuildServer.ApiUrl+"/v1/jobs/batchQuery", strings.NewReader(string(paramBytes)))
+
+		resp, err := http.DefaultClient.Do(req) //http.Get(url)
+		if err != nil {
+			util.Log.Errorln("title:SyncJobStatus,reason:" + err.Error())
+			time.Sleep(time.Minute * 1)
+			continue
+		}
+		defer resp.Body.Close()
+
+		resultBytes, _ := ioutil.ReadAll(resp.Body)
+		// fmt.Println("--------------:", string(resultBytes))
+		var jobStatusList []JobStatuItem
+		err = json.Unmarshal(resultBytes, &jobStatusList)
+		if err != nil {
+			util.Log.Errorln("title:SyncJobStatus Unmarshal Error,reason:" + err.Error())
+			time.Sleep(time.Minute * 1)
+			continue
+		}
+		if len(jobStatusList) == 0 {
+			time.Sleep(time.Minute * 1)
+			continue
+		}
+		statuSql := ""
+		starttimeSql := ""
+		endtimeSql := ""
+		dateformatStr := "%Y-%m-%dT%H:%i:%sZ"
+		ids := ""
+		for _, jobStatus := range jobStatusList {
+			if jobStatus.State == "JobFailed" {
+				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN  'failed' ", jobStatus.Id)
+			} else if jobStatus.State == "JobSucceed" {
+				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   'succeed' ", jobStatus.Id)
+			} else if jobStatus.State == "JobCreated" {
+				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   'created' ", jobStatus.Id)
+			} else if jobStatus.State == "JobStopped" {
+				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   'stopped' ", jobStatus.Id)
+			} else if jobStatus.State == "JobRunning" {
+				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   'running' ", jobStatus.Id)
+			}
+			starttimeSql = starttimeSql + fmt.Sprintf(" WHEN job_name = '%s' THEN  STR_TO_DATE('%v','%s') ", jobStatus.Id, jobStatus.StartTime, dateformatStr)
+			endtimeSql = endtimeSql + fmt.Sprintf(" WHEN job_name = '%s' THEN  STR_TO_DATE('%v','%s') ", jobStatus.Id, jobStatus.EndTime, dateformatStr)
+			if ids == "" {
+				ids = "'" + jobStatus.Id + "'"
+			} else {
+				ids = ids + ",'" + jobStatus.Id + "'"
+			}
+		}
+
+		if len(statuSql) == 0 {
+			time.Sleep(time.Minute)
+			continue
+		}
+
+		updateSql := (" UPDATE " + m.TableName() + "  SET status = case " + statuSql + "  end  , start_time = case " + starttimeSql + " end, end_time =case " + endtimeSql + "  END where job_name in (" + ids + ");")
+
+		tx := o.Debug().Exec(updateSql)
+		if tx.Error != nil {
+			util.Log.Errorln("title:UPDATE sync Error,reason:" + err.Error())
+		}
+		time.Sleep(time.Minute)
+	}
 }

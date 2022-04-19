@@ -41,7 +41,6 @@ func main() {
 		util.Log.Errorf("Redis connect failed , err:%v\n", err)
 		return
 	}
-	fmt.Println("===", util.GetConfig().AppModel)
 	if util.GetConfig().AppModel != gin.DebugMode {
 		//init customPkgs
 		models.InitCustomPkgs()
@@ -51,6 +50,8 @@ func main() {
 	//init kubernetes client-go
 	models.InitK8sClient()
 	util.InitStatisticsLog()
+	//sync
+	go models.SyncJobStatus()
 	//startup a webscoket server to wait client ws
 	go models.StartWebSocket()
 	gin.SetMode(util.GetConfig().AppModel)

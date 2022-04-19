@@ -18,7 +18,7 @@ var (
 
 func InitK8sClient() (err error) {
 	// use the current context in kubeconfig
-	k8sconfig, err = clientcmd.BuildConfigFromFlags("", "./conf/infra-test.yaml")
+	k8sconfig, err = clientcmd.BuildConfigFromFlags("", "./docs/infra-test.yaml")
 	if err != nil {
 		util.Log.Error("k8s config error:", err.Error())
 		return

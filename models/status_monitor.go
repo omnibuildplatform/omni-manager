@@ -18,9 +18,12 @@ const (
 	// Time allowed to write the file to the client.
 	writeWait = 10 * time.Second
 	//job status
+	JOB_STATUS_START   = "start"
 	JOB_STATUS_RUNNING = "running"
 	JOB_STATUS_SUCCEED = "succeed"
 	JOB_STATUS_FAILED  = "failed"
+	JOB_STATUS_CREATED = "created"
+	JOB_STATUS_STOPPED = "stopped"
 )
 
 // write Message to Client
