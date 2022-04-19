@@ -362,7 +362,7 @@ func SyncJobStatus() {
 		o := util.GetDB()
 		o.Debug().Raw(sql).Scan(&jobIdList)
 		if len(jobIdList) == 0 {
-			time.Sleep(time.Minute * 1)
+			time.Sleep(time.Second * 30)
 			continue
 		}
 		param["IDs"] = jobIdList
@@ -376,7 +376,7 @@ func SyncJobStatus() {
 		resp, err := http.DefaultClient.Do(req) //http.Get(url)
 		if err != nil {
 			util.Log.Errorln("title:SyncJobStatus,reason:" + err.Error())
-			time.Sleep(time.Minute * 1)
+			time.Sleep(time.Second * 30)
 			continue
 		}
 		defer resp.Body.Close()
@@ -387,11 +387,11 @@ func SyncJobStatus() {
 		err = json.Unmarshal(resultBytes, &jobStatusList)
 		if err != nil {
 			util.Log.Errorln("title:SyncJobStatus Unmarshal Error,reason:" + err.Error())
-			time.Sleep(time.Minute * 1)
+			time.Sleep(time.Second * 30)
 			continue
 		}
 		if len(jobStatusList) == 0 {
-			time.Sleep(time.Minute * 1)
+			time.Sleep(time.Second * 30)
 			continue
 		}
 		statuSql := ""
@@ -421,7 +421,7 @@ func SyncJobStatus() {
 		}
 
 		if len(statuSql) == 0 {
-			time.Sleep(time.Minute)
+			time.Sleep(time.Second * 30)
 			continue
 		}
 
@@ -431,6 +431,6 @@ func SyncJobStatus() {
 		if tx.Error != nil {
 			util.Log.Errorln("title:UPDATE sync Error,reason:" + err.Error())
 		}
-		time.Sleep(time.Minute)
+		time.Sleep(time.Second * 30)
 	}
 }
