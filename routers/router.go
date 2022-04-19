@@ -48,7 +48,7 @@ func InitRouter() *gin.Engine {
 		v2.GET("/images/getLogsOf/:id", controllers.GetJobLogs)
 		v2.DELETE("/images/deleteJob/:id", controllers.DeleteJobLogs)
 		v2.GET("/images/getMySummary", controllers.GetMySummary)
-
+		v2.DELETE("/images/stopJob/:id", controllers.StopJobBuild)
 	}
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))

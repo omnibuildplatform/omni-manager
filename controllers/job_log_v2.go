@@ -188,8 +188,8 @@ func GetOne(c *gin.Context) {
 // @Description get single job logs
 // @Tags  v2 job
 // @Param	id		path 	string	true		"job id"
-// @Param	stepID		query 	string	true		"job id"
-// @Param	maxRecord		query 	string	true		"max Record number"
+// @Param	stepID		query 	string	true		"stop id"
+// @Param	uuid		query 	string	true		"uuid"
 // @Accept json
 // @Produce json
 // @Router /v2/images/getLogsOf/{id} [get]
@@ -200,10 +200,63 @@ func GetJobLogs(c *gin.Context) {
 		return
 	}
 	stepID, _ := strconv.Atoi(c.Query("stepID"))
-	maxRecord, _ := strconv.Atoi(c.Query("maxRecord"))
-	if maxRecord < 1 {
-		maxRecord = 99999999
+	uuid := c.Query("uuid")
+	param := url.Values{}
+	param.Set("service", "omni")
+	param.Set("domain", "omni-build")
+	param.Set("task", "buildImage")
+	param.Set("ID", id)
+	param.Set("stepID", strconv.Itoa(stepID))
+	if len(uuid) > 0 {
+		param.Set("startTimeUUID", uuid)
 	}
+
+	param.Set("maxRecord", 999999999)
+	var req *http.Request
+	var err error
+	req, err = http.NewRequest("GET", util.GetConfig().BuildServer.ApiUrl+"/v1/jobs/logs", nil)
+	if param != nil {
+		req.URL.RawQuery = param.Encode()
+	}
+	resp, err := http.DefaultClient.Do(req) //http.Get(url)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, stepID, err))
+		return
+	}
+	defer resp.Body.Close()
+
+	resultBytes, _ := ioutil.ReadAll(resp.Body)
+	sd := util.StatisticsData{}
+	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
+	sd.EventType = "查询构建日志详情"
+	sd.Body = param
+	sd.OperationTime = time.Now()
+	result := string(resultBytes)
+	if resp.StatusCode == 200 {
+		util.StatisticsLog(&sd)
+		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
+	} else {
+		sd.State = "failed"
+		sd.StateMessage = result
+		util.StatisticsLog(&sd)
+		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, "error", result))
+	}
+}
+
+// @Summary StopJobBuild
+// @Description Stop Job Build
+// @Tags  v2 job
+// @Param	id		path 	string	true		"job id"
+// @Accept json
+// @Produce json
+// @Router /v2/images/stopJob/{id} [delete]
+func StopJobBuild(c *gin.Context) {
+	id := c.Param("id")
+	if len(id) < 10 {
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, " job id must be fill:", nil))
+		return
+	}
+
 	param := url.Values{}
 	param.Set("service", "omni")
 	param.Set("domain", "omni-build")
@@ -240,6 +293,7 @@ func GetJobLogs(c *gin.Context) {
 		util.StatisticsLog(&sd)
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, "error", result))
 	}
+
 }
 
 // @Summary deleteRecord
