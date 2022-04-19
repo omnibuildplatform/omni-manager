@@ -335,14 +335,14 @@ paths:
         name: id
         required: true
         type: string
-      - description: job id
+      - description: stop id
         in: query
         name: stepID
         required: true
         type: string
-      - description: max Record number
+      - description: uuid
         in: query
-        name: maxRecord
+        name: uuid
         required: true
         type: string
       produces:
@@ -377,6 +377,23 @@ paths:
       - application/json
       responses: {}
       summary: get single job detail
+      tags:
+      - v2 job
+  /v2/images/stopJob/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Stop Job Build
+      parameters:
+      - description: job id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: StopJobBuild
       tags:
       - v2 job
 swagger: "2.0"

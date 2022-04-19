@@ -211,7 +211,7 @@ func GetJobLogs(c *gin.Context) {
 		param.Set("startTimeUUID", uuid)
 	}
 
-	param.Set("maxRecord", 999999999)
+	param.Set("maxRecord", "999999999")
 	var req *http.Request
 	var err error
 	req, err = http.NewRequest("GET", util.GetConfig().BuildServer.ApiUrl+"/v1/jobs/logs", nil)
@@ -224,21 +224,32 @@ func GetJobLogs(c *gin.Context) {
 		return
 	}
 	defer resp.Body.Close()
+	Logcompleted := resp.Header["Logcompleted"]
+	Logtimeuuid := resp.Header["Logtimeuuid"]
+	fmt.Println(Logcompleted, Logtimeuuid)
 
 	resultBytes, _ := ioutil.ReadAll(resp.Body)
-	sd := util.StatisticsData{}
-	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
-	sd.EventType = "查询构建日志详情"
-	sd.Body = param
-	sd.OperationTime = time.Now()
-	result := string(resultBytes)
+	// sd := util.StatisticsData{}
+	// sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
+	// sd.EventType = "查询构建日志详情"
+	// sd.Body = param
+	// sd.OperationTime = time.Now()
+	result := make(map[string]string)
+	if len(Logtimeuuid) > 0 {
+		result["uuid"] = Logtimeuuid[0]
+	}
+	if len(Logcompleted) > 0 {
+		result["stopOK"] = Logcompleted[0]
+	}
+	result["log"] = string(resultBytes)
+
 	if resp.StatusCode == 200 {
-		util.StatisticsLog(&sd)
+		// util.StatisticsLog(&sd)
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
 	} else {
-		sd.State = "failed"
-		sd.StateMessage = result
-		util.StatisticsLog(&sd)
+		// sd.State = "failed"
+		// sd.StateMessage = result
+		// util.StatisticsLog(&sd)
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, "error", result))
 	}
 }
@@ -262,8 +273,6 @@ func StopJobBuild(c *gin.Context) {
 	param.Set("domain", "omni-build")
 	param.Set("task", "buildImage")
 	param.Set("ID", id)
-	param.Set("stepID", strconv.Itoa(stepID))
-	param.Set("maxRecord", strconv.Itoa(maxRecord))
 	var req *http.Request
 	var err error
 	req, err = http.NewRequest("GET", util.GetConfig().BuildServer.ApiUrl+"/v1/jobs/logs", nil)
@@ -272,7 +281,7 @@ func StopJobBuild(c *gin.Context) {
 	}
 	resp, err := http.DefaultClient.Do(req) //http.Get(url)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, stepID, err))
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "stepID", err))
 		return
 	}
 	defer resp.Body.Close()

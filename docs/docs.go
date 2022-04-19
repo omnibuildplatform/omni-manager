@@ -360,15 +360,15 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "job id",
+                        "description": "stop id",
                         "name": "stepID",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "max Record number",
-                        "name": "maxRecord",
+                        "description": "uuid",
+                        "name": "uuid",
                         "in": "query",
                         "required": true
                     }
@@ -405,6 +405,31 @@ const docTemplate = `{
                     "v2 job"
                 ],
                 "summary": "get single job detail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v2/images/stopJob/{id}": {
+            "delete": {
+                "description": "Stop Job Build",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v2 job"
+                ],
+                "summary": "StopJobBuild",
                 "parameters": [
                     {
                         "type": "string",
