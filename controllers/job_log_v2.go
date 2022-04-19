@@ -188,8 +188,8 @@ func GetOne(c *gin.Context) {
 // @Description get single job logs
 // @Tags  v2 job
 // @Param	id		path 	string	true		"job id"
-// @Param	stepID		query 	string	true		"stop id"
-// @Param	uuid		query 	string	true		"uuid"
+// @Param	stepID		query 	string	true		"step id"
+// @Param	uuid		query 	string	false		"uuid"
 // @Accept json
 // @Produce json
 // @Router /v2/images/getLogsOf/{id} [get]
@@ -210,7 +210,6 @@ func GetJobLogs(c *gin.Context) {
 	if len(uuid) > 0 {
 		param.Set("startTimeUUID", uuid)
 	}
-
 	param.Set("maxRecord", "999999999")
 	var req *http.Request
 	var err error
@@ -226,14 +225,7 @@ func GetJobLogs(c *gin.Context) {
 	defer resp.Body.Close()
 	Logcompleted := resp.Header["Logcompleted"]
 	Logtimeuuid := resp.Header["Logtimeuuid"]
-	fmt.Println(Logcompleted, Logtimeuuid)
-
 	resultBytes, _ := ioutil.ReadAll(resp.Body)
-	// sd := util.StatisticsData{}
-	// sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
-	// sd.EventType = "查询构建日志详情"
-	// sd.Body = param
-	// sd.OperationTime = time.Now()
 	result := make(map[string]string)
 	if len(Logtimeuuid) > 0 {
 		result["uuid"] = Logtimeuuid[0]
@@ -244,12 +236,8 @@ func GetJobLogs(c *gin.Context) {
 	result["log"] = string(resultBytes)
 
 	if resp.StatusCode == 200 {
-		// util.StatisticsLog(&sd)
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
 	} else {
-		// sd.State = "failed"
-		// sd.StateMessage = result
-		// util.StatisticsLog(&sd)
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, "error", result))
 	}
 }
@@ -289,7 +277,7 @@ func StopJobBuild(c *gin.Context) {
 	resultBytes, _ := ioutil.ReadAll(resp.Body)
 	sd := util.StatisticsData{}
 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
-	sd.EventType = "查询构建日志详情"
+	sd.EventType = "stop构建过程"
 	sd.Body = param
 	sd.OperationTime = time.Now()
 	result := string(resultBytes)

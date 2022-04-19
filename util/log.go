@@ -68,7 +68,7 @@ func initLogger() {
 func InitStatisticsLog() {
 	//-=----------------------------------------
 
-	if err := os.MkdirAll(GetConfig().Statistic.Dir, 0777); err != nil {
+	if err := os.MkdirAll(GetConfig().Statistic.Dir, 0755); err != nil {
 		Log.Errorf("InitStatisticsLog Error %v", err)
 		os.Exit(1)
 	}

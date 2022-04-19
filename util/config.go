@@ -184,6 +184,9 @@ func InitConfig(path string) {
 	if os.Getenv("JWT_KEY") != "" {
 		cfg.JwtConfig.JwtKey = os.Getenv("JWT_KEY")
 	}
+	// if os.Getenv("STATISTICS_DIR") != "" {
+	// 	cfg.Statistic.Dir = os.Getenv("STATISTICS_DIR")
+	// }
 
 	// load openeuler_minimal.json file from github resp, and reload and update it'data every night at 3:00 / beijing
 	minimalPath := fmt.Sprintf(GetConfig().BuildParam.OpeneulerMinimal, GetConfig().BuildParam.PackageName)
