@@ -66,7 +66,6 @@ func GetCustomePkgList(release, arch, sig string) (customPkgList *CustomPkg, err
 	var req *http.Request
 	req, err = http.NewRequest("GET", util.GetConfig().BuildParam.CustomRpmAPI+"/rpms", nil)
 	if err != nil {
-
 		return nil, err
 	}
 	q := req.URL.Query()
