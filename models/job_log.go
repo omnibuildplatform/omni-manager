@@ -400,15 +400,16 @@ func SyncJobStatus() {
 		dateformatStr := "%Y-%m-%dT%H:%i:%sZ"
 		ids := ""
 		for _, jobStatus := range jobStatusList {
-			if jobStatus.State == "JobFailed" {
+			switch jobStatus.State {
+			case "JobFailed":
 				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN  'failed' ", jobStatus.Id)
-			} else if jobStatus.State == "JobSucceed" {
+			case "JobSucceed":
 				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   'succeed' ", jobStatus.Id)
-			} else if jobStatus.State == "JobCreated" {
+			case "JobCreated":
 				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   'created' ", jobStatus.Id)
-			} else if jobStatus.State == "JobStopped" {
+			case "JobStopped":
 				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   'stopped' ", jobStatus.Id)
-			} else if jobStatus.State == "JobRunning" {
+			case "JobRunning":
 				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   'running' ", jobStatus.Id)
 			}
 			starttimeSql = starttimeSql + fmt.Sprintf(" WHEN job_name = '%s' THEN  STR_TO_DATE('%v','%s') ", jobStatus.Id, jobStatus.StartTime, dateformatStr)
