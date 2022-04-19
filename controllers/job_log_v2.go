@@ -39,6 +39,12 @@ func CreateJob(c *gin.Context) {
 	insertData.BuildType = imageInputData.BuildType
 	insertData.JobLabel = imageInputData.Label
 	insertData.JobDesc = imageInputData.Desc
+	if insertData.JobLabel == "" {
+		insertData.JobLabel = insertData.UserName + "_" + insertData.Arch + "_" + insertData.Release
+	}
+	if insertData.JobDesc == "" {
+		insertData.JobDesc = "this image was built by Omni Build Platform"
+	}
 	insertData.CreateTime = time.Now()
 	if len(insertData.Release) == 0 {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "Release not allowed empty ", nil))
@@ -194,9 +200,6 @@ func GetJobLogs(c *gin.Context) {
 		return
 	}
 	stepID, _ := strconv.Atoi(c.Query("stepID"))
-	// if stepID < 1 {
-	// 	stepID = 1
-	// }
 	maxRecord, _ := strconv.Atoi(c.Query("maxRecord"))
 	if maxRecord < 1 {
 		maxRecord = 99999999
