@@ -82,7 +82,7 @@ func GetJobLogByJobName(jobname string) (v *JobLog, err error) {
 	o := util.GetDB()
 	v = new(JobLog)
 	sql := fmt.Sprintf("select * from %s where job_name = '%s' order by create_time desc limit 1", v.TableName(), jobname)
-	tx := o.Debug().Raw(sql).Scan(v)
+	tx := o.Raw(sql).Scan(v)
 	return v, tx.Error
 }
 
@@ -366,7 +366,7 @@ func SyncJobStatus() {
 
 	for {
 		o := util.GetDB()
-		o.Debug().Raw(sql).Scan(&jobIdList)
+		o.Raw(sql).Scan(&jobIdList)
 		if len(jobIdList) == 0 {
 			time.Sleep(time.Second * 30)
 			continue
@@ -388,7 +388,6 @@ func SyncJobStatus() {
 		defer resp.Body.Close()
 
 		resultBytes, _ := ioutil.ReadAll(resp.Body)
-		// fmt.Println("--------------:", string(resultBytes))
 		var jobStatusList []JobStatuItem
 		err = json.Unmarshal(resultBytes, &jobStatusList)
 		if err != nil {
@@ -433,8 +432,7 @@ func SyncJobStatus() {
 		}
 
 		updateSql := (" UPDATE " + m.TableName() + "  SET status = case " + statuSql + "  end  , start_time = case " + starttimeSql + " end, end_time =case " + endtimeSql + "  END where job_name in (" + ids + ");")
-
-		tx := o.Debug().Exec(updateSql)
+		tx := o.Exec(updateSql)
 		if tx.Error != nil {
 			util.Log.Errorln("title:UPDATE sync Error,reason:" + err.Error())
 		}

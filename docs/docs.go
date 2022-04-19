@@ -360,7 +360,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "stop id",
+                        "description": "step id",
                         "name": "stepID",
                         "in": "query",
                         "required": true
@@ -369,8 +369,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "uuid",
                         "name": "uuid",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     }
                 ],
                 "responses": {}

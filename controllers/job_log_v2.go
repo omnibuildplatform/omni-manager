@@ -234,7 +234,6 @@ func GetJobLogs(c *gin.Context) {
 		result["stopOK"] = Logcompleted[0]
 	}
 	result["log"] = string(resultBytes)
-
 	if resp.StatusCode == 200 {
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
 	} else {

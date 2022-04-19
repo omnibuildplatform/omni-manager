@@ -335,7 +335,7 @@ paths:
         name: id
         required: true
         type: string
-      - description: stop id
+      - description: step id
         in: query
         name: stepID
         required: true
@@ -343,7 +343,6 @@ paths:
       - description: uuid
         in: query
         name: uuid
-        required: true
         type: string
       produces:
       - application/json

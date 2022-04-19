@@ -106,6 +106,7 @@ func GetUserInfoByToekn(token string) error {
 	if err != nil {
 		return err
 	}
+	_ = respDataBytes
 	return nil
 
 }
