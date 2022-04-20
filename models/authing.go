@@ -85,7 +85,7 @@ func InitAuthing(userpoolid, secret string) {
 	}
 	AuthingClient = management.NewClient(userpoolid, secret)
 	AppClient, _ = AuthingClient.FindApplicationById(util.GetConfig().AuthingConfig.AppID)
-	UserClient = authentication.NewClient(util.GetConfig().AuthingConfig.AppID, util.GetConfig().AuthingConfig.Secret)
+	UserClient = authentication.NewClient(util.GetConfig().AuthingConfig.AppID, util.GetConfig().AuthingConfig.AppSecret)
 
 }
 func ParseAuthingUserInput(userinput *CreateUserInput) *model.CreateUserRequest {
