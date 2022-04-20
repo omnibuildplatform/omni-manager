@@ -402,9 +402,12 @@ func SyncJobStatus() {
 		statuSql := ""
 		starttimeSql := ""
 		endtimeSql := ""
-		dateformatStr := "%Y-%m-%dT%H:%i:%sZ"
+		dateformatStr := "%Y-%m-%dT%H:%i:%s"
 		ids := ""
 		for _, jobStatus := range jobStatusList {
+			jobStatus.StartTime = string([]byte(jobStatus.StartTime)[:19])
+			jobStatus.EndTime = string([]byte(jobStatus.EndTime)[:19])
+
 			switch jobStatus.State {
 			case "JobFailed":
 				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN  'failed' ", jobStatus.Id)

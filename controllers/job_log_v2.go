@@ -287,7 +287,7 @@ func StopJobBuild(c *gin.Context) {
 		sd.State = "failed"
 		sd.StateMessage = result
 		util.StatisticsLog(&sd)
-		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, "error", result))
+		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusServerError, "error", result))
 	}
 
 }
