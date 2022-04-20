@@ -84,18 +84,14 @@ func InitAuthing(userpoolid, secret string) {
 		secret = util.GetConfig().AuthingConfig.Secret
 	}
 	AuthingClient = management.NewClient(userpoolid, secret)
-	AppClient, _ = AuthingClient.FindApplicationById("623d6bf75c72636ebb8c5e4b")
+	AppClient, _ = AuthingClient.FindApplicationById(util.GetConfig().AuthingConfig.AppID)
 	UserClient = authentication.NewClient(util.GetConfig().AuthingConfig.AppID, util.GetConfig().AuthingConfig.Secret)
 
 }
 func ParseAuthingUserInput(userinput *CreateUserInput) *model.CreateUserRequest {
-	fmt.Println(*(userinput.Address), "------ParseAuthingUserInput----------", userinput)
-
 	var testuser model.CreateUserRequest
 	testuser.UserInfo.Username = userinput.Username
-
 	testuser.UserInfo.Email = userinput.Email
-
 	return &testuser
 }
 
@@ -110,7 +106,7 @@ func GetUserInfoByToekn(token string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("--------GetUserInfoByToekn==============", string(respDataBytes))
+	_ = respDataBytes
 	return nil
 
 }
@@ -118,17 +114,12 @@ func GetUserInfoByToekn(token string) error {
 func Authorize() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.GetHeader("Authorization")
-		// authing.cn
-		// loginStatus, err := UserClient.CheckLoginStatus(token)
-		// local
 		userInfo, err := CheckAuthorization(token)
-
 		if err != nil {
 			c.Abort()
-			c.JSON(http.StatusUnauthorized, util.ExportData(util.CodeStatusClientError, "forbidden", nil))
+			c.JSON(http.StatusUnauthorized, util.ExportData(util.CodeStatusClientError, "forbidden", err))
 			return
 		}
-
 		c.Keys = userInfo
 	}
 }
@@ -163,7 +154,7 @@ func CheckAuthorization(tokenString string) (userInfo map[string]interface{}, er
 			return nil, fmt.Errorf("token无效")
 		}
 		if userInfo["id"] == nil || userInfo["id"] == "" {
-			return nil, fmt.Errorf("token无效")
+			return nil, fmt.Errorf("token无效,无id")
 		}
 		expireTime := userInfo["exp"].(float64)
 		if int(expireTime) <= int(time.Now().Unix()) {

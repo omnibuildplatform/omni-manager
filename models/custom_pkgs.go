@@ -31,22 +31,33 @@ func InitCustomPkgs() error {
 
 // get sig list
 func getSigs() (err error) {
+	url := util.GetConfig().BuildParam.CustomRpmAPI + "/sigs"
+	util.Log.Println("get custom rpms from:", url)
 	var req *http.Request
-	req, err = http.NewRequest("GET", util.GetConfig().BuildParam.CustomRpmAPI+"/sigs", nil)
+	req, err = http.NewRequest("GET", url, nil)
+
 	if err != nil {
+		util.Log.Errorln("1 get custom rpms error:", err)
 		return
 	}
 	var resp *http.Response
 	resp, err = http.DefaultClient.Do(req)
 	if err != nil {
+		util.Log.Errorln("2 get custom rpms error:", err)
 		return
 	}
 	defer resp.Body.Close()
 	bodyData, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		util.Log.Errorln("3 get custom rpms error:", err)
 		return
 	}
 	err = json.Unmarshal(bodyData, &CustomSigList)
+	if err != nil {
+		util.Log.Errorln("4 get custom rpms error:", err)
+		return
+	}
+
 	return
 }
 
@@ -55,13 +66,13 @@ func GetCustomePkgList(release, arch, sig string) (customPkgList *CustomPkg, err
 	var req *http.Request
 	req, err = http.NewRequest("GET", util.GetConfig().BuildParam.CustomRpmAPI+"/rpms", nil)
 	if err != nil {
-
 		return nil, err
 	}
 	q := req.URL.Query()
 	q.Add("release", release)
 	q.Add("arch", arch)
 	q.Add("sig", sig)
+	// q.Add("sig", "DB")
 	req.URL.RawQuery = q.Encode()
 	resp, err = http.DefaultClient.Do(req)
 	if err != nil {

@@ -1,6 +1,7 @@
 package util
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -13,12 +14,26 @@ import (
 
 var Log *logrus.Logger
 
+type StatisticsData struct {
+	UserId        int
+	UserName      string
+	UserProvider  string
+	UserEmail     string
+	OperationTime time.Time
+	EventType     string
+	State         string
+	StateMessage  string
+	Body          interface{}
+}
+
+//statistics log
+var SLog *logrus.Logger
+
 func init() {
 	initLogger()
 }
 
-func initLogger() *logrus.Logger {
-	now := time.Now()
+func initLogger() {
 	logFilePath := ""
 	if dir, err := os.Getwd(); err == nil {
 		logFilePath = dir + "/logs/"
@@ -27,7 +42,7 @@ func initLogger() *logrus.Logger {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	logFileName := now.Format("2006-01-02") + ".log"
+	logFileName := time.Now().Format("2006-01-02") + ".log"
 	//log file
 	fileName := path.Join(logFilePath, logFileName)
 	if _, err := os.Stat(fileName); err != nil {
@@ -43,18 +58,41 @@ func initLogger() *logrus.Logger {
 
 	//new log
 	Log = logrus.New()
-
 	Log.Out = io.MultiWriter(os.Stdout, src)
-
-	//info level
-	Log.SetLevel(logrus.WarnLevel)
-
 	Log.SetFormatter(&logrus.TextFormatter{
 		TimestampFormat: "2006-01-02 15:04:05",
 	})
-	return Log
-}
 
+	return
+}
+func InitStatisticsLog() {
+	//-=----------------------------------------
+
+	if err := os.MkdirAll(GetConfig().Statistic.Dir, 0755); err != nil {
+		Log.Errorf("InitStatisticsLog Error %v", err)
+		os.Exit(1)
+	}
+	logFileName := GetConfig().AppName + "-" + time.Now().Format("2006-01-02") + ".log"
+	//log file
+	fileName := path.Join(GetConfig().Statistic.Dir, logFileName)
+	if _, err := os.Stat(fileName); err != nil {
+		if _, err := os.Create(fileName); err != nil {
+			fmt.Println(err.Error())
+		}
+	}
+	//open file
+	src, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	if err != nil {
+		fmt.Println("err", err)
+	}
+	//new log
+	SLog = logrus.New()
+	SLog.Out = io.MultiWriter(src)
+	SLog.SetFormatter(&logrus.JSONFormatter{
+		DisableTimestamp: true,
+		PrettyPrint:      true,
+	})
+}
 func LoggerToFile() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 开始时间
@@ -91,4 +129,27 @@ func LoggerToFile() gin.HandlerFunc {
 		)
 
 	}
+}
+
+func StatisticsLog(sd *StatisticsData) error {
+	if sd.State == "" {
+		sd.State = "success"
+	}
+	mapData := make(map[string]interface{})
+	mapData["operationTime"] = sd.OperationTime.Local()
+	mapData["userId"] = fmt.Sprintf("%v", sd.UserId)
+	mapData["userProvider"] = fmt.Sprintf("%v", sd.UserProvider)
+	mapData["eventType"] = fmt.Sprintf("%v", sd.EventType)
+	mapData["body"] = sd.Body
+	mapData["appId"] = GetConfig().AuthingConfig.AppID
+	mapData["state"] = sd.State
+	mapData["stateMessage"] = sd.StateMessage
+	data, err := json.Marshal(mapData)
+	if err != nil {
+		Log.Error("StatisticsLog Marshal err: ", err)
+		return err
+	}
+	SLog.Out.Write(data)
+	SLog.Out.Write([]byte("\n"))
+	return nil
 }

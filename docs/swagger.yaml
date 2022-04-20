@@ -1,4 +1,22 @@
 definitions:
+  models.BuildParam:
+    properties:
+      arch:
+        description: Id        int      `gorm:"primaryKey"`
+        type: string
+      buildType:
+        type: string
+      customPkg:
+        items:
+          type: string
+        type: array
+      desc:
+        type: string
+      label:
+        type: string
+      release:
+        type: string
+    type: object
   models.CreateUserInput:
     properties:
       address:
@@ -84,21 +102,6 @@ definitions:
       zoneinfo:
         type: string
     type: object
-  models.ImageInputData:
-    properties:
-      arch:
-        type: string
-      buildType:
-        type: string
-      customPkg:
-        items:
-          type: string
-        type: array
-      id:
-        type: integer
-      release:
-        type: string
-    type: object
 info:
   contact: {}
 paths:
@@ -148,40 +151,6 @@ paths:
       summary: login success redirect url
       tags:
       - Authing
-  /v1/images/delete/:id:
-    delete:
-      consumes:
-      - application/json
-      description: update single data
-      parameters:
-      - description: The key for staticblock
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      summary: delete
-      tags:
-      - meta Manager
-  /v1/images/get/{id}:
-    get:
-      consumes:
-      - application/json
-      description: get single one
-      parameters:
-      - description: The key for staticblock
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      summary: get
-      tags:
-      - meta Manager
   /v1/images/param/getBaseData/:
     get:
       consumes:
@@ -193,7 +162,7 @@ paths:
       responses: {}
       summary: GetBaseData param
       tags:
-      - meta Manager
+      - v1 job
   /v1/images/param/getCustomePkgList/:
     get:
       consumes:
@@ -220,29 +189,29 @@ paths:
       responses: {}
       summary: GetCustomePkgList param
       tags:
-      - meta Manager
-  /v1/images/query:
+      - v1 job
+  /v1/images/queryHistory/mine:
     get:
       consumes:
       - application/json
-      description: use param to query multi datas
+      description: Query My History
       parameters:
-      - description: project name
+      - description: 'offset '
         in: query
-        name: project_name
+        name: offset
         required: true
-        type: string
-      - description: package name
+        type: integer
+      - description: limit
         in: query
-        name: pkg_name
+        name: limit
         required: true
-        type: string
+        type: integer
       produces:
       - application/json
       responses: {}
-      summary: query multi datas
+      summary: QueryMyHistory
       tags:
-      - meta Manager
+      - v1 job
   /v1/images/queryJobLogs/{name}:
     get:
       consumes:
@@ -259,7 +228,7 @@ paths:
       responses: {}
       summary: QueryJobLogs
       tags:
-      - meta Manager
+      - v1 job
   /v1/images/queryJobStatus/{name}:
     get:
       consumes:
@@ -284,7 +253,7 @@ paths:
       responses: {}
       summary: QueryJobStatus
       tags:
-      - meta Manager
+      - v1 job
   /v1/images/startBuild:
     post:
       consumes:
@@ -296,11 +265,134 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/models.ImageInputData'
+          $ref: '#/definitions/models.BuildParam'
       produces:
       - application/json
       responses: {}
       summary: StartBuild Job
       tags:
-      - meta Manager
+      - v1 job
+  /v2/images/createJob:
+    post:
+      consumes:
+      - application/json
+      description: start a image build job
+      parameters:
+      - description: body for ImageMeta content
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.BuildParam'
+      produces:
+      - application/json
+      responses: {}
+      summary: Create Job
+      tags:
+      - v2 job
+  /v2/images/deleteJob/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete a job build record
+      parameters:
+      - description: job id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: deleteRecord
+      tags:
+      - v2 job
+  /v2/images/getJobParam/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get job build param
+      parameters:
+      - description: job id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: GetJobParam
+      tags:
+      - v2 job
+  /v2/images/getLogsOf/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get single job logs
+      parameters:
+      - description: job id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: step id
+        in: query
+        name: stepID
+        required: true
+        type: string
+      - description: uuid
+        in: query
+        name: uuid
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: get single job logs
+      tags:
+      - v2 job
+  /v2/images/getMySummary:
+    get:
+      consumes:
+      - application/json
+      description: get my summary
+      produces:
+      - application/json
+      responses: {}
+      summary: MySummary
+      tags:
+      - v2 job
+  /v2/images/getOne/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get single job detail
+      parameters:
+      - description: job id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: get single job detail
+      tags:
+      - v2 job
+  /v2/images/stopJob/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Stop Job Build
+      parameters:
+      - description: job id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: StopJobBuild
+      tags:
+      - v2 job
 swagger: "2.0"
