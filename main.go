@@ -48,12 +48,12 @@ func main() {
 	//init Authing.cn config
 	models.InitAuthing("", "")
 	//init kubernetes client-go
-	models.InitK8sClient()
+	// models.InitK8sClient()
 	util.InitStatisticsLog()
 	//sync
 	go models.SyncJobStatus()
 	//startup a webscoket server to wait client ws
-	go models.StartWebSocket()
+	// go models.StartWebSocket()
 	gin.SetMode(util.GetConfig().AppModel)
 	r := routers.InitRouter()
 	address := fmt.Sprintf(":%d", util.GetConfig().AppPort)
