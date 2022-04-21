@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"omni-manager/models"
 	"omni-manager/util"
+	"strconv"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -96,11 +97,17 @@ func AuthingGetUserDetail(c *gin.Context) {
 		defaultName := "noName"
 		userDetail.Name = &defaultName
 	}
+	sd := util.StatisticsData{}
+	sd.UserId, _ = strconv.Atoi(userDetail.Id)
+	sd.EventType = "用户登录"
 	result := make(map[string]interface{})
 	result["username"] = userDetail.Username
 	result["nickname"] = userDetail.Nickname
 	result["nm"] = userDetail.Name
-	jwtString, err := models.GetJwtString(util.GetConfig().JwtConfig.Expire, userDetail.Id, *(userDetail.Name))
+	for _, v := range userDetail.Identities {
+		sd.UserProvider = *(v.Provider)
+	}
+	jwtString, err := models.GetJwtString(util.GetConfig().JwtConfig.Expire, userDetail.Id, *(userDetail.Name), sd.UserProvider)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "models.GetJwtString", err))
 		return
@@ -108,7 +115,10 @@ func AuthingGetUserDetail(c *gin.Context) {
 	result["token"] = jwtString
 	result["photo"] = userDetail.Photo
 	result["id"] = userDetail.Id
-	// util.Log.Infof("appId%s,action:login,time:%s,user:%v", util.GetConfig().AuthingConfig.AppID, time.Now().Format("2006-01-02 15:04:05"), userDetail)
+
+	sd.Body = result
+	util.StatisticsLog(&sd)
+
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
 }
 

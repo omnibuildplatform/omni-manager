@@ -98,7 +98,7 @@ func StartBuild(c *gin.Context) {
 	sd.UserId = insertData.UserId
 	sd.EventType = "使用v1构建"
 	sd.Body = fmt.Sprintf("jobID:%s", job.Name)
-
+	sd.UserProvider = (c.Keys["p"]).(string)
 	util.StatisticsLog(&sd)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, 0, job.GetName(), util.GetConfig().WSConfig))
 }
@@ -209,7 +209,7 @@ func GetCustomePkgList(c *gin.Context) {
 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	sd.EventType = "查询CustmPkg"
 	sd.Body = fmt.Sprintf("release: %s, arch:%s, sig:%s", release, arch, sig)
-
+	sd.UserProvider = (c.Keys["p"]).(string)
 	util.StatisticsLog(&sd)
 
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", customlist))
@@ -260,7 +260,7 @@ func QueryMyHistory(c *gin.Context) {
 	sd.UserId = UserId
 	sd.EventType = "查询自己的构建历史"
 	sd.Body = fmt.Sprintf("offset: %d, limit:%d, result number:%d", offset, limit, len(result))
-
+	sd.UserProvider = (c.Keys["p"]).(string)
 	util.StatisticsLog(&sd)
 	if len(result) == 0 {
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", "[]", 0))

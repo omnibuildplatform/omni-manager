@@ -125,7 +125,7 @@ func Authorize() gin.HandlerFunc {
 }
 
 //GetJwtString GetJwtString
-func GetJwtString(expire int, id, name string) (string, error) {
+func GetJwtString(expire int, id, name, provider string) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := make(jwt.MapClaims)
 	now := time.Now()
@@ -133,6 +133,7 @@ func GetJwtString(expire int, id, name string) (string, error) {
 	claims["iat"] = now.Unix()
 	claims["id"] = id
 	claims["nm"] = name
+	claims["p"] = provider
 	token.Claims = claims
 	tokenString, err := token.SignedString([]byte(JwtString))
 	return tokenString, err
