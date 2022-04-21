@@ -26,7 +26,9 @@ func CreateJob(c *gin.Context) {
 	sd := util.StatisticsData{}
 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	sd.EventType = "构建OpenEuler"
-	sd.UserProvider = (c.Keys["p"]).(string)
+	if c.Keys["p"] != nil {
+		sd.UserProvider = (c.Keys["p"]).(string)
+	}
 	var imageInputData models.BuildParam
 	err := c.ShouldBindJSON(&imageInputData)
 	if err != nil {
@@ -52,7 +54,9 @@ func CreateJob(c *gin.Context) {
 		insertData.JobDesc = "this image was built by Omni Build Platform"
 	}
 	insertData.CreateTime = time.Now()
-	sd.UserProvider = (c.Keys["p"]).(string)
+	if c.Keys["p"] != nil {
+		sd.UserProvider = (c.Keys["p"]).(string)
+	}
 	if len(insertData.Release) == 0 {
 		sd.State = "failed"
 		sd.StateMessage = "release is empty"
@@ -163,7 +167,9 @@ func GetJobParam(c *gin.Context) {
 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	sd.EventType = "查询构建详情"
 	sd.Body = id
-	sd.UserProvider = (c.Keys["p"]).(string)
+	if c.Keys["p"] != nil {
+		sd.UserProvider = (c.Keys["p"]).(string)
+	}
 	util.StatisticsLog(&sd)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
 }
@@ -249,7 +255,9 @@ func GetJobLogs(c *gin.Context) {
 	sd := util.StatisticsData{}
 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	sd.EventType = "查询构建日志"
-	sd.UserProvider = (c.Keys["p"]).(string)
+	if c.Keys["p"] != nil {
+		sd.UserProvider = (c.Keys["p"]).(string)
+	}
 	sd.Body = param
 	if resp.StatusCode == 200 {
 		util.StatisticsLog(&sd)
@@ -299,7 +307,9 @@ func StopJobBuild(c *gin.Context) {
 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	sd.EventType = "stop构建过程"
 	sd.Body = param
-	sd.UserProvider = (c.Keys["p"]).(string)
+	if c.Keys["p"] != nil {
+		sd.UserProvider = (c.Keys["p"]).(string)
+	}
 	result := string(resultBytes)
 	if resp.StatusCode == 200 {
 		util.StatisticsLog(&sd)
@@ -351,7 +361,9 @@ func DeleteJobLogs(c *gin.Context) {
 	body := make(map[string]interface{})
 	body["userID"] = sd.UserId
 	body["jobID"] = nameList
-	sd.UserProvider = (c.Keys["p"]).(string)
+	if c.Keys["p"] != nil {
+		sd.UserProvider = (c.Keys["p"]).(string)
+	}
 	sd.Body = body
 	util.StatisticsLog(&sd)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", nameList))
@@ -377,7 +389,9 @@ func GetMySummary(c *gin.Context) {
 	body := make(map[string]interface{})
 	body["userid"] = userId
 	sd.Body = body
-	sd.UserProvider = (c.Keys["p"]).(string)
+	if c.Keys["p"] != nil {
+		sd.UserProvider = (c.Keys["p"]).(string)
+	}
 	util.StatisticsLog(&sd)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
 
