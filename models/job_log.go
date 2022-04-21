@@ -12,7 +12,6 @@ import (
 
 	uuid "github.com/satori/go.uuid"
 	"gopkg.in/yaml.v2"
-	"gorm.io/gorm/clause"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
@@ -97,12 +96,6 @@ func GetAllJobLog(query map[string]string, fields []string, sortby []string, ord
 // GetMyJobLogs query my build history
 func GetMyJobLogs(jobitem *JobLog, nameOrDesc string, offset int, limit int) (ml []*JobLog, err error) {
 	o := util.GetDB()
-	order := new(clause.OrderByColumn)
-	order.Column = clause.Column{
-		Table: jobitem.TableName(),
-		Name:  "create_time",
-	}
-	order.Desc = true
 	tx := o.Debug().Model(jobitem)
 	if len(jobitem.Arch) > 0 {
 		tx = tx.Where("arch = ?", jobitem.Arch)
@@ -114,14 +107,12 @@ func GetMyJobLogs(jobitem *JobLog, nameOrDesc string, offset int, limit int) (ml
 		tx = tx.Where("build_type = ?", jobitem.BuildType)
 	}
 
+	tx = tx.Where("user_id = ?", jobitem.UserId)
+
 	if len(nameOrDesc) > 0 {
 		tx = tx.Where("job_label like '%" + nameOrDesc + "%'  or job_desc like '%" + nameOrDesc + "%' ")
 	}
-	tx.Limit(limit).Offset(offset).Order(order).Scan(&ml)
-
-	// m.UserId = userid
-	// sql := fmt.Sprintf("select * from %s where user_id = %d order by create_time desc limit %d,%d", m.TableName(), userid, offset, limit)
-	// o.Raw(sql).Scan(&ml)
+	tx.Limit(limit).Offset(offset).Order("create_time desc").Scan(&ml)
 	return ml, nil
 }
 
