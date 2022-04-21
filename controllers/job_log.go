@@ -218,8 +218,12 @@ func GetCustomePkgList(c *gin.Context) {
 // @Summary QueryMyHistory
 // @Description Query My History
 // @Tags  v1 job
-// @Param	offset		query 	int	true		"offset "
-// @Param	limit		query 	int	true		"limit"
+// @Param	arch		query 	string	false		"arch"
+// @Param	status		query 	string	false		"status"
+// @Param	type		query 	string	false		"build type"
+// @Param	nameordesc		query 	string	false		"name or desc"
+// @Param	offset		query 	int	false		"offset "
+// @Param	limit		query 	int	false		"limit"
 // @Accept json
 // @Produce json
 // @Router /v1/images/queryHistory/mine [get]
@@ -240,7 +244,13 @@ func QueryMyHistory(c *gin.Context) {
 		limit = 10
 	}
 
-	result, err := models.GetMyJobLogs(UserId, offset, limit)
+	nameordesc := c.Query("nameordesc")
+	queryJobLog := new(models.JobLog)
+	queryJobLog.UserId = UserId
+	queryJobLog.Arch = c.Query("arch")
+	queryJobLog.Status = c.Query("status")
+	queryJobLog.BuildType = c.Query("type")
+	result, err := models.GetMyJobLogs(queryJobLog, nameordesc, offset, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, err, nil))
 		return

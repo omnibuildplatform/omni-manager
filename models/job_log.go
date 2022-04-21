@@ -12,6 +12,7 @@ import (
 
 	uuid "github.com/satori/go.uuid"
 	"gopkg.in/yaml.v2"
+	"gorm.io/gorm/clause"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
@@ -94,12 +95,33 @@ func GetAllJobLog(query map[string]string, fields []string, sortby []string, ord
 }
 
 // GetMyJobLogs query my build history
-func GetMyJobLogs(userid int, offset int, limit int) (ml []*JobLog, err error) {
+func GetMyJobLogs(jobitem *JobLog, nameOrDesc string, offset int, limit int) (ml []*JobLog, err error) {
 	o := util.GetDB()
-	m := new(JobLog)
-	m.UserId = userid
-	sql := fmt.Sprintf("select * from %s where user_id = %d order by create_time desc limit %d,%d", m.TableName(), userid, offset, limit)
-	o.Raw(sql).Scan(&ml)
+	order := new(clause.OrderByColumn)
+	order.Column = clause.Column{
+		Table: jobitem.TableName(),
+		Name:  "create_time",
+	}
+	order.Desc = true
+	tx := o.Debug().Model(jobitem)
+	if len(jobitem.Arch) > 0 {
+		tx = tx.Where("arch = ?", jobitem.Arch)
+	}
+	if len(jobitem.Status) > 0 {
+		tx = tx.Where("status = ?", jobitem.Status)
+	}
+	if len(jobitem.BuildType) > 0 {
+		tx = tx.Where("build_type = ?", jobitem.BuildType)
+	}
+
+	if len(nameOrDesc) > 0 {
+		tx = tx.Where("job_label like '%" + nameOrDesc + "%'  or job_desc like '%" + nameOrDesc + "%' ")
+	}
+	tx.Limit(limit).Offset(offset).Order(order).Scan(&ml)
+
+	// m.UserId = userid
+	// sql := fmt.Sprintf("select * from %s where user_id = %d order by create_time desc limit %d,%d", m.TableName(), userid, offset, limit)
+	// o.Raw(sql).Scan(&ml)
 	return ml, nil
 }
 

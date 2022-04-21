@@ -196,15 +196,29 @@ paths:
       - application/json
       description: Query My History
       parameters:
+      - description: arch
+        in: query
+        name: arch
+        type: string
+      - description: status
+        in: query
+        name: status
+        type: string
+      - description: build type
+        in: query
+        name: type
+        type: string
+      - description: name or desc
+        in: query
+        name: nameordesc
+        type: string
       - description: 'offset '
         in: query
         name: offset
-        required: true
         type: integer
       - description: limit
         in: query
         name: limit
-        required: true
         type: integer
       produces:
       - application/json

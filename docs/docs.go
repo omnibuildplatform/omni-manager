@@ -154,18 +154,40 @@ const docTemplate = `{
                 "summary": "QueryMyHistory",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "arch",
+                        "name": "arch",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "build type",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "name or desc",
+                        "name": "nameordesc",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
                         "description": "offset ",
                         "name": "offset",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "integer",
                         "description": "limit",
                         "name": "limit",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     }
                 ],
                 "responses": {}
