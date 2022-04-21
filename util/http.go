@@ -3,6 +3,7 @@ package util
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -26,11 +27,12 @@ func HTTPPost(url string, requestBody string) (map[string]interface{}, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
+
 	// logs.Info("HTTPPost, response Status:", resp.Status)
 	// logs.Info("HTTPPost, response Headers:", resp.Header)
 	status, _ := strconv.Atoi(resp.Status)
-	if status > 300 {
-		// logs.Error("Post request failed, err: ", err, "body: ", requestBody)
+	if status > 200 {
+		fmt.Println("Post request failed, err: ", err, "body: ", requestBody)
 		return nil, err
 	}
 	body, err := ioutil.ReadAll(resp.Body)

@@ -23,10 +23,17 @@ import (
 // @Produce json
 // @Router /v2/images/createJob [post]
 func CreateJob(c *gin.Context) {
+	sd := util.StatisticsData{}
+	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
+	sd.EventType = "构建OpenEuler"
 
+	sd.OperationTime = time.Now()
 	var imageInputData models.BuildParam
 	err := c.ShouldBindJSON(&imageInputData)
 	if err != nil {
+		sd.State = "failed"
+		sd.StateMessage = err.Error()
+		util.StatisticsLog(&sd)
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
 		return
 	}
@@ -47,11 +54,17 @@ func CreateJob(c *gin.Context) {
 	}
 	insertData.CreateTime = time.Now()
 	if len(insertData.Release) == 0 {
+		sd.State = "failed"
+		sd.StateMessage = "release is empty"
+		util.StatisticsLog(&sd)
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "Release not allowed empty ", nil))
 		return
 	}
 
 	if insertData.UserId <= 0 {
+		sd.State = "failed"
+		sd.StateMessage = "user is not right"
+		util.StatisticsLog(&sd)
 		c.JSON(http.StatusForbidden, util.ExportData(util.CodeStatusClientError, " forbidden ", nil))
 		return
 	}
@@ -64,6 +77,9 @@ func CreateJob(c *gin.Context) {
 		}
 	}
 	if !validate {
+		sd.State = "failed"
+		sd.StateMessage = "arch is not right"
+		util.StatisticsLog(&sd)
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "arch not be supported  ", util.GetConfig().BuildParam.Arch))
 		return
 	}
@@ -78,6 +94,7 @@ func CreateJob(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "buildType not be supported  ", util.GetConfig().BuildParam.BuildType))
 		return
 	}
+	sd.OperationTime = time.Now()
 	insertData.BasePkg = strings.Join(util.GetConfig().DefaultPkgList.Packages, ",")
 	insertData.CustomPkg = strings.Join(imageInputData.CustomPkg, ",")
 	specMap := make(map[string]interface{})
@@ -95,9 +112,14 @@ func CreateJob(c *gin.Context) {
 	paramBytes, _ := json.Marshal(param)
 	result, err := util.HTTPPost(util.GetConfig().BuildServer.ApiUrl+"/v1/jobs", string(paramBytes))
 	if err != nil {
+		sd.State = "failed"
+		sd.StateMessage = err.Error()
+		util.StatisticsLog(&sd)
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "HTTPPost Error", err))
+
 		return
 	}
+
 	insertData.JobName = result["id"].(string)
 	outputName := fmt.Sprintf(`openEuler-%s.iso`, result["id"])
 	insertData.Status = result["state"].(string)
@@ -110,15 +132,10 @@ func CreateJob(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, nil, err))
 		return
 	}
-
-	sd := util.StatisticsData{}
-	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
-	sd.EventType = "构建OpenEuler"
 	param["customRpms"] = imageInputData.CustomPkg
 	delete(specMap, "packages")
 	param["spec"] = specMap
 	sd.Body = param
-	sd.OperationTime = time.Now()
 	util.StatisticsLog(&sd)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, 0, insertData))
 
