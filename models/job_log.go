@@ -96,7 +96,7 @@ func GetAllJobLog(query map[string]string, fields []string, sortby []string, ord
 // GetMyJobLogs query my build history
 func GetMyJobLogs(jobitem *JobLog, nameOrDesc string, offset int, limit int) (total int64, ml []*JobLog, err error) {
 	o := util.GetDB()
-	tx := o.Debug().Model(jobitem)
+	tx := o.Model(jobitem)
 	if len(jobitem.Arch) > 0 {
 		tx = tx.Where("arch = ?", jobitem.Arch)
 	}

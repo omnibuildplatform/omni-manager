@@ -269,7 +269,7 @@ func QueryMyHistory(c *gin.Context) {
 	}
 	util.StatisticsLog(&sd)
 	if len(result) == 0 {
-		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", "[]", 0))
+		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", []interface{}{}, 0))
 	} else {
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result, total))
 	}
