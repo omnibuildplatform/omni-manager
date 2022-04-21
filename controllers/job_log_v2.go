@@ -190,12 +190,7 @@ func GetOne(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, nil, err))
 		return
 	}
-	sd := util.StatisticsData{}
-	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
-	sd.EventType = "查询构建日志"
-	sd.Body = param
 
-	util.StatisticsLog(&sd)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
 
 }
@@ -250,9 +245,17 @@ func GetJobLogs(c *gin.Context) {
 		result["stopOK"] = Logcompleted[0]
 	}
 	result["log"] = string(resultBytes)
+	sd := util.StatisticsData{}
+	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
+	sd.EventType = "查询构建日志"
+	sd.Body = param
 	if resp.StatusCode == 200 {
+		util.StatisticsLog(&sd)
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
 	} else {
+		sd.State = "failed"
+		sd.StateMessage = result["log"]
+		util.StatisticsLog(&sd)
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusClientError, "error", result))
 	}
 }
