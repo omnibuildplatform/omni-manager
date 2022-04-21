@@ -287,9 +287,9 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/v2/images/deleteJob/{id}": {
-            "delete": {
-                "description": "delete a job build record",
+        "/v2/images/deleteJob": {
+            "post": {
+                "description": "delete multipule job build records",
                 "consumes": [
                     "application/json"
                 ],
@@ -302,11 +302,16 @@ const docTemplate = `{
                 "summary": "deleteRecord",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "job id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
+                        "description": "job id list",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
                     }
                 ],
                 "responses": {}

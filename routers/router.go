@@ -46,7 +46,7 @@ func InitRouter() *gin.Engine {
 		v2.GET("/images/getOne/:id", controllers.GetOne)
 		v2.GET("/images/getJobParam/:id", controllers.GetJobParam)
 		v2.GET("/images/getLogsOf/:id", controllers.GetJobLogs)
-		v2.DELETE("/images/deleteJob/:id", controllers.DeleteJobLogs)
+		v2.POST("/images/deleteJob", controllers.DeleteJobLogs)
 		v2.GET("/images/getMySummary", controllers.GetMySummary)
 		v2.DELETE("/images/stopJob/:id", controllers.StopJobBuild)
 	}

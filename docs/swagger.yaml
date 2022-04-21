@@ -290,17 +290,20 @@ paths:
       summary: Create Job
       tags:
       - v2 job
-  /v2/images/deleteJob/{id}:
-    delete:
+  /v2/images/deleteJob:
+    post:
       consumes:
       - application/json
-      description: delete a job build record
+      description: delete multipule job build records
       parameters:
-      - description: job id
-        in: path
-        name: id
+      - description: job id list
+        in: body
+        name: body
         required: true
-        type: string
+        schema:
+          items:
+            type: string
+          type: array
       produces:
       - application/json
       responses: {}

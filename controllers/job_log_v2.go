@@ -312,20 +312,33 @@ func StopJobBuild(c *gin.Context) {
 }
 
 // @Summary deleteRecord
-// @Description delete a job build record
+// @Description delete multipule job build records
 // @Tags  v2 job
-// @Param	id		path 	string	true		"job id"
+// @Param	body		body 	[]string	true		"job id list"
 // @Accept json
 // @Produce json
-// @Router /v2/images/deleteJob/{id} [delete]
+// @Router /v2/images/deleteJob [post]
 func DeleteJobLogs(c *gin.Context) {
-	id := c.Param("id")
-	if len(id) < 10 {
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, " job id must be fill:", nil))
+
+	var nameList []string
+	err := c.ShouldBindJSON(&nameList)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "error", err))
 		return
 	}
-
-	err := models.DeleteJobLogById(id)
+	if len(nameList) == 0 {
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "error", "id list must fill"))
+		return
+	}
+	var names string
+	for i, name := range nameList {
+		if i == 0 {
+			names = "'" + name + "'"
+		} else {
+			names = names + ",'" + name + "'"
+		}
+	}
+	err = models.DeleteMultiJobLogs(names)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "error", err))
 		return
@@ -335,11 +348,10 @@ func DeleteJobLogs(c *gin.Context) {
 	sd.EventType = "删除构建历史"
 	body := make(map[string]interface{})
 	body["userID"] = sd.UserId
-	body["jobID"] = id
+	body["jobID"] = nameList
 	sd.Body = body
-
 	util.StatisticsLog(&sd)
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", id))
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", nameList))
 
 }
 

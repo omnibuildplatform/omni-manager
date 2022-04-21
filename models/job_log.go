@@ -112,6 +112,15 @@ func DeleteJobLogById(jobName string) (err error) {
 	return result.Error
 }
 
+// DeleteMultiJobLogs
+func DeleteMultiJobLogs(names string) (err error) {
+	o := util.GetDB()
+	m := new(JobLog)
+	sql := fmt.Sprintf("delete from %s  where job_name in (%s)", m.TableName(), names)
+	result := o.Model(m).Exec(sql)
+	return result.Error
+}
+
 // UpdateJobLogStatusById
 func UpdateJobLogStatusById(jobname, newStatus string) (err error) {
 	o := util.GetDB()
