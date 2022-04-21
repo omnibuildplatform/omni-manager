@@ -27,7 +27,6 @@ func CreateJob(c *gin.Context) {
 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	sd.EventType = "构建OpenEuler"
 
-	sd.OperationTime = time.Now()
 	var imageInputData models.BuildParam
 	err := c.ShouldBindJSON(&imageInputData)
 	if err != nil {
@@ -94,7 +93,7 @@ func CreateJob(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "buildType not be supported  ", util.GetConfig().BuildParam.BuildType))
 		return
 	}
-	sd.OperationTime = time.Now()
+
 	insertData.BasePkg = strings.Join(util.GetConfig().DefaultPkgList.Packages, ",")
 	insertData.CustomPkg = strings.Join(imageInputData.CustomPkg, ",")
 	specMap := make(map[string]interface{})
@@ -163,7 +162,7 @@ func GetJobParam(c *gin.Context) {
 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	sd.EventType = "查询构建详情"
 	sd.Body = id
-	sd.OperationTime = time.Now()
+
 	util.StatisticsLog(&sd)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
 }
@@ -195,7 +194,7 @@ func GetOne(c *gin.Context) {
 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	sd.EventType = "查询构建日志"
 	sd.Body = param
-	sd.OperationTime = time.Now()
+
 	util.StatisticsLog(&sd)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
 
@@ -295,7 +294,7 @@ func StopJobBuild(c *gin.Context) {
 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	sd.EventType = "stop构建过程"
 	sd.Body = param
-	sd.OperationTime = time.Now()
+
 	result := string(resultBytes)
 	if resp.StatusCode == 200 {
 		util.StatisticsLog(&sd)
@@ -335,7 +334,7 @@ func DeleteJobLogs(c *gin.Context) {
 	body["userID"] = sd.UserId
 	body["jobID"] = id
 	sd.Body = body
-	sd.OperationTime = time.Now()
+
 	util.StatisticsLog(&sd)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", id))
 
@@ -360,7 +359,7 @@ func GetMySummary(c *gin.Context) {
 	body := make(map[string]interface{})
 	body["userid"] = userId
 	sd.Body = body
-	sd.OperationTime = time.Now()
+
 	util.StatisticsLog(&sd)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
 

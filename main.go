@@ -5,6 +5,7 @@ import (
 	"omni-manager/models"
 	"omni-manager/routers"
 	"omni-manager/util"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -14,7 +15,7 @@ func init() {
 	util.InitConfig("")
 }
 func main() {
-
+	time.LoadLocation("Asia/Shanghai")
 	if util.GetConfig().AppModel == "dev" {
 		util.Log.SetLevel(logrus.DebugLevel)
 		util.GetConfig().AppModel = gin.DebugMode

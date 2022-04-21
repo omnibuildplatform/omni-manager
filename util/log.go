@@ -15,15 +15,14 @@ import (
 var Log *logrus.Logger
 
 type StatisticsData struct {
-	UserId        int
-	UserName      string
-	UserProvider  string
-	UserEmail     string
-	OperationTime time.Time
-	EventType     string
-	State         string
-	StateMessage  string
-	Body          interface{}
+	UserId       int
+	UserName     string
+	UserProvider string
+	UserEmail    string
+	EventType    string
+	State        string
+	StateMessage string
+	Body         interface{}
 }
 
 //statistics log
@@ -131,18 +130,21 @@ func LoggerToFile() gin.HandlerFunc {
 	}
 }
 
+var cnTime *time.Location
+
 func StatisticsLog(sd *StatisticsData) error {
 	if sd.State == "" {
 		sd.State = "success"
 	}
 	mapData := make(map[string]interface{})
-	mapData["operationTime"] = sd.OperationTime.Local()
+	mapData["operationTime"] = time.Now().Format("2006-01-02T15:04:05+08:00")
 	mapData["userId"] = fmt.Sprintf("%v", sd.UserId)
 	mapData["userProvider"] = fmt.Sprintf("%v", sd.UserProvider)
 	mapData["eventType"] = fmt.Sprintf("%v", sd.EventType)
 	mapData["body"] = sd.Body
 	mapData["appId"] = GetConfig().AuthingConfig.AppID
 	mapData["state"] = sd.State
+	mapData["stateMessage"] = sd.StateMessage
 	mapData["stateMessage"] = sd.StateMessage
 	data, err := json.Marshal(mapData)
 	if err != nil {
