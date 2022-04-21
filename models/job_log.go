@@ -94,7 +94,7 @@ func GetAllJobLog(query map[string]string, fields []string, sortby []string, ord
 }
 
 // GetMyJobLogs query my build history
-func GetMyJobLogs(jobitem *JobLog, nameOrDesc string, offset int, limit int) (ml []*JobLog, err error) {
+func GetMyJobLogs(jobitem *JobLog, nameOrDesc string, offset int, limit int) (total int64, ml []*JobLog, err error) {
 	o := util.GetDB()
 	tx := o.Debug().Model(jobitem)
 	if len(jobitem.Arch) > 0 {
@@ -112,8 +112,9 @@ func GetMyJobLogs(jobitem *JobLog, nameOrDesc string, offset int, limit int) (ml
 	if len(nameOrDesc) > 0 {
 		tx = tx.Where("job_label like '%" + nameOrDesc + "%'  or job_desc like '%" + nameOrDesc + "%' ")
 	}
+	tx.Count(&total)
 	tx.Limit(limit).Offset(offset).Order("create_time desc").Scan(&ml)
-	return ml, nil
+	return total, ml, tx.Error
 }
 
 // DeleteJobLogById

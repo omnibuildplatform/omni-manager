@@ -250,7 +250,7 @@ func QueryMyHistory(c *gin.Context) {
 	queryJobLog.Arch = c.Query("arch")
 	queryJobLog.Status = c.Query("status")
 	queryJobLog.BuildType = c.Query("type")
-	result, err := models.GetMyJobLogs(queryJobLog, nameordesc, offset, limit)
+	total, result, err := models.GetMyJobLogs(queryJobLog, nameordesc, offset, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, err, nil))
 		return
@@ -263,9 +263,9 @@ func QueryMyHistory(c *gin.Context) {
 
 	util.StatisticsLog(&sd)
 	if len(result) == 0 {
-		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", "[]"))
+		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", "[]", 0))
 	} else {
-		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
+		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result, total))
 	}
 
 }
