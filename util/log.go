@@ -30,7 +30,12 @@ type StatisticsData struct {
 var SLog *logrus.Logger
 
 func init() {
-	CnTime, _ = time.LoadLocation("Asia/Shanghai")
+	var err error
+	CnTime, err = time.LoadLocation("Asia/Shanghai")
+	if err != nil {
+		fmt.Println("时区加载错误:", err)
+		CnTime = time.FixedZone("CST", 8*3600)
+	}
 	initLogger()
 }
 
