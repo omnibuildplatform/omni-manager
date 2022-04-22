@@ -162,7 +162,7 @@ queryNextLog:
 	// }
 }
 func sendNormalData(ws *websocket.Conn, msg []byte) error {
-	ws.SetWriteDeadline(time.Now().Add(1200 * time.Second))
+	ws.SetWriteDeadline(time.Now().Local().Add(1200 * time.Second))
 	err := ws.WriteMessage(websocket.TextMessage, msg)
 	if err != nil {
 		util.Log.Warnln(" websocket sendNormalData Error :", err)

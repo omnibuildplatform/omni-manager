@@ -53,7 +53,7 @@ func CreateJob(c *gin.Context) {
 	if insertData.JobDesc == "" {
 		insertData.JobDesc = "this image was built by Omni Build Platform"
 	}
-	insertData.CreateTime = time.Now()
+	insertData.CreateTime = time.Now().In(util.CnTime)
 	if c.Keys["p"] != nil {
 		sd.UserProvider = (c.Keys["p"]).(string)
 	}
@@ -129,7 +129,7 @@ func CreateJob(c *gin.Context) {
 	insertData.Status = result["state"].(string)
 	insertData.StartTime, _ = time.Parse("2006-01-02T15:04:05Z", result["startTime"].(string))
 	insertData.EndTime, _ = time.Parse("2006-01-02T15:04:05Z", result["endTime"].(string))
-	insertData.DownloadUrl = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, insertData.Release, time.Now().Format("2006-01-02"), outputName)
+	insertData.DownloadUrl = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, insertData.Release, time.Now().In(util.CnTime).Format("2006-01-02"), outputName)
 	insertData.Status = models.JOB_STATUS_START
 	err = models.AddJobLog(&insertData)
 	if err != nil {

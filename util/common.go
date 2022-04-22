@@ -25,11 +25,11 @@ const DATE_T_Z_FORMAT = "2006-01-02T15:04:05Z"
 const DT_FORMAT = "2006-01-02"
 
 func GetCurDate() string {
-	return time.Now().Format(DT_FORMAT)
+	return time.Now().In(CnTime).Format(DT_FORMAT)
 }
 
 func GetCurTime() string {
-	return time.Now().Format(DATE_FORMAT)
+	return time.Now().In(CnTime).Format(DATE_FORMAT)
 }
 
 func createDir(dir string) error {
@@ -118,7 +118,7 @@ func LocalTimeToUTC(strTime string) time.Time {
 }
 
 func GetTZHTime(hours time.Duration) string {
-	now := time.Now()
+	now := time.Now().In(CnTime)
 	h, _ := time.ParseDuration("-1h")
 	dateTime := now.Add(hours * h).Format(DATE_T_Z_FORMAT)
 	fmt.Println("dateTime: ", dateTime)
@@ -151,7 +151,7 @@ func GetRandomString(l int) string {
 	str := "abcdefghijklmnopqrstuvwxyz"
 	bytes := []byte(str)
 	result := []byte{}
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	r := rand.New(rand.NewSource(time.Now().Local().UnixNano()))
 	for i := 0; i < l; i++ {
 		result = append(result, bytes[r.Intn(len(bytes))])
 	}

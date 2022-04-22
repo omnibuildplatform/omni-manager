@@ -128,7 +128,7 @@ func Authorize() gin.HandlerFunc {
 func GetJwtString(expire int, id, name, provider string) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := make(jwt.MapClaims)
-	now := time.Now()
+	now := time.Now().In(util.CnTime)
 	claims["exp"] = now.Add(time.Hour * time.Duration(expire)).Unix()
 	claims["iat"] = now.Unix()
 	claims["id"] = id
@@ -158,7 +158,7 @@ func CheckAuthorization(tokenString string) (userInfo map[string]interface{}, er
 			return nil, fmt.Errorf("token无效,无id")
 		}
 		expireTime := userInfo["exp"].(float64)
-		if int(expireTime) <= int(time.Now().Unix()) {
+		if int(expireTime) <= int(time.Now().Local().Unix()) {
 			return nil, fmt.Errorf("登陆已经过期")
 		}
 	}

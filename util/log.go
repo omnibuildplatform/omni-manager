@@ -30,6 +30,7 @@ type StatisticsData struct {
 var SLog *logrus.Logger
 
 func init() {
+	CnTime, _ = time.LoadLocation("Asia/Chongqing")
 	initLogger()
 }
 
@@ -42,7 +43,7 @@ func initLogger() {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	logFileName := time.Now().Format("2006-01-02") + ".log"
+	logFileName := time.Now().In(CnTime).Format("2006-01-02") + ".log"
 	//log file
 	fileName := path.Join(logFilePath, logFileName)
 	if _, err := os.Stat(fileName); err != nil {
@@ -88,13 +89,13 @@ func InitStatisticsLog() {
 func LoggerToFile() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 开始时间
-		startTime := time.Now()
+		startTime := time.Now().In(CnTime)
 
 		// 处理请求
 		c.Next()
 
 		// 结束时间
-		endTime := time.Now()
+		endTime := time.Now().In(CnTime)
 
 		// 执行时间
 		latencyTime := endTime.Sub(startTime)
@@ -123,14 +124,14 @@ func LoggerToFile() gin.HandlerFunc {
 	}
 }
 
-var cnTime *time.Location
+var CnTime *time.Location
 
 func StatisticsLog(sd *StatisticsData) error {
 	if sd.State == "" {
 		sd.State = "success"
 	}
 	mapData := make(map[string]interface{})
-	mapData["operationTime"] = time.Now().Local().Format("2006-01-02T15:04:05+08:00")
+	mapData["operationTime"] = time.Now().In(CnTime).Format("2006-01-02T15:04:05+08:00")
 	mapData["userId"] = fmt.Sprintf("%v", sd.UserId)
 	mapData["userProvider"] = fmt.Sprintf("%v", sd.UserProvider)
 	mapData["eventType"] = fmt.Sprintf("%v", sd.EventType)
