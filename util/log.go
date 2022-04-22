@@ -76,8 +76,7 @@ func InitStatisticsLog() {
 	SLog.SetLevel(logrus.InfoLevel)
 	writer, _ := rotatelogs.New(
 		path.Join(GetConfig().Statistic.Dir, GetConfig().AppName)+"-%Y-%m-%d.log",
-		rotatelogs.WithMaxAge(time.Duration(180)*time.Second),
-		rotatelogs.WithRotationTime(time.Duration(60)*time.Second),
+		rotatelogs.WithMaxAge(time.Duration(24*365*10)*time.Hour),
 	)
 	SLog.SetOutput(writer)
 	SLog.SetFormatter(&logrus.JSONFormatter{
