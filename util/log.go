@@ -30,7 +30,7 @@ type StatisticsData struct {
 var SLog *logrus.Logger
 
 func init() {
-	CnTime, _ = time.LoadLocation("Asia/Chongqing")
+	CnTime, _ = time.LoadLocation("Asia/Shanghai")
 	initLogger()
 }
 
