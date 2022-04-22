@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	rotatelogs "github.com/lestrrat/go-file-rotatelogs"
 	"github.com/sirupsen/logrus"
 )
 
@@ -37,7 +38,7 @@ func initLogger() {
 	if dir, err := os.Getwd(); err == nil {
 		logFilePath = dir + "/logs/"
 	}
-	if err := os.MkdirAll(logFilePath, 0777); err != nil {
+	if err := os.MkdirAll(logFilePath, 0755); err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
@@ -71,27 +72,20 @@ func InitStatisticsLog() {
 		Log.Errorf("InitStatisticsLog Error %v", err)
 		os.Exit(1)
 	}
-	logFileName := GetConfig().AppName + "-" + time.Now().Format("2006-01-02") + ".log"
-	//log file
-	fileName := path.Join(GetConfig().Statistic.Dir, logFileName)
-	if _, err := os.Stat(fileName); err != nil {
-		if _, err := os.Create(fileName); err != nil {
-			fmt.Println(err.Error())
-		}
-	}
-	//open file
-	src, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
-	if err != nil {
-		fmt.Println("err", err)
-	}
-	//new log
 	SLog = logrus.New()
-	SLog.Out = io.MultiWriter(src)
+	SLog.SetLevel(logrus.InfoLevel)
+	writer, _ := rotatelogs.New(
+		path.Join(GetConfig().Statistic.Dir, GetConfig().AppName)+"-%Y-%m-%d.log",
+		rotatelogs.WithMaxAge(time.Duration(180)*time.Second),
+		rotatelogs.WithRotationTime(time.Duration(60)*time.Second),
+	)
+	SLog.SetOutput(writer)
 	SLog.SetFormatter(&logrus.JSONFormatter{
 		DisableTimestamp: true,
 		PrettyPrint:      true,
 	})
 }
+
 func LoggerToFile() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 开始时间
