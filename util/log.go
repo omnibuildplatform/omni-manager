@@ -130,7 +130,7 @@ func StatisticsLog(sd *StatisticsData) error {
 		sd.State = "success"
 	}
 	mapData := make(map[string]interface{})
-	mapData["operationTime"] = time.Now().Format("2006-01-02T15:04:05+08:00")
+	mapData["operationTime"] = time.Now().Local().Format("2006-01-02T15:04:05+08:00")
 	mapData["userId"] = fmt.Sprintf("%v", sd.UserId)
 	mapData["userProvider"] = fmt.Sprintf("%v", sd.UserProvider)
 	mapData["eventType"] = fmt.Sprintf("%v", sd.EventType)
