@@ -4,9 +4,9 @@
         "contact": {}
     },
     "paths": {
-        "/v1/images/delete/:id": {
-            "delete": {
-                "description": "update single data",
+        "/v1/auth/createUser": {
+            "post": {
+                "description": "AuthingCreateUser",
                 "consumes": [
                     "application/json"
                 ],
@@ -14,14 +14,41 @@
                     "application/json"
                 ],
                 "tags": [
-                    "meta Manager"
+                    "Authing"
                 ],
-                "summary": "delete",
+                "summary": "AuthingCreateUser",
+                "parameters": [
+                    {
+                        "description": "body for user info",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateUserInput"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v1/auth/getDetail/{authingUserId}": {
+            "get": {
+                "description": "AuthingGetToken",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authing"
+                ],
+                "summary": "AuthingGetToken",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "The key for staticblock",
-                        "name": "id",
+                        "name": "authingUserId",
                         "in": "path",
                         "required": true
                     }
@@ -29,9 +56,9 @@
                 "responses": {}
             }
         },
-        "/v1/images/get/{id}": {
+        "/v1/auth/loginok": {
             "get": {
-                "description": "get single one",
+                "description": "login success redirect url",
                 "consumes": [
                     "application/json"
                 ],
@@ -39,18 +66,9 @@
                     "application/json"
                 ],
                 "tags": [
-                    "meta Manager"
+                    "Authing"
                 ],
-                "summary": "get",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The key for staticblock",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
+                "summary": "login success redirect url",
                 "responses": {}
             }
         },
@@ -64,7 +82,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "meta Manager"
+                    "v1 job"
                 ],
                 "summary": "GetBaseData param",
                 "responses": {}
@@ -80,7 +98,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "meta Manager"
+                    "v1 job"
                 ],
                 "summary": "GetCustomePkgList param",
                 "parameters": [
@@ -109,9 +127,9 @@
                 "responses": {}
             }
         },
-        "/v1/images/query": {
+        "/v1/images/queryHistory/mine": {
             "get": {
-                "description": "use param to query multi datas",
+                "description": "Query My History",
                 "consumes": [
                     "application/json"
                 ],
@@ -119,23 +137,45 @@
                     "application/json"
                 ],
                 "tags": [
-                    "meta Manager"
+                    "v1 job"
                 ],
-                "summary": "query multi datas",
+                "summary": "QueryMyHistory",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "project name",
-                        "name": "project_name",
-                        "in": "query",
-                        "required": true
+                        "description": "arch",
+                        "name": "arch",
+                        "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "package name",
-                        "name": "pkg_name",
-                        "in": "query",
-                        "required": true
+                        "description": "status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "build type",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "name or desc",
+                        "name": "nameordesc",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "offset ",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
                     }
                 ],
                 "responses": {}
@@ -151,7 +191,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "meta Manager"
+                    "v1 job"
                 ],
                 "summary": "QueryJobLogs",
                 "parameters": [
@@ -176,7 +216,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "meta Manager"
+                    "v1 job"
                 ],
                 "summary": "QueryJobStatus",
                 "parameters": [
@@ -213,7 +253,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "meta Manager"
+                    "v1 job"
                 ],
                 "summary": "StartBuild Job",
                 "parameters": [
@@ -223,8 +263,194 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.ImageInputData"
+                            "$ref": "#/definitions/models.BuildParam"
                         }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v2/images/createJob": {
+            "post": {
+                "description": "start a image build job",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v2 job"
+                ],
+                "summary": "Create Job",
+                "parameters": [
+                    {
+                        "description": "body for ImageMeta content",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.BuildParam"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v2/images/deleteJob": {
+            "post": {
+                "description": "delete multipule job build records",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v2 job"
+                ],
+                "summary": "deleteRecord",
+                "parameters": [
+                    {
+                        "description": "job id list",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v2/images/getJobParam/{id}": {
+            "get": {
+                "description": "get job build param",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v2 job"
+                ],
+                "summary": "GetJobParam",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v2/images/getLogsOf/{id}": {
+            "get": {
+                "description": "get single job logs",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v2 job"
+                ],
+                "summary": "get single job logs",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "step id",
+                        "name": "stepID",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "uuid",
+                        "name": "uuid",
+                        "in": "query"
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v2/images/getMySummary": {
+            "get": {
+                "description": "get my summary",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v2 job"
+                ],
+                "summary": "MySummary",
+                "responses": {}
+            }
+        },
+        "/v2/images/getOne/{id}": {
+            "get": {
+                "description": "get single job detail",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v2 job"
+                ],
+                "summary": "get single job detail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v2/images/stopJob/{id}": {
+            "delete": {
+                "description": "Stop Job Build",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v2 job"
+                ],
+                "summary": "StopJobBuild",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {}
@@ -232,10 +458,11 @@
         }
     },
     "definitions": {
-        "models.ImageInputData": {
+        "models.BuildParam": {
             "type": "object",
             "properties": {
                 "arch": {
+                    "description": "Id        int      `gorm:\"primaryKey\"`",
                     "type": "string"
                 },
                 "buildType": {
@@ -247,10 +474,141 @@
                         "type": "string"
                     }
                 },
-                "id": {
-                    "type": "integer"
+                "desc": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
                 },
                 "release": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreateUserInput": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "birthdate": {
+                    "type": "string"
+                },
+                "blocked": {
+                    "type": "boolean"
+                },
+                "browser": {
+                    "type": "string"
+                },
+                "company": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "device": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "emailVerified": {
+                    "type": "boolean"
+                },
+                "externalId": {
+                    "type": "string"
+                },
+                "familyName": {
+                    "type": "string"
+                },
+                "formatted": {
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "givenName": {
+                    "type": "string"
+                },
+                "isDeleted": {
+                    "type": "boolean"
+                },
+                "lastIP": {
+                    "type": "string"
+                },
+                "lastLogin": {
+                    "type": "string"
+                },
+                "locale": {
+                    "type": "string"
+                },
+                "locality": {
+                    "type": "string"
+                },
+                "loginsCount": {
+                    "type": "integer"
+                },
+                "middleName": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "oauth": {
+                    "type": "string"
+                },
+                "openid": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "phoneVerified": {
+                    "type": "boolean"
+                },
+                "photo": {
+                    "type": "string"
+                },
+                "postalCode": {
+                    "type": "string"
+                },
+                "preferredUsername": {
+                    "type": "string"
+                },
+                "profile": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "registerSource": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "signedUp": {
+                    "type": "string"
+                },
+                "streetAddress": {
+                    "type": "string"
+                },
+                "unionid": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "website": {
+                    "type": "string"
+                },
+                "zoneinfo": {
                     "type": "string"
                 }
             }
