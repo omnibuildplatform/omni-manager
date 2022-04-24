@@ -40,14 +40,13 @@ func init() {
 }
 
 func initLogger() {
-	logFilePath := GetConfig().Statistic.Dir + "/logs/"
-	if err := os.MkdirAll(logFilePath, 0755); err != nil {
+	if err := os.MkdirAll(GetConfig().Statistic.Dir, 0755); err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 	logFileName := time.Now().In(CnTime).Format("2006-01-02") + ".log"
 	//log file
-	fileName := path.Join(logFilePath, logFileName)
+	fileName := path.Join(GetConfig().Statistic.Dir, logFileName)
 	if _, err := os.Stat(fileName); err != nil {
 		if _, err := os.Create(fileName); err != nil {
 			fmt.Println(err.Error())
