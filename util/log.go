@@ -40,10 +40,7 @@ func init() {
 }
 
 func initLogger() {
-	logFilePath := ""
-	if dir, err := os.Getwd(); err == nil {
-		logFilePath = dir + "/logs/"
-	}
+	logFilePath := GetConfig().Statistic.Dir + "/logs/"
 	if err := os.MkdirAll(logFilePath, 0755); err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)

@@ -207,7 +207,6 @@ func GetCustomePkgList(c *gin.Context) {
 		return
 	}
 	sd := util.StatisticsData{}
-
 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	sd.EventType = "查询CustmPkg"
 	sd.Body = fmt.Sprintf("release: %s, arch:%s, sig:%s", release, arch, sig)

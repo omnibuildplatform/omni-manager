@@ -57,8 +57,8 @@ func main() {
 	gin.SetMode(util.GetConfig().AppModel)
 	r := routers.InitRouter()
 	address := fmt.Sprintf(":%d", util.GetConfig().AppPort)
-	util.Log.Printf(" startup meta http service at port %s .and %s mode \n", address, util.GetConfig().AppModel)
+	fmt.Printf(" startup meta http service at port %s .and %s mode \n", address, util.GetConfig().AppModel)
 	if err := r.Run(address); err != nil {
-		util.Log.Printf("startup meta  http service failed, err:%v\n", err)
+		fmt.Printf("startup meta  http service failed, err:%v\n", err)
 	}
 }

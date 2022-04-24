@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"omni-manager/util"
@@ -23,6 +24,7 @@ type CustomPkg struct {
 func InitCustomPkgs() error {
 	err := getSigs()
 	if err != nil {
+		util.Log.Errorf("get custom sigs error:", err)
 		return err
 	}
 
@@ -32,10 +34,9 @@ func InitCustomPkgs() error {
 // get sig list
 func getSigs() (err error) {
 	url := util.GetConfig().BuildParam.CustomRpmAPI + "/sigs"
-	util.Log.Println("get custom rpms from:", url)
+	fmt.Println("get custom rpms from:", url)
 	var req *http.Request
 	req, err = http.NewRequest("GET", url, nil)
-
 	if err != nil {
 		util.Log.Errorln("1 get custom rpms error:", err)
 		return
@@ -72,7 +73,6 @@ func GetCustomePkgList(release, arch, sig string) (customPkgList *CustomPkg, err
 	q.Add("release", release)
 	q.Add("arch", arch)
 	q.Add("sig", sig)
-	// q.Add("sig", "DB")
 	req.URL.RawQuery = q.Encode()
 	resp, err = http.DefaultClient.Do(req)
 	if err != nil {
