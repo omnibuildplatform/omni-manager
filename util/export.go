@@ -25,7 +25,6 @@ type JsonData struct {
 
 //ExportData ExportData
 func ExportData(code int, title interface{}, data ...interface{}) *JsonData {
-
 	var resultData JsonData
 	resultData.Code = code
 	resultData.Title = title
@@ -40,6 +39,7 @@ func ExportData(code int, title interface{}, data ...interface{}) *JsonData {
 	}
 	if code == 500 {
 		if GetConfig().AppModel == "release" {
+			Log.Errorf("code:%d,title:%s,data:%v", resultData.Code, resultData.Title, resultData.Data)
 			resultData.Title = "Error Information"
 			resultData.Data = ""
 		}
