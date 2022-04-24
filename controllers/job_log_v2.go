@@ -114,6 +114,8 @@ func CreateJob(c *gin.Context) {
 	param["userID"] = strconv.Itoa(insertData.UserId)
 	param["spec"] = specMap
 	paramBytes, _ := json.Marshal(param)
+	delete(specMap, "packages")
+
 	result, err := util.HTTPPost(util.GetConfig().BuildServer.ApiUrl+"/v1/jobs", string(paramBytes))
 	if err != nil {
 		sd.State = "failed"
@@ -123,7 +125,6 @@ func CreateJob(c *gin.Context) {
 
 		return
 	}
-
 	insertData.JobName = result["id"].(string)
 	outputName := fmt.Sprintf(`openEuler-%s.iso`, result["id"])
 	insertData.Status = result["state"].(string)
@@ -133,12 +134,12 @@ func CreateJob(c *gin.Context) {
 	insertData.Status = models.JOB_STATUS_START
 	err = models.AddJobLog(&insertData)
 	if err != nil {
+		sd.State = "failed"
+		sd.StateMessage = err.Error()
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, nil, err))
 		return
 	}
 	param["customRpms"] = imageInputData.CustomPkg
-	delete(specMap, "packages")
-	param["spec"] = specMap
 	sd.Body = param
 	util.StatisticsLog(&sd)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, 0, insertData))
