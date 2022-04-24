@@ -29,7 +29,6 @@ func CreateJob(c *gin.Context) {
 	if c.Keys["p"] != nil {
 		sd.UserProvider = (c.Keys["p"]).(string)
 	}
-
 	var imageInputData models.BuildParam
 	err := c.ShouldBindJSON(&imageInputData)
 	if err != nil {
