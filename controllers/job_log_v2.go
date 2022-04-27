@@ -146,7 +146,6 @@ func CreateJob(c *gin.Context) {
 	param["customRpms"] = imageInputData.CustomPkg
 	sd.Body = param
 	util.StatisticsLog(&sd)
-	util.Log.Level
 	util.Log.Infof("正在使用V2构建,参数为:%v", param)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, 0, insertData))
 
