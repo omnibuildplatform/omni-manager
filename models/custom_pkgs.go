@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"omni-manager/util"
+
+	"github.com/omnibuildplatform/omni-manager/util"
 )
 
 var CustomSigList CustomSigs

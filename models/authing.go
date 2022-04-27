@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"omni-manager/util"
 	"time"
+
+	"github.com/omnibuildplatform/omni-manager/util"
 
 	"github.com/Authing/authing-go-sdk/lib/authentication"
 	"github.com/Authing/authing-go-sdk/lib/management"
@@ -96,6 +97,7 @@ func ParseAuthingUserInput(userinput *CreateUserInput) *model.CreateUserRequest 
 }
 
 func GetUserInfoByToekn(token string) error {
+
 	resp, err := http.Get("https://openeuler-omni-manager.authing.cn/oidc/me?access_token=" + token)
 	if err != nil {
 		return err

@@ -6,11 +6,12 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"omni-manager/models"
-	"omni-manager/util"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/omnibuildplatform/omni-manager/models"
+	"github.com/omnibuildplatform/omni-manager/util"
 
 	"github.com/gin-gonic/gin"
 )

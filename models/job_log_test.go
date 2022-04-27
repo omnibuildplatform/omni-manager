@@ -1,9 +1,10 @@
 package models
 
 import (
-	"omni-manager/util"
 	"testing"
 	"time"
+
+	"github.com/omnibuildplatform/omni-manager/util"
 )
 
 func TestAddJobLog(t *testing.T) {

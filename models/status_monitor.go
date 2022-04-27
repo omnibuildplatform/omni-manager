@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"omni-manager/util"
 	"time"
+
+	"github.com/omnibuildplatform/omni-manager/util"
 
 	"github.com/gorilla/websocket"
 	corev1 "k8s.io/api/core/v1"
@@ -214,7 +215,7 @@ func StartWebSocket() {
 	http.HandleFunc("/wsQueryJobStatus", wsQueryJobStatus)
 	http.HandleFunc("/ws/queryJobStatus", wsQueryJobStatus)
 	addr := fmt.Sprintf(":%d", util.GetConfig().WSConfig.Port)
-	util.Log.Printf("websocket Listening and serving at %s port ", addr)
+	util.Log.Infof("websocket Listening and serving at %s port ", addr)
 	if err := http.ListenAndServe(addr, nil); err != nil {
 		util.Log.Fatalf("websocket startup failed ,error: %s", err)
 	}

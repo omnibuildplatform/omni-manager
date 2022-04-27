@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"omni-manager/util"
 	"strings"
 	"time"
+
+	"github.com/omnibuildplatform/omni-manager/util"
 
 	uuid "github.com/satori/go.uuid"
 	"gopkg.in/yaml.v2"

@@ -2,7 +2,8 @@ package controllers
 
 import (
 	"net/http"
-	"omni-manager/util"
+
+	"github.com/omnibuildplatform/omni-manager/util"
 
 	"github.com/gin-gonic/gin"
 )

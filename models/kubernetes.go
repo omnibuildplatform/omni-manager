@@ -4,7 +4,7 @@ import (
 
 	// _ "github.com/kubernetes/component-helpers"
 
-	"omni-manager/util"
+	"github.com/omnibuildplatform/omni-manager/util"
 
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"

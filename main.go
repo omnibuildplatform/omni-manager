@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"omni-manager/models"
-	"omni-manager/routers"
-	"omni-manager/util"
+
+	"github.com/omnibuildplatform/omni-manager/models"
+	"github.com/omnibuildplatform/omni-manager/routers"
+	"github.com/omnibuildplatform/omni-manager/util"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -14,7 +15,6 @@ func init() {
 	util.InitConfig("")
 }
 func main() {
-
 	if util.GetConfig().AppModel == "dev" || util.GetConfig().AppModel == "debug" {
 		util.Log.SetLevel(logrus.DebugLevel)
 		util.GetConfig().AppModel = gin.DebugMode

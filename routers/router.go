@@ -1,10 +1,10 @@
 package routers
 
 import (
-	"omni-manager/controllers"
-	"omni-manager/docs"
-	"omni-manager/models"
-	"omni-manager/util"
+	"github.com/omnibuildplatform/omni-manager/controllers"
+	"github.com/omnibuildplatform/omni-manager/docs"
+	"github.com/omnibuildplatform/omni-manager/models"
+	"github.com/omnibuildplatform/omni-manager/util"
 
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"

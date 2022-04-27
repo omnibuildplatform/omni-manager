@@ -1,4 +1,4 @@
-module omni-manager
+module  github.com/omnibuildplatform/omni-manager
 
 go 1.17
 

@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"omni-manager/models"
-	"omni-manager/util"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/omnibuildplatform/omni-manager/models"
+	"github.com/omnibuildplatform/omni-manager/util"
 
 	"github.com/gin-gonic/gin"
 	corev1 "k8s.io/api/core/v1"

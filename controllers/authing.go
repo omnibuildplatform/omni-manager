@@ -6,9 +6,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"omni-manager/models"
-	"omni-manager/util"
 	"strconv"
+
+	"github.com/omnibuildplatform/omni-manager/models"
+	"github.com/omnibuildplatform/omni-manager/util"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
