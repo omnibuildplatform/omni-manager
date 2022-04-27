@@ -62,6 +62,13 @@ type JobStatuItem struct {
 	EndTime   string `json:"endTime"`
 }
 
+type BaseImageConfig struct {
+	Id        string `json:"id"`
+	State     string `json:"state"`
+	StartTime string `json:"startTime"`
+	EndTime   string `json:"endTime"`
+}
+
 func (t *JobLog) TableName() string {
 	return "job_log"
 }

@@ -15,11 +15,11 @@ func init() {
 }
 func main() {
 
-	if util.GetConfig().AppModel == "dev" {
+	if util.GetConfig().AppModel == "dev" || util.GetConfig().AppModel == "debug" {
 		util.Log.SetLevel(logrus.DebugLevel)
 		util.GetConfig().AppModel = gin.DebugMode
 	} else {
-		util.Log.SetLevel(logrus.WarnLevel)
+		util.Log.SetLevel(logrus.InfoLevel)
 		util.GetConfig().AppModel = gin.ReleaseMode
 	}
 
@@ -57,8 +57,8 @@ func main() {
 	gin.SetMode(util.GetConfig().AppModel)
 	r := routers.InitRouter()
 	address := fmt.Sprintf(":%d", util.GetConfig().AppPort)
-	fmt.Printf(" startup meta http service at port %s .and %s mode \n", address, util.GetConfig().AppModel)
+	util.Log.Infof(" startup meta http service at port %s .and %s mode \n", address, util.GetConfig().AppModel)
 	if err := r.Run(address); err != nil {
-		fmt.Printf("startup meta  http service failed, err:%v\n", err)
+		util.Log.Infof("startup meta  http service failed, err:%v\n", err)
 	}
 }

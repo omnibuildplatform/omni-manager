@@ -101,9 +101,23 @@ func AuthingGetUserDetail(c *gin.Context) {
 	sd.UserId, _ = strconv.Atoi(userDetail.Id)
 	sd.EventType = "用户登录"
 	result := make(map[string]interface{})
+	if result["nm"] == nil {
+		result["nm"] = userDetail.Name
+	}
+	if result["nm"] == nil {
+		result["nm"] = userDetail.MiddleName
+	}
+	if result["nm"] == nil {
+		result["nm"] = userDetail.FamilyName
+	}
+	if result["nm"] == nil {
+		result["nm"] = userDetail.Username
+	}
+	if result["nm"] == nil {
+		result["nm"] = userDetail.Nickname
+	}
 	result["username"] = userDetail.Username
 	result["nickname"] = userDetail.Nickname
-	result["nm"] = userDetail.Name
 	for _, v := range userDetail.Identities {
 		sd.UserProvider = *(v.Provider)
 	}

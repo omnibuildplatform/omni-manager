@@ -95,6 +95,9 @@ func CreateJob(c *gin.Context) {
 		}
 	}
 	if !validate {
+		sd.State = "failed"
+		sd.StateMessage = "build type is not right"
+		util.StatisticsLog(&sd)
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "buildType not be supported  ", util.GetConfig().BuildParam.BuildType))
 		return
 	}
@@ -136,12 +139,15 @@ func CreateJob(c *gin.Context) {
 	if err != nil {
 		sd.State = "failed"
 		sd.StateMessage = err.Error()
+		util.StatisticsLog(&sd)
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, nil, err))
 		return
 	}
 	param["customRpms"] = imageInputData.CustomPkg
 	sd.Body = param
 	util.StatisticsLog(&sd)
+	util.Log.Level
+	util.Log.Infof("正在使用V2构建,参数为:%v", param)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, 0, insertData))
 
 }
