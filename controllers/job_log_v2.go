@@ -113,7 +113,7 @@ func CreateJob(c *gin.Context) {
 	param := make(map[string]interface{})
 	param["service"] = "omni"
 	param["domain"] = "omni-build"
-	param["task"] = "buildImage"
+	param["task"] = "buildimagefromrelease"
 	param["engine"] = "kubernetes"
 	param["userID"] = strconv.Itoa(insertData.UserId)
 	param["spec"] = specMap
