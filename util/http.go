@@ -27,20 +27,19 @@ func HTTPPost(url string, requestBody string) (map[string]interface{}, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-
-	// logs.Info("HTTPPost, response Status:", resp.Status)
-	// logs.Info("HTTPPost, response Headers:", resp.Header)
-	status, _ := strconv.Atoi(resp.Status)
-	if status > 200 {
-		fmt.Println("Post request failed, err: ", err, "body: ", requestBody)
-		return nil, err
-	}
 	body, err := ioutil.ReadAll(resp.Body)
-	// fmt.Println("response Body:", string(body))
-	if err != nil || body == nil {
+	if err != nil {
 		// logs.Error("post failed, err: ", err, "body: ", requestBody)
 		return nil, err
 	}
+
+	Log.Debug("Post request resp.Status: ", resp.StatusCode)
+	if resp.StatusCode > 200 {
+		err = fmt.Errorf("Post request failed, err:%v ", string(body))
+		Log.Errorln(err)
+		return nil, err
+	}
+
 	// logs.Info("post successed!, body: ", string(body))
 	var bodyStr map[string]interface{}
 	err = json.Unmarshal(body, &bodyStr)
