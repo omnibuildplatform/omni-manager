@@ -382,7 +382,7 @@ func CheckPodStatus(ns, jobname string) (result map[string]interface{}, job *bat
 
 func SyncJobStatus() {
 	m := new(JobLog)
-	sql := fmt.Sprintf("select job_name from %s where status not in ('%s,'%s','%s')", m.TableName(), JOB_STATUS_SUCCEED, JOB_STATUS_FAILED, JOB_STATUS_STOPPED)
+	sql := fmt.Sprintf("select job_name from %s where status not in ('%s','%s','%s')", m.TableName(), JOB_STATUS_SUCCEED, JOB_STATUS_FAILED, JOB_STATUS_STOPPED)
 	var jobIdList []string
 	param := make(map[string]interface{})
 	param["service"] = "omni"
