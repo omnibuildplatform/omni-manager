@@ -37,10 +37,10 @@ type JobLog struct {
 	BuildType     string    ` description:"iso , zip ...."`
 	BasePkg       string    ` gorm:"size:5055"  description:"default package"`
 	CustomPkg     string    ` gorm:"size:5055" description:"custom"`
-	UserId        int       ` description:"user id"`
+	UserId        int       ` description:"user id"  gorm:"index:"`
 	UserName      string    ` description:"user name"`
 	CreateTime    time.Time ` description:"create time"`
-	Status        string    ` description:"current status :running ,success, failed"`
+	Status        string    ` description:"current status :running ,success, failed" gorm:"index"`
 	DownloadUrl   string    ` description:"download the result of build iso file"`
 	ConfigMapName string    ` description:"configMap name"`
 	JobLabel      string    ` description:"job label"`
@@ -395,8 +395,8 @@ func SyncJobStatus() {
 	param["domain"] = "omni-build"
 	param["task"] = "buildImage"
 
+	o := util.GetDB()
 	for {
-		o := util.GetDB()
 		o.Raw(sql).Scan(&jobIdList)
 		if len(jobIdList) == 0 {
 			time.Sleep(time.Second * 30)

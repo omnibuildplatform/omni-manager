@@ -113,7 +113,7 @@ func CreateJob(c *gin.Context) {
 	param := make(map[string]interface{})
 	param["service"] = "omni"
 	param["domain"] = "omni-build"
-	param["task"] = "buildImage"
+	param["task"] = "buildimagefromrelease"
 	param["engine"] = "kubernetes"
 	param["userID"] = strconv.Itoa(insertData.UserId)
 	param["spec"] = specMap
@@ -132,8 +132,9 @@ func CreateJob(c *gin.Context) {
 	insertData.JobName = result["id"].(string)
 	outputName := fmt.Sprintf(`openEuler-%s.iso`, result["id"])
 	insertData.Status = result["state"].(string)
-	insertData.StartTime, _ = time.Parse("2006-01-02T15:04:05Z", result["startTime"].(string))
-	insertData.EndTime, _ = time.Parse("2006-01-02T15:04:05Z", result["endTime"].(string))
+
+	insertData.StartTime, _ = time.Parse(time.RFC3339, result["startTime"].(string))
+	insertData.EndTime, _ = time.Parse(time.RFC3339, result["endTime"].(string))
 	insertData.DownloadUrl = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, insertData.Release, time.Now().In(util.CnTime).Format("2006-01-02"), outputName)
 	insertData.Status = models.JOB_STATUS_START
 	err = models.AddJobLog(&insertData)
@@ -197,7 +198,7 @@ func GetOne(c *gin.Context) {
 	param := url.Values{}
 	param.Add("service", "omni")
 	param.Add("domain", "omni-build")
-	param.Add("task", "buildImage")
+	param.Add("task", "buildimagefromrelease")
 	param.Add("ID", id)
 	result, err := util.HTTPGet(util.GetConfig().BuildServer.ApiUrl+"/v1/jobs", param)
 	if err != nil {
@@ -229,7 +230,7 @@ func GetJobLogs(c *gin.Context) {
 	param := url.Values{}
 	param.Set("service", "omni")
 	param.Set("domain", "omni-build")
-	param.Set("task", "buildImage")
+	param.Set("task", "buildimagefromrelease")
 	param.Set("ID", id)
 	param.Set("stepID", strconv.Itoa(stepID))
 	if len(uuid) > 0 {
@@ -294,7 +295,7 @@ func StopJobBuild(c *gin.Context) {
 	param := url.Values{}
 	param.Set("service", "omni")
 	param.Set("domain", "omni-build")
-	param.Set("task", "buildImage")
+	param.Set("task", "buildimagefromrelease")
 	param.Set("ID", id)
 	var req *http.Request
 	var err error

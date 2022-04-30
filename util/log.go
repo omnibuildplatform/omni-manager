@@ -82,6 +82,7 @@ func InitStatisticsLog() {
 	writer, _ := rotatelogs.New(
 		path.Join(GetConfig().Statistic.Dir, GetConfig().AppName)+"-%Y-%m-%d.log",
 		rotatelogs.WithMaxAge(time.Duration(24*365*10)*time.Hour),
+		// rotatelogs.WithRotationTime(24*time.Hour),
 	)
 	SLog.SetOutput(writer)
 	SLog.SetFormatter(&logrus.JSONFormatter{
@@ -135,7 +136,7 @@ func StatisticsLog(sd *StatisticsData) error {
 		sd.State = "success"
 	}
 	mapData := make(map[string]interface{})
-	mapData["operationTime"] = time.Now().In(CnTime).Format("2006-01-02T15:04:05+08:00")
+	mapData["operationTime"] = time.Now().In(CnTime).Format(time.RFC3339)
 	mapData["userId"] = fmt.Sprintf("%v", sd.UserId)
 	mapData["userProvider"] = fmt.Sprintf("%v", sd.UserProvider)
 	mapData["eventType"] = fmt.Sprintf("%v", sd.EventType)
