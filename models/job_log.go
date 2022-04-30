@@ -387,7 +387,7 @@ func SyncJobStatus() {
 	param := make(map[string]interface{})
 	param["service"] = "omni"
 	param["domain"] = "omni-build"
-	param["task"] = "buildImage"
+	param["task"] = "buildimagefromrelease"
 
 	o := util.GetDB()
 	for {
@@ -397,13 +397,16 @@ func SyncJobStatus() {
 			continue
 		}
 		param["IDs"] = jobIdList
-
 		paramBytes, _ := json.Marshal(param)
 
 		var req *http.Request
 		var err error
 		req, err = http.NewRequest("POST", util.GetConfig().BuildServer.ApiUrl+"/v1/jobs/batchQuery", strings.NewReader(string(paramBytes)))
-
+		if err != nil {
+			util.Log.Errorln("title:SyncJobStatus,NewRequest:" + err.Error())
+			time.Sleep(time.Second * 30)
+			continue
+		}
 		resp, err := http.DefaultClient.Do(req) //http.Get(url)
 		if err != nil {
 			util.Log.Errorln("title:SyncJobStatus,reason:" + err.Error())
@@ -413,6 +416,11 @@ func SyncJobStatus() {
 		defer resp.Body.Close()
 
 		resultBytes, _ := ioutil.ReadAll(resp.Body)
+		if resp.StatusCode != 200 {
+			util.Log.Errorln("title:SyncJobStatus,ReadAll:" + string(resultBytes))
+			time.Sleep(time.Second * 30)
+			continue
+		}
 		var jobStatusList []JobStatuItem
 		err = json.Unmarshal(resultBytes, &jobStatusList)
 		if err != nil {
@@ -432,7 +440,7 @@ func SyncJobStatus() {
 		for _, jobStatus := range jobStatusList {
 			jobStatus.StartTime = string([]byte(jobStatus.StartTime)[:19])
 			jobStatus.EndTime = string([]byte(jobStatus.EndTime)[:19])
-
+			fmt.Println("--------------:", jobStatus.State)
 			switch jobStatus.State {
 			case "JobFailed":
 				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN  'failed' ", jobStatus.Id)
