@@ -119,7 +119,6 @@ func CreateJob(c *gin.Context) {
 	param["spec"] = specMap
 	paramBytes, _ := json.Marshal(param)
 	delete(specMap, "packages")
-
 	result, err := util.HTTPPost(util.GetConfig().BuildServer.ApiUrl+"/v1/jobs", string(paramBytes))
 	if err != nil {
 		sd.State = "failed"
@@ -129,10 +128,10 @@ func CreateJob(c *gin.Context) {
 
 		return
 	}
+	util.Log.Debug("create job result:", result)
 	insertData.JobName = result["id"].(string)
 	outputName := fmt.Sprintf(`openEuler-%s.iso`, result["id"])
 	insertData.Status = result["state"].(string)
-
 	insertData.StartTime, _ = time.Parse(time.RFC3339, result["startTime"].(string))
 	insertData.EndTime, _ = time.Parse(time.RFC3339, result["endTime"].(string))
 	insertData.DownloadUrl = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, insertData.Release, time.Now().In(util.CnTime).Format("2006-01-02"), outputName)
