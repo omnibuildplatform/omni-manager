@@ -168,19 +168,13 @@ func CreateTables() (err error) {
 	if !o.Migrator().HasTable(&JobLog{}) {
 		err = o.Migrator().CreateTable(&JobLog{})
 	}
-	if !o.Migrator().HasColumn(&JobLog{}, "job_label") {
-		err = o.Migrator().AddColumn(&JobLog{}, "job_label")
+	if !o.Migrator().HasTable(&BaseImages{}) {
+		err = o.Migrator().CreateTable(&BaseImages{})
+	}
+	if !o.Migrator().HasTable(&KickStart{}) {
+		err = o.Migrator().CreateTable(&KickStart{})
 	}
 
-	if !o.Migrator().HasColumn(&JobLog{}, "job_desc") {
-		err = o.Migrator().AddColumn(&JobLog{}, "job_desc")
-	}
-	if !o.Migrator().HasColumn(&JobLog{}, "start_time") {
-		err = o.Migrator().AddColumn(&JobLog{}, "start_time")
-	}
-	if !o.Migrator().HasColumn(&JobLog{}, "end_time") {
-		err = o.Migrator().AddColumn(&JobLog{}, "end_time")
-	}
 	return
 }
 

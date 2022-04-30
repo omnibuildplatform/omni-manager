@@ -7,6 +7,11 @@ import (
 	"github.com/omnibuildplatform/omni-manager/util"
 )
 
+type BaseImagesKickStart struct {
+	BaseImageID      int    ` description:"id"`
+	KickStartContent string ` description:"KickStart Content"`
+}
+
 type BaseImages struct {
 	ID         int       ` description:"id" gorm:"primaryKey"`
 	Name       string    ` description:"name"`
@@ -55,11 +60,9 @@ func DeleteBaseImagesById(userid, id int) (err error) {
 	return result.Error
 }
 
-// DeleteMultiBaseImagess
-func DeleteMultiBaseImagess(names string) (err error) {
+// UpdateBaseImages
+func UpdateBaseImages(m *BaseImages) (err error) {
 	o := util.GetDB()
-	m := new(BaseImages)
-	sql := fmt.Sprintf("delete from %s  where job_name in (%s)", m.TableName(), names)
-	result := o.Model(m).Exec(sql)
+	result := o.Updates(m)
 	return result.Error
 }

@@ -42,7 +42,8 @@ func AddBaseImages(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
 		return
 	}
-
+	sd.Body = imageInputData
+	util.StatisticsLog(&sd)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, 0, nil))
 
 }
@@ -71,7 +72,7 @@ func UpdateBaseImages(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
 		return
 	}
-	err = models.AddBaseImages(&imageInputData)
+	err = models.UpdateBaseImages(&imageInputData)
 	if err != nil {
 		sd.State = "failed"
 		sd.StateMessage = err.Error()
@@ -79,8 +80,9 @@ func UpdateBaseImages(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
 		return
 	}
-
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, 0, nil))
+	sd.Body = imageInputData
+	util.StatisticsLog(&sd)
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", imageInputData))
 
 }
 
@@ -114,5 +116,34 @@ func DeletBaseImages(c *gin.Context) {
 	}
 	sd.Body = id
 	util.StatisticsLog(&sd)
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", sd.Body))
+}
+
+// @Summary BuildFromISO
+// @Description build a image from iso
+// @Tags  v2 job
+// @Param	body		body 	models.BaseImagesKickStart	true		"body for ImageMeta content"
+// @Accept json
+// @Produce json
+// @Router /v3/images/buildFromIso [post]
+func BuildFromISO(c *gin.Context) {
+	sd := util.StatisticsData{}
+	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
+	sd.EventType = "从ISO构建OpenEuler"
+	if c.Keys["p"] != nil {
+		sd.UserProvider = (c.Keys["p"]).(string)
+	}
+	var imageInputData models.BaseImagesKickStart
+	err := c.ShouldBindJSON(&imageInputData)
+	if err != nil {
+		sd.State = "failed"
+		sd.StateMessage = err.Error()
+		util.StatisticsLog(&sd)
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
+		return
+	}
+	sd.Body = nil
+	util.StatisticsLog(&sd)
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, 0, nil))
 
 }

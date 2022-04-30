@@ -113,7 +113,7 @@ func CreateJob(c *gin.Context) {
 	param := make(map[string]interface{})
 	param["service"] = "omni"
 	param["domain"] = "omni-build"
-	param["task"] = "buildimagefromrelease"
+	param["task"] = "buildImage"
 	param["engine"] = "kubernetes"
 	param["userID"] = strconv.Itoa(insertData.UserId)
 	param["spec"] = specMap
@@ -126,9 +126,9 @@ func CreateJob(c *gin.Context) {
 		sd.StateMessage = err.Error()
 		util.StatisticsLog(&sd)
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "HTTPPost Error", err))
-
 		return
 	}
+	// util.Log.Debug(util.GetConfig().BuildServer.ApiUrl, "v2 CreateJob:------------:", result)
 	insertData.JobName = result["id"].(string)
 	outputName := fmt.Sprintf(`openEuler-%s.iso`, result["id"])
 	insertData.Status = result["state"].(string)
@@ -148,7 +148,6 @@ func CreateJob(c *gin.Context) {
 	param["customRpms"] = imageInputData.CustomPkg
 	sd.Body = param
 	util.StatisticsLog(&sd)
-	util.Log.Infof("正在使用V2构建,参数为:%v", param)
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, 0, insertData))
 
 }
