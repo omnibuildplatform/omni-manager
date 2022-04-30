@@ -32,9 +32,7 @@ func HTTPPost(url string, requestBody string) (map[string]interface{}, error) {
 		// logs.Error("post failed, err: ", err, "body: ", requestBody)
 		return nil, err
 	}
-
-	Log.Debug("Post request resp.Status: ", resp.StatusCode)
-	if resp.StatusCode > 200 {
+	if resp.StatusCode > 300 {
 		err = fmt.Errorf("Post request failed, err:%v ", string(body))
 		Log.Errorln(err)
 		return nil, err
