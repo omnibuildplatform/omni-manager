@@ -16,59 +16,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/images/delete/:id": {
-            "delete": {
-                "description": "update single data",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "meta Manager"
-                ],
-                "summary": "delete",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The key for staticblock",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/images/get/{id}": {
-            "get": {
-                "description": "get single one",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "meta Manager"
-                ],
-                "summary": "get",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "The key for staticblock",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/images/insert": {
+        "/v1/auth/createUser": {
             "post": {
-                "description": "insert single data",
+                "description": "AuthingCreateUser",
                 "consumes": [
                     "application/json"
                 ],
@@ -76,26 +26,26 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "meta Manager"
+                    "Authing"
                 ],
-                "summary": "create",
+                "summary": "AuthingCreateUser",
                 "parameters": [
                     {
-                        "description": "body for Metadata content",
+                        "description": "body for user info",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.ImageInputData"
+                            "$ref": "#/definitions/models.CreateUserInput"
                         }
                     }
                 ],
                 "responses": {}
             }
         },
-        "/images/query": {
+        "/v1/auth/getDetail/{authingUserId}": {
             "get": {
-                "description": "use param to query multi datas",
+                "description": "AuthingGetToken",
                 "consumes": [
                     "application/json"
                 ],
@@ -103,21 +53,85 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "meta Manager"
+                    "Authing"
                 ],
-                "summary": "query multi datas",
+                "summary": "AuthingGetToken",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "project name",
-                        "name": "project_name",
+                        "description": "The key for staticblock",
+                        "name": "authingUserId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v1/auth/loginok": {
+            "get": {
+                "description": "login success redirect url",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authing"
+                ],
+                "summary": "login success redirect url",
+                "responses": {}
+            }
+        },
+        "/v1/images/param/getBaseData/": {
+            "get": {
+                "description": "get architecture, release Version, output Format ,and default package name list",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v1 job"
+                ],
+                "summary": "GetBaseData param",
+                "responses": {}
+            }
+        },
+        "/v1/images/param/getCustomePkgList/": {
+            "get": {
+                "description": "get custom package name list",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v1 job"
+                ],
+                "summary": "GetCustomePkgList param",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": " arch ,e g:x86_64",
+                        "name": "arch",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "package name",
-                        "name": "pkg_name",
+                        "description": "release  ",
+                        "name": "release",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "custom group  ",
+                        "name": "sig",
                         "in": "query",
                         "required": true
                     }
@@ -125,9 +139,9 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/images/update": {
-            "put": {
-                "description": "update single data",
+        "/v1/images/queryHistory/mine": {
+            "get": {
+                "description": "Query My History",
                 "consumes": [
                     "application/json"
                 ],
@@ -135,17 +149,427 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "meta Manager"
+                    "v1 job"
                 ],
-                "summary": "update",
+                "summary": "QueryMyHistory",
                 "parameters": [
                     {
-                        "description": "body for Metadata content",
+                        "type": "string",
+                        "description": "arch",
+                        "name": "arch",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "build type",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "name or desc",
+                        "name": "nameordesc",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "offset ",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v1/images/queryJobLogs/{name}": {
+            "get": {
+                "description": "QueryJobLogs for given job name",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v1 job"
+                ],
+                "summary": "QueryJobLogs",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The name for job",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v1/images/queryJobStatus/{name}": {
+            "get": {
+                "description": "QueryJobStatus for given job name",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v1 job"
+                ],
+                "summary": "QueryJobStatus",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The name for job",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "The id for job in database. ",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "job namespace ",
+                        "name": "ns",
+                        "in": "query"
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v1/images/startBuild": {
+            "post": {
+                "description": "start a image build job",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v1 job"
+                ],
+                "summary": "StartBuild Job",
+                "parameters": [
+                    {
+                        "description": "body for ImageMeta content",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.ImageInputData"
+                            "$ref": "#/definitions/models.BuildParam"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v2/images/createJob": {
+            "post": {
+                "description": "start a image build job",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v2 job"
+                ],
+                "summary": "Create Job",
+                "parameters": [
+                    {
+                        "description": "body for ImageMeta content",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.BuildParam"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v2/images/deleteJob": {
+            "post": {
+                "description": "delete multipule job build records",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v2 job"
+                ],
+                "summary": "deleteRecord",
+                "parameters": [
+                    {
+                        "description": "job id list",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v2/images/getJobParam/{id}": {
+            "get": {
+                "description": "get job build param",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v2 job"
+                ],
+                "summary": "GetJobParam",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v2/images/getLogsOf/{id}": {
+            "get": {
+                "description": "get single job logs",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v2 job"
+                ],
+                "summary": "get single job logs",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "step id",
+                        "name": "stepID",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "uuid",
+                        "name": "uuid",
+                        "in": "query"
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v2/images/getMySummary": {
+            "get": {
+                "description": "get my summary",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v2 job"
+                ],
+                "summary": "MySummary",
+                "responses": {}
+            }
+        },
+        "/v2/images/getOne/{id}": {
+            "get": {
+                "description": "get single job detail",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v2 job"
+                ],
+                "summary": "get single job detail",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v2/images/stopJob/{id}": {
+            "delete": {
+                "description": "Stop Job Build",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v2 job"
+                ],
+                "summary": "StopJobBuild",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v3/images/addBaseImages": {
+            "post": {
+                "description": "add  a image meta data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 job"
+                ],
+                "summary": "AddBaseImages",
+                "parameters": [
+                    {
+                        "description": "body for BaseImages content",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.BaseImages"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v3/images/buildFromIso": {
+            "post": {
+                "description": "build a image from iso",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v2 job"
+                ],
+                "summary": "BuildFromISO",
+                "parameters": [
+                    {
+                        "description": "body for ImageMeta content",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.BaseImagesKickStart"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v3/images/deleteBaseImages": {
+            "put": {
+                "description": "delete  a base  images data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 job"
+                ],
+                "summary": "DeletBaseImages",
+                "parameters": [
+                    {
+                        "description": "body for BaseImages content",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.BaseImages"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v3/images/updateBaseImages": {
+            "put": {
+                "description": "update  a base  images data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 job"
+                ],
+                "summary": "UpdateBaseImages",
+                "parameters": [
+                    {
+                        "description": "body for BaseImages content",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.BaseImages"
                         }
                     }
                 ],
@@ -154,42 +578,194 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "models.ImageInputData": {
+        "models.BaseImages": {
             "type": "object",
             "properties": {
-                "architecture": {
+                "arch": {
                     "type": "string"
                 },
-                "basePkg": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.pkgData"
-                    }
+                "createTime": {
+                    "type": "string"
                 },
-                "customPkg": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.pkgData"
-                    }
-                },
-                "eulerVersion": {
+                "desc": {
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
-                "outFormat": {
+                "name": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.BaseImagesKickStart": {
+            "type": "object",
+            "properties": {
+                "baseImageID": {
+                    "type": "integer"
+                },
+                "kickStartContent": {
                     "type": "string"
                 }
             }
         },
-        "models.pkgData": {
+        "models.BuildParam": {
             "type": "object",
             "properties": {
-                "pkgMd5": {
+                "arch": {
+                    "description": "Id        int      ` + "`" + `gorm:\"primaryKey\"` + "`" + `",
                     "type": "string"
                 },
-                "pkgName": {
+                "buildType": {
+                    "type": "string"
+                },
+                "customPkg": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "release": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreateUserInput": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "birthdate": {
+                    "type": "string"
+                },
+                "blocked": {
+                    "type": "boolean"
+                },
+                "browser": {
+                    "type": "string"
+                },
+                "company": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "device": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "emailVerified": {
+                    "type": "boolean"
+                },
+                "externalId": {
+                    "type": "string"
+                },
+                "familyName": {
+                    "type": "string"
+                },
+                "formatted": {
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "givenName": {
+                    "type": "string"
+                },
+                "isDeleted": {
+                    "type": "boolean"
+                },
+                "lastIP": {
+                    "type": "string"
+                },
+                "lastLogin": {
+                    "type": "string"
+                },
+                "locale": {
+                    "type": "string"
+                },
+                "locality": {
+                    "type": "string"
+                },
+                "loginsCount": {
+                    "type": "integer"
+                },
+                "middleName": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "oauth": {
+                    "type": "string"
+                },
+                "openid": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "phoneVerified": {
+                    "type": "boolean"
+                },
+                "photo": {
+                    "type": "string"
+                },
+                "postalCode": {
+                    "type": "string"
+                },
+                "preferredUsername": {
+                    "type": "string"
+                },
+                "profile": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "registerSource": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "signedUp": {
+                    "type": "string"
+                },
+                "streetAddress": {
+                    "type": "string"
+                },
+                "unionid": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "website": {
+                    "type": "string"
+                },
+                "zoneinfo": {
                     "type": "string"
                 }
             }

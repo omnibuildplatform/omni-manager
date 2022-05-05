@@ -1,22 +1,70 @@
 {
-    "app_name": "obs_meta",
+    "app_name": "omni-manager",
     "app_model": "dev",
-    "app_host": "localhost",
-    "app_port": 8888,
+    "app_host": "192.168.1.193",
+    "app_port": 8080,
     "database": {
         "driver": "mysql",
-        "user": "root",
+        "db_user": "root",
         "password": "rootpswd",
-        "host": "127.0.0.1",
-        "port": "3306",
-        "db_name": "obs_meta",
+        "db_host": "192.168.1.193",
+        "db_port": "3306",
+        "db_name": "omni_manager_dev",
         "charset": "utf8",
         "show_sql": false
     },
     "redis_config": {
-        "addr": "127.0.0.1",
+        "addr": "192.168.1.193",
         "port": "6379",
-        "password": "58243586@qq.com",
+        "password": "58243586",
         "db": 0
+    },
+    "ws_config": {
+        "host": "192.168.1.193",
+        "port": 8888,
+        "check_origin": true
+    },
+    "buildParam": {
+        "packageName": "openEuler-minimal",
+        "arch": [
+            "x86_64"
+        ],
+        "release": [
+            "openEuler-20.03-LTS-SP3",
+            "openEuler-20.09",
+            "openEuler-21.03",
+            "openEuler-21.09",
+            "openEuler-22.03-LTS"
+        ],
+        "buildType": [
+            "installer-iso"
+        ],
+        "openeulerMinimal": "https://raw.githubusercontent.com/omnibuildplatform/omni-imager/main/etc/%s.json",
+        "customRpmAPI": "http://119.8.161.105:6666",
+        "downloadIsoUrl": "https://repo.test.osinfra.cn/data/browse/%s/%s/%s"
+    },
+    "k8s": {
+        "namespace": "omni-manager",
+        "image": "luonancom/omni-worker:0.2.3",
+        "ffileType": "http://omni-repository.omni-repository.svc.cluster.local/data/upload?token=316462d0c029ba707ad2"
+    },
+    "authing": {
+        "userPoolID": "6219de6ce6b********1",
+        "secret": "d5a008f73***********9",
+        "appID": "623d6**************e4b",
+        "appSecret": "374a7***********820e"
+    },
+    "jwt": {
+        "expire": 12,
+        "jwtKey": "o*******"
+    },
+    "buildServer": {
+        "apiUrl": "https://log.test.osinfra.cn"
+    },
+    "statistic": {
+        "dir": "/var/logs/omni-manager",
+        "log_file": "omni-manager",
+        "log_file_size": 10000000,
+        "log_file_suffix": "00000001"
     }
 }
