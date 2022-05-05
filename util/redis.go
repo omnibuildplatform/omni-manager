@@ -39,7 +39,7 @@ func InitRedis() error {
 	return NewRedisPool(redisURL, redisPassword, redisDB)
 }
 
-// NewRedisPool 返回redis连接池
+// NewRedisPool return redis pool
 func NewRedisPool(redisURL, pswd string, db int) (redisErr error) {
 	redisPool = &redis.Pool{
 		MaxIdle:     redisMaxIdle,
@@ -51,7 +51,7 @@ func NewRedisPool(redisURL, pswd string, db int) (redisErr error) {
 				Log.Error(err)
 				return nil, err
 			}
-			//验证redis密码
+			//check password
 			if _, err = c.Do("AUTH", pswd); err != nil {
 				err = fmt.Errorf("redis auth password error: %s", err)
 				Log.Error(err)
@@ -63,7 +63,6 @@ func NewRedisPool(redisURL, pswd string, db int) (redisErr error) {
 				Log.Error(err)
 				return nil, err
 			}
-
 			return c, nil
 		},
 		TestOnBorrow: func(c redis.Conn, t time.Time) error {
@@ -77,7 +76,7 @@ func NewRedisPool(redisURL, pswd string, db int) (redisErr error) {
 	return
 }
 
-//Set 请加表名前缀 比如employee_***
+//Set key:value
 func Set(k string, data interface{}) error {
 	c := redisPool.Get()
 	defer c.Close()
@@ -89,7 +88,7 @@ func Set(k string, data interface{}) error {
 	return nil
 }
 
-//BatchSet 请加表名前缀 比如employee_***
+//BatchSet
 func BatchSet(k string, data interface{}, c redis.Conn) error {
 
 	value, _ := json.Marshal(data)

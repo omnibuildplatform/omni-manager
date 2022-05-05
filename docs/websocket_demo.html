@@ -10,27 +10,22 @@
             (function() {
                 var codeui = document.getElementById("codeui");
 				 var data = document.getElementById("fileData");
-                var conn = new WebSocket("ws://localhost:8888/wsQueryJobStatus?token=tokentest&jobname=omni-image-60022d82-89d5-4c6b-8b3f-ccdc48c25e7b&jobDBID=159");
-                conn.onclose = function(evt) {
-                    data.textContent = 'Connection closed';
-                }
-                conn.onmessage = function(evt) { 
-					var result = JSON.parse(evt.data)
-					switch(result.code){
-					case 0:
-					 data.textContent =  data.textContent +result.data;
-					 break;
-					 case -1:
-					 data.textContent =  data.textContent +result.data;
-					 break;
-					 case 1:
-					 data.textContent = "call api:"+  result.url;
-					 break;
-					
-					}
-                   
-					codeui.textContent = result.code;
-                }
+                var ws = new WebSocket("ws://www.tianfu.space:8100/ws/queryJobStatus?jobname=omni-image-1fe6d38a-d268-4069-a355-197d23664bbd", ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NDk0MzIyOTksImlhdCI6MTY0OTM4OTA5OSwiaWQiOiIxMTUiLCJubSI6Iue9l-aloCJ9.S3KtWNXCKe8dovwzQRVRKpUacwR0O2H7r2YRV_AeEMM"]);
+     
+ 
+				ws.onopen = function(evt) {
+            console.log("OPEN");
+        }
+        ws.onclose = function(evt) {
+            console.log("CLOSE");
+            ws = null;
+        }
+        ws.onmessage = function(evt) {
+            console.log("RESPONSE: " + evt.data);
+        }
+        ws.onerror = function(evt) {
+            console.log("ERROR: " + evt.data);
+        } 
             })();
         </script>
     </body>

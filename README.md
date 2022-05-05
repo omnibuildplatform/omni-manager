@@ -1,12 +1,14 @@
-# omni-manager
-## Execute Data Definition Language (DDL) 
-mysql database __DDL__ file be saved at ./docs folder. you can execute it in mysql client ;
+## omni-manager
 
-## get go mod
+> ### steps
+> 1. Execute Data Definition Language (DDL) 
+    mysql database __DDL__ file be saved at ./docs folder. you can execute it in mysql client ;
+
+> 2.  get go mod
 `go mod tidy `
 
-## create swagger  api doc
+> 3.  create swagger  api doc
 `swag init`
 
-## run app
+> 4.  run app
 `go run main.go`
