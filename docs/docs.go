@@ -94,7 +94,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "v1 job"
+                    "v1 version"
                 ],
                 "summary": "GetBaseData param",
                 "responses": {}
@@ -110,7 +110,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "v1 job"
+                    "v1 version"
                 ],
                 "summary": "GetCustomePkgList param",
                 "parameters": [
@@ -149,7 +149,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "v1 job"
+                    "v1 version"
                 ],
                 "summary": "QueryMyHistory",
                 "parameters": [
@@ -203,7 +203,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "v1 job"
+                    "v1 version"
                 ],
                 "summary": "QueryJobLogs",
                 "parameters": [
@@ -228,7 +228,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "v1 job"
+                    "v1 version"
                 ],
                 "summary": "QueryJobStatus",
                 "parameters": [
@@ -265,7 +265,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "v1 job"
+                    "v1 version"
                 ],
                 "summary": "StartBuild Job",
                 "parameters": [
@@ -292,7 +292,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "v2 job"
+                    "v2 version"
                 ],
                 "summary": "Create Job",
                 "parameters": [
@@ -319,7 +319,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "v2 job"
+                    "v2 version"
                 ],
                 "summary": "deleteRecord",
                 "parameters": [
@@ -349,7 +349,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "v2 job"
+                    "v2 version"
                 ],
                 "summary": "GetJobParam",
                 "parameters": [
@@ -374,7 +374,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "v2 job"
+                    "v2 version"
                 ],
                 "summary": "get single job logs",
                 "parameters": [
@@ -412,7 +412,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "v2 job"
+                    "v2 version"
                 ],
                 "summary": "MySummary",
                 "responses": {}
@@ -428,7 +428,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "v2 job"
+                    "v2 version"
                 ],
                 "summary": "get single job detail",
                 "parameters": [
@@ -453,7 +453,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "v2 job"
+                    "v2 version"
                 ],
                 "summary": "StopJobBuild",
                 "parameters": [
@@ -467,9 +467,346 @@ const docTemplate = `{
                 ],
                 "responses": {}
             }
+        },
+        "/v3/baseImages/add": {
+            "post": {
+                "description": "add  a image meta data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 version"
+                ],
+                "summary": "AddBaseImages",
+                "parameters": [
+                    {
+                        "description": "body for BaseImages content",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.BaseImages"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v3/baseImages/delete/{id}": {
+            "delete": {
+                "description": "delete  a base  images data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 version"
+                ],
+                "summary": "DeletBaseImages",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id for BaseImages content",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v3/baseImages/import": {
+            "post": {
+                "description": "import  a image meta data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 version"
+                ],
+                "summary": "ImportBaseImages",
+                "parameters": [
+                    {
+                        "description": "body for BaseImages content",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.BaseImages"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v3/baseImages/list": {
+            "get": {
+                "description": "get my base image list order by id desc",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 version"
+                ],
+                "summary": "ListBaseImages",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "offset ",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v3/baseImages/testItem": {
+            "get": {
+                "description": "add  a image meta data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 version"
+                ],
+                "summary": "testItem",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "int",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v3/baseImages/update": {
+            "put": {
+                "description": "update  a base  images data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 version"
+                ],
+                "summary": "UpdateBaseImages",
+                "parameters": [
+                    {
+                        "description": "body for BaseImages content",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.BaseImages"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v3/images/buildFromIso": {
+            "post": {
+                "description": "build a image from iso",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v2 version"
+                ],
+                "summary": "BuildFromISO",
+                "parameters": [
+                    {
+                        "description": "body for ImageMeta content",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.BaseImagesKickStart"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v3/kickStart/add": {
+            "post": {
+                "description": "add  a KickStart data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 version"
+                ],
+                "summary": "AddKickStart",
+                "parameters": [
+                    {
+                        "description": "body for BaseImages content",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.KickStart"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v3/kickStart/delete/{id}": {
+            "delete": {
+                "description": "delete  a KickStart data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 version"
+                ],
+                "summary": "DeleteKickStart",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id for KickStart content",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v3/kickStart/list": {
+            "get": {
+                "description": "get my kick start file list order by id desc",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 version"
+                ],
+                "summary": "ListKickStart",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "offset ",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v3/kickStart/update": {
+            "put": {
+                "description": "update  a kick start data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 version"
+                ],
+                "summary": "UpdateKickStart",
+                "parameters": [
+                    {
+                        "description": "body for KickStart content",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.KickStart"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
         }
     },
     "definitions": {
+        "models.BaseImages": {
+            "type": "object",
+            "properties": {
+                "arch": {
+                    "type": "string"
+                },
+                "checksum": {
+                    "type": "string"
+                },
+                "createTime": {
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.BaseImagesKickStart": {
+            "type": "object",
+            "properties": {
+                "baseImageID": {
+                    "type": "integer"
+                },
+                "kickStartContent": {
+                    "type": "string"
+                }
+            }
+        },
         "models.BuildParam": {
             "type": "object",
             "properties": {
@@ -622,6 +959,32 @@ const docTemplate = `{
                 },
                 "zoneinfo": {
                     "type": "string"
+                }
+            }
+        },
+        "models.KickStart": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "createTime": {
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updateTime": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "integer"
                 }
             }
         }

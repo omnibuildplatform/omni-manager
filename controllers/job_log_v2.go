@@ -18,7 +18,7 @@ import (
 
 // @Summary Create Job
 // @Description start a image build job
-// @Tags  v2 job
+// @Tags  v2 version
 // @Param	body		body 	models.BuildParam	true		"body for ImageMeta content"
 // @Accept json
 // @Produce json
@@ -152,7 +152,7 @@ func CreateJob(c *gin.Context) {
 
 // @Summary GetJobParam
 // @Description get job build param
-// @Tags  v2 job
+// @Tags  v2 version
 // @Param	id		path 	string	true		"job id"
 // @Accept json
 // @Produce json
@@ -181,7 +181,7 @@ func GetJobParam(c *gin.Context) {
 
 // @Summary get single job detail
 // @Description get single job detail
-// @Tags  v2 job
+// @Tags  v2 version
 // @Param	id		path 	string	true		"job id"
 // @Accept json
 // @Produce json
@@ -209,7 +209,7 @@ func GetOne(c *gin.Context) {
 
 // @Summary get single job logs
 // @Description get single job logs
-// @Tags  v2 job
+// @Tags  v2 version
 // @Param	id		path 	string	true		"job id"
 // @Param	stepID		query 	string	true		"step id"
 // @Param	uuid		query 	string	false		"uuid"
@@ -277,7 +277,7 @@ func GetJobLogs(c *gin.Context) {
 
 // @Summary StopJobBuild
 // @Description Stop Job Build
-// @Tags  v2 job
+// @Tags  v2 version
 // @Param	id		path 	string	true		"job id"
 // @Accept json
 // @Produce json
@@ -330,7 +330,7 @@ func StopJobBuild(c *gin.Context) {
 
 // @Summary deleteRecord
 // @Description delete multipule job build records
-// @Tags  v2 job
+// @Tags  v2 version
 // @Param	body		body 	[]string	true		"job id list"
 // @Accept json
 // @Produce json
@@ -377,7 +377,7 @@ func DeleteJobLogs(c *gin.Context) {
 
 // @Summary MySummary
 // @Description get my summary
-// @Tags  v2 job
+// @Tags  v2 version
 // @Accept json
 // @Produce json
 // @Router /v2/images/getMySummary [get]

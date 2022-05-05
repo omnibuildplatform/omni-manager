@@ -59,7 +59,8 @@
         "jwtKey": "o*******"
     },
     "buildServer": {
-        "apiUrl": "https://log.test.osinfra.cn"
+        "apiUrl": "https://log.test.osinfra.cn",
+        "imagesRepoAPI":"http://127.0.0.1:8500"
     },
     "statistic": {
         "dir": "/var/logs/omni-manager",

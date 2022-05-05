@@ -50,6 +50,22 @@ func InitRouter() *gin.Engine {
 		v2.GET("/images/getMySummary", controllers.GetMySummary)
 		v2.DELETE("/images/stopJob/:id", controllers.StopJobBuild)
 	}
+	//version 2. call owner api
+	v3 := r.Group(docs.SwaggerInfo.BasePath + "/v3")
+	{
+		v3.Use(models.Authorize()) //
+		v3.POST("/images/buildFromIso", controllers.BuildFromISO)
+		v3.POST("/baseImages/import", controllers.ImportBaseImages)
+		v3.POST("/baseImages/add", controllers.AddBaseImages)
+		v3.GET("/baseImages/list", controllers.ListBaseImages)
+		v3.PUT("/baseImages/update", controllers.UpdateBaseImages)
+		v3.DELETE("/baseImages/delete", controllers.DeletBaseImages)
+		v3.POST("/kickStart/add", controllers.AddKickStart)
+		v3.GET("/kickStart/list", controllers.ListKickStart)
+		v3.PUT("/kickStart/update", controllers.UpdateKickStart)
+		v3.DELETE("/kickStart/delete", controllers.DeleteKickStart)
+
+	}
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	return r

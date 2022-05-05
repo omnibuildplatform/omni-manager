@@ -8,7 +8,7 @@ import (
 )
 
 type BaseImagesKickStart struct {
-	BaseImageID      int    ` description:"id"`
+	BaseImageID      int    ` description:"BaseImages ID"`
 	KickStartContent string ` description:"KickStart Content"`
 }
 
@@ -16,7 +16,7 @@ type BaseImages struct {
 	ID         int       ` description:"id" gorm:"primaryKey"`
 	Name       string    ` description:"name"`
 	Desc       string    ` description:"desc"`
-	checksum   string    ` description:"checksum"`
+	Checksum   string    ` description:"checksum"`
 	Url        string    ` description:"url"`
 	Arch       string    ` description:"arch"`
 	UserId     int       ` description:"user id"`
@@ -43,21 +43,25 @@ func GetBaseImagesByJobName(jobname string) (v *BaseImages, err error) {
 	return v, tx.Error
 }
 
-// GetAllBaseImages retrieves all BaseImages matches certain condition. Returns empty list if
-// no records exist
-func GetAllBaseImages(query map[string]string, fields []string, sortby []string, order []string,
-	offset int64, limit int64) (ml []interface{}, err error) {
-	return nil, err
+// GetMyBaseImages
+func GetMyBaseImages(userid int, offset int, limit int) (total int64, ml []*BaseImages, err error) {
+	o := util.GetDB()
+	baseImages := new(BaseImages)
+	baseImages.UserId = userid
+	tx := o.Model(baseImages)
+	tx.Count(&total)
+	tx.Limit(limit).Offset(offset).Order("id desc").Scan(&ml)
+	return
 }
 
 // DeleteBaseImagesById
-func DeleteBaseImagesById(userid, id int) (err error) {
+func DeleteBaseImagesById(userid, id int) (deleteNum int, err error) {
 	o := util.GetDB()
 	m := new(BaseImages)
 	m.ID = id
 	m.UserId = userid
 	result := o.Delete(m)
-	return result.Error
+	return int(result.RowsAffected), result.Error
 }
 
 // UpdateBaseImages

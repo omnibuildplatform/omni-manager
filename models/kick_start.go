@@ -29,28 +29,34 @@ func AddKickStart(m *KickStart) (err error) {
 	return result.Error
 }
 
-func GetKickStartByJobName(jobname string) (v *KickStart, err error) {
+// UpdateKickStart
+func UpdateKickStart(m *KickStart) (err error) {
 	o := util.GetDB()
-	v = new(KickStart)
-	sql := fmt.Sprintf("select * from %s where job_name = '%s' order by create_time desc limit 1", v.TableName(), jobname)
-	tx := o.Raw(sql).Scan(v)
-	return v, tx.Error
+	result := o.Updates(m)
+	return result.Error
 }
 
-// GetAllKickStart retrieves all ImageMeta matches certain condition. Returns empty list if
-// no records exist
-func GetAllKickStart(query map[string]string, fields []string, sortby []string, order []string,
-	offset int64, limit int64) (ml []interface{}, err error) {
-	return nil, err
+// GetMyKickStart
+func GetMyKickStart(userid int, offset int, limit int) (total int64, ml []*KickStart, err error) {
+	o := util.GetDB()
+	kickStart := new(KickStart)
+	kickStart.UserId = userid
+	tx := o.Model(kickStart)
+	tx.Count(&total)
+	tx.Limit(limit).Offset(offset).Order("id desc").Scan(&ml)
+	return
 }
 
 // DeleteKickStartById
-func DeleteKickStartById(id int) (err error) {
+func DeleteKickStartById(userid int, id int) (deleteNum int, err error) {
 	o := util.GetDB()
 	m := new(KickStart)
 	m.ID = id
+	m.UserId = userid
 	result := o.Delete(m)
-	return result.Error
+	deleteNum = int(result.RowsAffected)
+	err = result.Error
+	return
 }
 
 // DeleteMultiKickStarts
