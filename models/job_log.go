@@ -387,7 +387,7 @@ func SyncJobStatus() {
 	param := make(map[string]interface{})
 	param["service"] = "omni"
 	param["domain"] = "omni-build"
-	param["task"] = "buildImage"
+	param["task"] = "buildimagefromrelease"
 
 	o := util.GetDB()
 	for {
@@ -397,7 +397,6 @@ func SyncJobStatus() {
 			continue
 		}
 		param["IDs"] = jobIdList
-
 		paramBytes, _ := json.Marshal(param)
 
 		var req *http.Request
@@ -441,7 +440,6 @@ func SyncJobStatus() {
 		for _, jobStatus := range jobStatusList {
 			jobStatus.StartTime = string([]byte(jobStatus.StartTime)[:19])
 			jobStatus.EndTime = string([]byte(jobStatus.EndTime)[:19])
-
 			switch jobStatus.State {
 			case "JobFailed":
 				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN  'failed' ", jobStatus.Id)

@@ -3,6 +3,11 @@ definitions:
     properties:
       arch:
         type: string
+<<<<<<< HEAD
+=======
+      checksum:
+        type: string
+>>>>>>> dev
       createTime:
         type: string
       desc:
@@ -29,6 +34,104 @@ definitions:
         description: Id        int      `gorm:"primaryKey"`
         type: string
       buildType:
+<<<<<<< HEAD
+        type: string
+      customPkg:
+        items:
+          type: string
+        type: array
+      desc:
+        type: string
+      label:
+        type: string
+      release:
+        type: string
+    type: object
+  models.CreateUserInput:
+    properties:
+      address:
+        type: string
+      birthdate:
+        type: string
+      blocked:
+        type: boolean
+      browser:
+        type: string
+      company:
+        type: string
+      country:
+        type: string
+      device:
+        type: string
+      email:
+        type: string
+      emailVerified:
+        type: boolean
+      externalId:
+        type: string
+      familyName:
+        type: string
+      formatted:
+        type: string
+      gender:
+        type: string
+      givenName:
+        type: string
+      isDeleted:
+        type: boolean
+      lastIP:
+        type: string
+      lastLogin:
+        type: string
+      locale:
+        type: string
+      locality:
+        type: string
+      loginsCount:
+        type: integer
+      middleName:
+        type: string
+      name:
+        type: string
+      nickname:
+        type: string
+      oauth:
+        type: string
+      openid:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      phoneVerified:
+        type: boolean
+      photo:
+        type: string
+      postalCode:
+        type: string
+      preferredUsername:
+        type: string
+      profile:
+        type: string
+      region:
+        type: string
+      registerSource:
+        items:
+          type: string
+        type: array
+      signedUp:
+        type: string
+      streetAddress:
+        type: string
+      unionid:
+        type: string
+      username:
+        type: string
+      website:
+        type: string
+      zoneinfo:
+=======
+>>>>>>> dev
         type: string
       customPkg:
         items:
@@ -126,6 +229,23 @@ definitions:
       zoneinfo:
         type: string
     type: object
+  models.KickStart:
+    properties:
+      content:
+        type: string
+      createTime:
+        type: string
+      desc:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      updateTime:
+        type: string
+      userId:
+        type: integer
+    type: object
 info:
   contact: {}
 paths:
@@ -186,7 +306,11 @@ paths:
       responses: {}
       summary: GetBaseData param
       tags:
+<<<<<<< HEAD
       - v1 job
+=======
+      - v1 version
+>>>>>>> dev
   /v1/images/param/getCustomePkgList/:
     get:
       consumes:
@@ -213,7 +337,11 @@ paths:
       responses: {}
       summary: GetCustomePkgList param
       tags:
+<<<<<<< HEAD
       - v1 job
+=======
+      - v1 version
+>>>>>>> dev
   /v1/images/queryHistory/mine:
     get:
       consumes:
@@ -249,7 +377,11 @@ paths:
       responses: {}
       summary: QueryMyHistory
       tags:
+<<<<<<< HEAD
       - v1 job
+=======
+      - v1 version
+>>>>>>> dev
   /v1/images/queryJobLogs/{name}:
     get:
       consumes:
@@ -266,7 +398,11 @@ paths:
       responses: {}
       summary: QueryJobLogs
       tags:
+<<<<<<< HEAD
       - v1 job
+=======
+      - v1 version
+>>>>>>> dev
   /v1/images/queryJobStatus/{name}:
     get:
       consumes:
@@ -291,7 +427,11 @@ paths:
       responses: {}
       summary: QueryJobStatus
       tags:
+<<<<<<< HEAD
       - v1 job
+=======
+      - v1 version
+>>>>>>> dev
   /v1/images/startBuild:
     post:
       consumes:
@@ -309,7 +449,11 @@ paths:
       responses: {}
       summary: StartBuild Job
       tags:
+<<<<<<< HEAD
       - v1 job
+=======
+      - v1 version
+>>>>>>> dev
   /v2/images/createJob:
     post:
       consumes:
@@ -327,7 +471,11 @@ paths:
       responses: {}
       summary: Create Job
       tags:
+<<<<<<< HEAD
       - v2 job
+=======
+      - v2 version
+>>>>>>> dev
   /v2/images/deleteJob:
     post:
       consumes:
@@ -347,7 +495,11 @@ paths:
       responses: {}
       summary: deleteRecord
       tags:
+<<<<<<< HEAD
       - v2 job
+=======
+      - v2 version
+>>>>>>> dev
   /v2/images/getJobParam/{id}:
     get:
       consumes:
@@ -364,7 +516,11 @@ paths:
       responses: {}
       summary: GetJobParam
       tags:
+<<<<<<< HEAD
       - v2 job
+=======
+      - v2 version
+>>>>>>> dev
   /v2/images/getLogsOf/{id}:
     get:
       consumes:
@@ -390,7 +546,11 @@ paths:
       responses: {}
       summary: get single job logs
       tags:
+<<<<<<< HEAD
       - v2 job
+=======
+      - v2 version
+>>>>>>> dev
   /v2/images/getMySummary:
     get:
       consumes:
@@ -401,7 +561,11 @@ paths:
       responses: {}
       summary: MySummary
       tags:
+<<<<<<< HEAD
       - v2 job
+=======
+      - v2 version
+>>>>>>> dev
   /v2/images/getOne/{id}:
     get:
       consumes:
@@ -418,7 +582,11 @@ paths:
       responses: {}
       summary: get single job detail
       tags:
+<<<<<<< HEAD
       - v2 job
+=======
+      - v2 version
+>>>>>>> dev
   /v2/images/stopJob/{id}:
     delete:
       consumes:
@@ -435,8 +603,13 @@ paths:
       responses: {}
       summary: StopJobBuild
       tags:
+<<<<<<< HEAD
       - v2 job
   /v3/images/addBaseImages:
+=======
+      - v2 version
+  /v3/baseImages/add:
+>>>>>>> dev
     post:
       consumes:
       - application/json
@@ -453,7 +626,84 @@ paths:
       responses: {}
       summary: AddBaseImages
       tags:
+<<<<<<< HEAD
       - v3 job
+=======
+      - v3 version
+  /v3/baseImages/delete/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete  a base  images data
+      parameters:
+      - description: id for BaseImages content
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      summary: DeletBaseImages
+      tags:
+      - v3 version
+  /v3/baseImages/import:
+    post:
+      consumes:
+      - application/json
+      description: import  a image meta data
+      parameters:
+      - description: body for BaseImages content
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.BaseImages'
+      produces:
+      - application/json
+      responses: {}
+      summary: ImportBaseImages
+      tags:
+      - v3 version
+  /v3/baseImages/list:
+    get:
+      consumes:
+      - application/json
+      description: get my base image list order by id desc
+      parameters:
+      - description: 'offset '
+        in: query
+        name: offset
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      summary: ListBaseImages
+      tags:
+      - v3 version
+  /v3/baseImages/update:
+    put:
+      consumes:
+      - application/json
+      description: update  a base  images data
+      parameters:
+      - description: body for BaseImages content
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.BaseImages'
+      produces:
+      - application/json
+      responses: {}
+      summary: UpdateBaseImages
+      tags:
+      - v3 version
+>>>>>>> dev
   /v3/images/buildFromIso:
     post:
       consumes:
@@ -471,18 +721,28 @@ paths:
       responses: {}
       summary: BuildFromISO
       tags:
+<<<<<<< HEAD
       - v2 job
   /v3/images/deleteBaseImages:
     put:
       consumes:
       - application/json
       description: delete  a base  images data
+=======
+      - v2 version
+  /v3/kickStart/add:
+    post:
+      consumes:
+      - application/json
+      description: add  a KickStart data
+>>>>>>> dev
       parameters:
       - description: body for BaseImages content
         in: body
         name: body
         required: true
         schema:
+<<<<<<< HEAD
           $ref: '#/definitions/models.BaseImages'
       produces:
       - application/json
@@ -497,10 +757,64 @@ paths:
       description: update  a base  images data
       parameters:
       - description: body for BaseImages content
+=======
+          $ref: '#/definitions/models.KickStart'
+      produces:
+      - application/json
+      responses: {}
+      summary: AddKickStart
+      tags:
+      - v3 version
+  /v3/kickStart/delete/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete  a KickStart data
+      parameters:
+      - description: id for KickStart content
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      summary: DeleteKickStart
+      tags:
+      - v3 version
+  /v3/kickStart/list:
+    get:
+      consumes:
+      - application/json
+      description: get my kick start file list order by id desc
+      parameters:
+      - description: 'offset '
+        in: query
+        name: offset
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      summary: ListKickStart
+      tags:
+      - v3 version
+  /v3/kickStart/update:
+    put:
+      consumes:
+      - application/json
+      description: update  a kick start data
+      parameters:
+      - description: body for KickStart content
+>>>>>>> dev
         in: body
         name: body
         required: true
         schema:
+<<<<<<< HEAD
           $ref: '#/definitions/models.BaseImages'
       produces:
       - application/json
@@ -508,4 +822,13 @@ paths:
       summary: UpdateBaseImages
       tags:
       - v3 job
+=======
+          $ref: '#/definitions/models.KickStart'
+      produces:
+      - application/json
+      responses: {}
+      summary: UpdateKickStart
+      tags:
+      - v3 version
+>>>>>>> dev
 swagger: "2.0"

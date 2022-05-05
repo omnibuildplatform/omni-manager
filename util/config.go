@@ -96,7 +96,8 @@ type JwtConfig struct {
 
 //Build Server
 type BuildServer struct {
-	ApiUrl string `json:"apiUrl"`
+	ApiUrl        string `json:"apiUrl"`
+	ImagesRepoAPI string `json:"imagesRepoAPI"`
 }
 
 //Statistic function
