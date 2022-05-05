@@ -17,7 +17,7 @@ func InitRouter() *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(util.LoggerToFile())
-	docs.SwaggerInfo.BasePath = "/api"
+	docs.SwaggerInfo.BasePath = "/api" 
 	docs.SwaggerInfo.Title = util.GetConfig().AppName
 	docs.SwaggerInfo.Description = "set token name: 'Authorization' at header "
 	auth := r.Group(docs.SwaggerInfo.BasePath)
@@ -64,8 +64,7 @@ func InitRouter() *gin.Engine {
 		v3.GET("/kickStart/list", controllers.ListKickStart)
 		v3.PUT("/kickStart/update", controllers.UpdateKickStart)
 		v3.DELETE("/kickStart/delete", controllers.DeleteKickStart)
-
-	}
+ 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	return r
 }
