@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"github.com/omnibuildplatform/omni-manager/models"
 	"github.com/omnibuildplatform/omni-manager/util"
 
@@ -68,38 +67,7 @@ func ImportBaseImages(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusServerError, "ReadAll err", respBody))
 		return
 	}
-	fmt.Println("==========:", string(respBody))
-	sd.Body = imageInputData
-	util.StatisticsLog(&sd)
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", string(respBody)))
-
-}
-
-// @Summary AddBaseImages
-// @Description add  a image meta data
-// @Tags  v3 version
-// @Param	body		body 	models.BaseImages	true		"body for BaseImages content"
-// @Accept json
-// @Produce json
-// @Router /v3/baseImages/add [post]
-func AddBaseImages(c *gin.Context) {
-	sd := util.StatisticsData{}
-	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
-	sd.EventType = "添加BaseImages 数据"
-	if c.Keys["p"] != nil {
-		sd.UserProvider = (c.Keys["p"]).(string)
-	}
-	var imageInputData models.BaseImages
-	err := c.ShouldBindJSON(&imageInputData)
-	if err != nil {
-		sd.State = "failed"
-		sd.StateMessage = err.Error()
-		util.StatisticsLog(&sd)
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
-		return
-	}
-	imageInputData.CreateTime = time.Now().In(util.CnTime)
-	imageInputData.UserId, _ = strconv.Atoi(c.Keys["id"].(string))
+	imageInputData.Status = "downloading"
 	err = models.AddBaseImages(&imageInputData)
 	if err != nil {
 		sd.State = "failed"
@@ -110,17 +78,57 @@ func AddBaseImages(c *gin.Context) {
 	}
 	sd.Body = imageInputData
 	util.StatisticsLog(&sd)
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, 0, nil))
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", string(respBody)))
 
 }
+
+// // @Summary AddBaseImages
+// // @Description add  a image meta data
+// // @Tags  v3 version
+// // @Param	body		body 	models.BaseImages	true		"body for BaseImages content"
+// // @Accept json
+// // @Produce json
+// // @Router /v3/baseImages/add [post]
+// func AddBaseImages(c *gin.Context) {
+// 	sd := util.StatisticsData{}
+// 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
+// 	sd.EventType = "添加BaseImages 数据"
+// 	if c.Keys["p"] != nil {
+// 		sd.UserProvider = (c.Keys["p"]).(string)
+// 	}
+// 	var imageInputData models.BaseImages
+// 	err := c.ShouldBindJSON(&imageInputData)
+// 	if err != nil {
+// 		sd.State = "failed"
+// 		sd.StateMessage = err.Error()
+// 		util.StatisticsLog(&sd)
+// 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
+// 		return
+// 	}
+// 	imageInputData.CreateTime = time.Now().In(util.CnTime)
+// 	imageInputData.UserId, _ = strconv.Atoi(c.Keys["id"].(string))
+// 	err = models.AddBaseImages(&imageInputData)
+// 	if err != nil {
+// 		sd.State = "failed"
+// 		sd.StateMessage = err.Error()
+// 		util.StatisticsLog(&sd)
+// 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
+// 		return
+// 	}
+// 	sd.Body = imageInputData
+// 	util.StatisticsLog(&sd)
+// 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, 0, nil))
+
+// }
 
 // @Summary UpdateBaseImages
 // @Description update  a base  images data
 // @Tags  v3 version
+// @Param	id		path 	int	true		"id for  content"
 // @Param	body		body 	models.BaseImages	true		"body for BaseImages content"
 // @Accept json
 // @Produce json
-// @Router /v3/baseImages/update [put]
+// @Router /v3/baseImages/{id} [put]
 func UpdateBaseImages(c *gin.Context) {
 
 	sd := util.StatisticsData{}
@@ -138,7 +146,11 @@ func UpdateBaseImages(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
 		return
 	}
-
+	imageInputData.ID, _ = strconv.Atoi(c.Param("id"))
+	if imageInputData.ID <= 0 {
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "   id must be fill:", nil))
+		return
+	}
 	userid, _ := strconv.Atoi(c.Keys["id"].(string))
 	if userid != imageInputData.UserId {
 		sd.State = "failed"
@@ -168,7 +180,7 @@ func UpdateBaseImages(c *gin.Context) {
 // @Param	id		path 	int	true		"id for BaseImages content"
 // @Accept json
 // @Produce json
-// @Router /v3/baseImages/delete/{id} [delete]
+// @Router /v3/baseImages/{id} [delete]
 func DeletBaseImages(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 	if id <= 0 {
@@ -197,7 +209,7 @@ func DeletBaseImages(c *gin.Context) {
 
 // @Summary BuildFromISO
 // @Description build a image from iso
-// @Tags  v2 version
+// @Tags  v3 version
 // @Param	body		body 	models.BaseImagesKickStart	true		"body for ImageMeta content"
 // @Accept json
 // @Produce json
@@ -215,12 +227,49 @@ func BuildFromISO(c *gin.Context) {
 		sd.State = "failed"
 		sd.StateMessage = err.Error()
 		util.StatisticsLog(&sd)
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "ShouldBindJSON", sd.StateMessage))
 		return
 	}
-	sd.Body = nil
+	sd.Body = imageInputData
+
+	baseImageID, _ := strconv.Atoi(imageInputData.BaseImageID)
+	if baseImageID <= 0 {
+		sd.State = "failed"
+		sd.StateMessage = " BaseImageID must be number "
+		util.StatisticsLog(&sd)
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "BaseImageID", imageInputData))
+		return
+	}
+	var baseimage *models.BaseImages
+	baseimage, err = models.GetBaseImagesByID(baseImageID)
+	if err != nil {
+		sd.State = "failed"
+		sd.StateMessage = err.Error()
+		util.StatisticsLog(&sd)
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "GetBaseImagesByID", sd.StateMessage))
+		return
+	}
+	var insertData models.JobLog
+	insertData.UserName = c.Keys["nm"].(string)
+	insertData.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
+	insertData.BuildType = models.BuildImageFromISO
+	insertData.CreateTime = time.Now().In(util.CnTime)
+	insertData.JobLabel = imageInputData.Name
+	insertData.JobDesc = imageInputData.Desc
+	insertData.Arch = baseimage.Arch
+	insertData.DownloadUrl = "" // fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, baseimage.Name, time.Now().In(util.CnTime).Format("2006-01-02"), outputName)
+	insertData.Status = models.JOB_STATUS_START
+	err = models.AddJobLog(&insertData)
+	if err != nil {
+		sd.State = "failed"
+		sd.StateMessage = err.Error()
+		util.StatisticsLog(&sd)
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "AddJobLog", sd.StateMessage))
+		return
+	}
+
 	util.StatisticsLog(&sd)
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, 0, nil))
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", insertData))
 
 }
 
@@ -255,10 +304,12 @@ func ListBaseImages(c *gin.Context) {
 // @Summary AddKickStart
 // @Description add  a KickStart data
 // @Tags  v3 version
-// @Param	body		body 	models.KickStart	true		"body for BaseImages content"
+// @Param file formData file true "kickstart file"
+// @Param name formData string true "  name"
+// @Param desc formData string true "  desc"
 // @Accept json
 // @Produce json
-// @Router /v3/kickStart/add [post]
+// @Router /v3/kickStart [post]
 func AddKickStart(c *gin.Context) {
 	sd := util.StatisticsData{}
 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
@@ -267,14 +318,44 @@ func AddKickStart(c *gin.Context) {
 		sd.UserProvider = (c.Keys["p"]).(string)
 	}
 	var imageInputData models.KickStart
-	err := c.ShouldBindJSON(&imageInputData)
+
+	kickfile, err := c.FormFile("file")
 	if err != nil {
 		sd.State = "failed"
 		sd.StateMessage = err.Error()
 		util.StatisticsLog(&sd)
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, sd.StateMessage))
 		return
 	}
+	partFile, err := kickfile.Open()
+	if err != nil {
+		sd.State = "failed"
+		sd.StateMessage = err.Error()
+		util.StatisticsLog(&sd)
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, sd.StateMessage))
+		return
+	}
+	defer partFile.Close()
+
+	fileContent, err := ioutil.ReadAll(partFile)
+	if err != nil {
+		sd.State = "failed"
+		sd.StateMessage = err.Error()
+		util.StatisticsLog(&sd)
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, sd.StateMessage))
+		return
+	}
+
+	if models.IsUtf8(fileContent) == false {
+		sd.State = "failed"
+		sd.StateMessage = "kickstart file is not utf8 format"
+		util.StatisticsLog(&sd)
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "err", sd.StateMessage))
+		return
+	}
+	imageInputData.Content = string(fileContent)
+	imageInputData.Name = c.Request.FormValue("name")
+	imageInputData.Desc = c.Request.FormValue("desc")
 	imageInputData.CreateTime = time.Now().In(util.CnTime)
 	imageInputData.UserId, _ = strconv.Atoi(c.Keys["id"].(string))
 	err = models.AddKickStart(&imageInputData)
@@ -287,7 +368,7 @@ func AddKickStart(c *gin.Context) {
 	}
 	sd.Body = imageInputData
 	util.StatisticsLog(&sd)
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, 0, nil))
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", &imageInputData))
 
 }
 
@@ -301,8 +382,8 @@ func AddKickStart(c *gin.Context) {
 // @Router /v3/kickStart/list [get]
 func ListKickStart(c *gin.Context) {
 	userId, _ := strconv.Atoi((c.Keys["id"]).(string))
-	offset, err := strconv.Atoi(c.Query("offset"))
-	if err != nil {
+	offset, _ := strconv.Atoi(c.Query("offset"))
+	if offset < 0 {
 		offset = 0
 	}
 	limit, _ := strconv.Atoi(c.Query("limit"))
@@ -322,10 +403,11 @@ func ListKickStart(c *gin.Context) {
 // @Summary UpdateKickStart
 // @Description update  a kick start data
 // @Tags  v3 version
+// @Param	id		path 	int	true		"id for  content"
 // @Param	body		body 	models.KickStart	true		"body for KickStart content"
 // @Accept json
 // @Produce json
-// @Router /v3/kickStart/update [put]
+// @Router /v3/kickStart/{id} [put]
 func UpdateKickStart(c *gin.Context) {
 
 	sd := util.StatisticsData{}
@@ -340,25 +422,20 @@ func UpdateKickStart(c *gin.Context) {
 		sd.State = "failed"
 		sd.StateMessage = err.Error()
 		util.StatisticsLog(&sd)
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, sd.StateMessage))
 		return
 	}
-
-	userid, _ := strconv.Atoi(c.Keys["id"].(string))
-	if userid != imageInputData.UserId {
-		sd.State = "failed"
-		sd.StateMessage = fmt.Sprintf("this one:[%d] is not auther[%d]", userid, imageInputData.UserId)
-		util.StatisticsLog(&sd)
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
+	imageInputData.ID, _ = strconv.Atoi(c.Param("id"))
+	if imageInputData.ID <= 0 {
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "   id must be fill:", nil))
 		return
 	}
-
 	err = models.UpdateKickStart(&imageInputData)
 	if err != nil {
 		sd.State = "failed"
 		sd.StateMessage = err.Error()
 		util.StatisticsLog(&sd)
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, sd.StateMessage))
 		return
 	}
 	sd.Body = imageInputData
@@ -372,7 +449,7 @@ func UpdateKickStart(c *gin.Context) {
 // @Param	id		path 	int	true		"id for KickStart content"
 // @Accept json
 // @Produce json
-// @Router /v3/kickStart/delete/{id} [delete]
+// @Router /v3/kickStart/{id} [delete]
 func DeleteKickStart(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 	if id <= 0 {
@@ -398,8 +475,38 @@ func DeleteKickStart(c *gin.Context) {
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", sd.Body, deleteNum))
 }
 
-var upGrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
+// @Summary GetImagesAndKickStart
+// @Description GetImagesAndKickStart
+// @Tags  v3 version
+// @Accept json
+// @Produce json
+// @Router /v3/getImagesAndKickStart [get]
+func GetImagesAndKickStart(c *gin.Context) {
+
+	userid, _ := strconv.Atoi((c.Keys["id"]).(string))
+	result, err := models.GetImagesAndKickStart(userid)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusServerError, err, nil))
+		return
+	}
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
+
+}
+
+// @Summary GetKickStartByID
+// @Description GetKickStartByID
+// @Tags  v3 version
+// @Param	id		path 	int	true		"id for  content"
+// @Accept json
+// @Produce json
+// @Router /v3/kickStart/{id} [get]
+func GetKickStartByID(c *gin.Context) {
+
+	id, _ := strconv.Atoi(c.Param("id"))
+	result, err := models.GetKickStartByID(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusServerError, err, nil))
+		return
+	}
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
 }

@@ -292,7 +292,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "v2 job"
+                    "v2 version"
                 ],
                 "summary": "Create Job",
                 "parameters": [
@@ -468,58 +468,6 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/v3/baseImages/add": {
-            "post": {
-                "description": "add  a image meta data",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "v3 version"
-                ],
-                "summary": "AddBaseImages",
-                "parameters": [
-                    {
-                        "description": "body for BaseImages content",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.BaseImages"
-                        }
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/v3/baseImages/delete/{id}": {
-            "delete": {
-                "description": "delete  a base  images data",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "v3 version"
-                ],
-                "summary": "DeletBaseImages",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "id for BaseImages content",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
         "/v3/baseImages/import": {
             "post": {
                 "description": "import  a image meta data",
@@ -577,7 +525,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/v3/baseImages/update": {
+        "/v3/baseImages/{id}": {
             "put": {
                 "description": "update  a base  images data",
                 "consumes": [
@@ -592,6 +540,13 @@ const docTemplate = `{
                 "summary": "UpdateBaseImages",
                 "parameters": [
                     {
+                        "type": "integer",
+                        "description": "id for  content",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "body for BaseImages content",
                         "name": "body",
                         "in": "body",
@@ -601,6 +556,45 @@ const docTemplate = `{
                         }
                     }
                 ],
+                "responses": {}
+            },
+            "delete": {
+                "description": "delete  a base  images data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 version"
+                ],
+                "summary": "DeletBaseImages",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id for BaseImages content",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v3/getImagesAndKickStart": {
+            "get": {
+                "description": "GetImagesAndKickStart",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 version"
+                ],
+                "summary": "GetImagesAndKickStart",
                 "responses": {}
             }
         },
@@ -614,7 +608,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "v2 version"
+                    "v3 version"
                 ],
                 "summary": "BuildFromISO",
                 "parameters": [
@@ -631,7 +625,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/v3/kickStart/add": {
+        "/v3/kickStart": {
             "post": {
                 "description": "add  a KickStart data",
                 "consumes": [
@@ -646,37 +640,24 @@ const docTemplate = `{
                 "summary": "AddKickStart",
                 "parameters": [
                     {
-                        "description": "body for BaseImages content",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.KickStart"
-                        }
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/v3/kickStart/delete/{id}": {
-            "delete": {
-                "description": "delete  a KickStart data",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "v3 version"
-                ],
-                "summary": "DeleteKickStart",
-                "parameters": [
+                        "type": "file",
+                        "description": "kickstart file",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
                     {
-                        "type": "integer",
-                        "description": "id for KickStart content",
-                        "name": "id",
-                        "in": "path",
+                        "type": "string",
+                        "description": "  name",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "  desc",
+                        "name": "desc",
+                        "in": "formData",
                         "required": true
                     }
                 ],
@@ -713,7 +694,30 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/v3/kickStart/update": {
+        "/v3/kickStart/{id}": {
+            "get": {
+                "description": "GetKickStartByID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 version"
+                ],
+                "summary": "GetKickStartByID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id for  content",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
             "put": {
                 "description": "update  a kick start data",
                 "consumes": [
@@ -728,6 +732,13 @@ const docTemplate = `{
                 "summary": "UpdateKickStart",
                 "parameters": [
                     {
+                        "type": "integer",
+                        "description": "id for  content",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "body for KickStart content",
                         "name": "body",
                         "in": "body",
@@ -735,6 +746,29 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/models.KickStart"
                         }
+                    }
+                ],
+                "responses": {}
+            },
+            "delete": {
+                "description": "delete  a KickStart data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 version"
+                ],
+                "summary": "DeleteKickStart",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id for KickStart content",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {}
@@ -763,6 +797,9 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "status": {
+                    "type": "string"
+                },
                 "url": {
                     "type": "string"
                 },
@@ -775,9 +812,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "baseImageID": {
-                    "type": "integer"
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
                 },
                 "kickStartContent": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }

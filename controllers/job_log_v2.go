@@ -18,7 +18,7 @@ import (
 
 // @Summary Create Job
 // @Description start a image build job
-// @Tags  v2 job
+// @Tags  v2 version
 // @Param	body		body 	models.BuildParam	true		"body for ImageMeta content"
 // @Accept json
 // @Produce json
@@ -113,7 +113,7 @@ func CreateJob(c *gin.Context) {
 	param := make(map[string]interface{})
 	param["service"] = "omni"
 	param["domain"] = "omni-build"
-	param["task"] = "buildimagefromrelease"
+	param["task"] = models.BuildImageFromRelease
 	param["engine"] = "kubernetes"
 	param["userID"] = strconv.Itoa(insertData.UserId)
 	param["spec"] = specMap

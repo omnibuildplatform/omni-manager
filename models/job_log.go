@@ -20,6 +20,11 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
+const (
+	BuildImageFromRelease string = "buildimagefromrelease"
+	BuildImageFromISO     string = "buildimagefromiso"
+)
+
 //post this body to backend
 type BuildParam struct {
 	// Id        int      `gorm:"primaryKey"`
@@ -82,7 +87,7 @@ func (t *JobLog) ToString() string {
 // last inserted Id on success.
 func AddJobLog(m *JobLog) (err error) {
 	o := util.GetDB()
-	result := o.FirstOrCreate(m)
+	result := o.Create(m)
 	return result.Error
 }
 
@@ -387,7 +392,7 @@ func SyncJobStatus() {
 	param := make(map[string]interface{})
 	param["service"] = "omni"
 	param["domain"] = "omni-build"
-	param["task"] = "buildimagefromrelease"
+	param["task"] = BuildImageFromRelease
 
 	o := util.GetDB()
 	for {
@@ -473,4 +478,36 @@ func SyncJobStatus() {
 		}
 		time.Sleep(time.Second * 30)
 	}
+}
+
+type miniBaseImage struct {
+	ID   int    ` description:"id" gorm:"primaryKey"`
+	Name string ` description:"name"`
+}
+type miniKickstart struct {
+	ID   int    ` description:"id" gorm:"primaryKey"`
+	Name string ` description:"name"`
+}
+
+func GetImagesAndKickStart(userid int) (result map[string]interface{}, err error) {
+	baseImages := new(BaseImages)
+	kickStart := new(KickStart)
+	result = make(map[string]interface{})
+	baseImagesList := make([]*miniBaseImage, 0)
+	kickStartList := make([]*miniKickstart, 0)
+	o := util.GetDB()
+	sql := fmt.Sprintf("select name,id from %s where  user_id = %d and status='done'", baseImages.TableName(), userid)
+	tx := o.Raw(sql).Find(&baseImagesList)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	sql = fmt.Sprintf("select name,id from %s where  user_id = %d ", kickStart.TableName(), userid)
+	tx = o.Raw(sql).Find(&kickStartList)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	result["images"] = baseImagesList
+	result["kickstart"] = kickStartList
+
+	return
 }

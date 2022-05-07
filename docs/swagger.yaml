@@ -13,6 +13,8 @@ definitions:
         type: integer
       name:
         type: string
+      status:
+        type: string
       url:
         type: string
       userId:
@@ -21,8 +23,12 @@ definitions:
   models.BaseImagesKickStart:
     properties:
       baseImageID:
-        type: integer
+        type: string
+      desc:
+        type: string
       kickStartContent:
+        type: string
+      name:
         type: string
     type: object
   models.BuildParam:
@@ -346,7 +352,7 @@ paths:
       responses: {}
       summary: Create Job
       tags:
-      - v2 job
+      - v2 version
   /v2/images/deleteJob:
     post:
       consumes:
@@ -455,25 +461,7 @@ paths:
       summary: StopJobBuild
       tags:
       - v2 version
-  /v3/baseImages/add:
-    post:
-      consumes:
-      - application/json
-      description: add  a image meta data
-      parameters:
-      - description: body for BaseImages content
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/models.BaseImages'
-      produces:
-      - application/json
-      responses: {}
-      summary: AddBaseImages
-      tags:
-      - v3 version
-  /v3/baseImages/delete/{id}:
+  /v3/baseImages/{id}:
     delete:
       consumes:
       - application/json
@@ -488,6 +476,28 @@ paths:
       - application/json
       responses: {}
       summary: DeletBaseImages
+      tags:
+      - v3 version
+    put:
+      consumes:
+      - application/json
+      description: update  a base  images data
+      parameters:
+      - description: id for  content
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: body for BaseImages content
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.BaseImages'
+      produces:
+      - application/json
+      responses: {}
+      summary: UpdateBaseImages
       tags:
       - v3 version
   /v3/baseImages/import:
@@ -528,22 +538,15 @@ paths:
       summary: ListBaseImages
       tags:
       - v3 version
-  /v3/baseImages/update:
-    put:
+  /v3/getImagesAndKickStart:
+    get:
       consumes:
       - application/json
-      description: update  a base  images data
-      parameters:
-      - description: body for BaseImages content
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/models.BaseImages'
+      description: GetImagesAndKickStart
       produces:
       - application/json
       responses: {}
-      summary: UpdateBaseImages
+      summary: GetImagesAndKickStart
       tags:
       - v3 version
   /v3/images/buildFromIso:
@@ -563,26 +566,35 @@ paths:
       responses: {}
       summary: BuildFromISO
       tags:
-      - v2 version
-  /v3/kickStart/add:
+      - v3 version
+  /v3/kickStart:
     post:
       consumes:
       - application/json
       description: add  a KickStart data
       parameters:
-      - description: body for BaseImages content
-        in: body
-        name: body
+      - description: kickstart file
+        in: formData
+        name: file
         required: true
-        schema:
-          $ref: '#/definitions/models.KickStart'
+        type: file
+      - description: '  name'
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: '  desc'
+        in: formData
+        name: desc
+        required: true
+        type: string
       produces:
       - application/json
       responses: {}
       summary: AddKickStart
       tags:
       - v3 version
-  /v3/kickStart/delete/{id}:
+  /v3/kickStart/{id}:
     delete:
       consumes:
       - application/json
@@ -597,6 +609,44 @@ paths:
       - application/json
       responses: {}
       summary: DeleteKickStart
+      tags:
+      - v3 version
+    get:
+      consumes:
+      - application/json
+      description: GetKickStartByID
+      parameters:
+      - description: id for  content
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      summary: GetKickStartByID
+      tags:
+      - v3 version
+    put:
+      consumes:
+      - application/json
+      description: update  a kick start data
+      parameters:
+      - description: id for  content
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: body for KickStart content
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.KickStart'
+      produces:
+      - application/json
+      responses: {}
+      summary: UpdateKickStart
       tags:
       - v3 version
   /v3/kickStart/list:
@@ -617,24 +667,6 @@ paths:
       - application/json
       responses: {}
       summary: ListKickStart
-      tags:
-      - v3 version
-  /v3/kickStart/update:
-    put:
-      consumes:
-      - application/json
-      description: update  a kick start data
-      parameters:
-      - description: body for KickStart content
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/models.KickStart'
-      produces:
-      - application/json
-      responses: {}
-      summary: UpdateKickStart
       tags:
       - v3 version
 swagger: "2.0"
