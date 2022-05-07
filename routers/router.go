@@ -57,7 +57,7 @@ func InitRouter() *gin.Engine {
 		v3.POST("/images/buildFromIso", controllers.BuildFromISO)
 		v3.POST("/baseImages/import", controllers.ImportBaseImages)
 		v3.GET("/baseImages/:id", controllers.ListBaseImages)
-		v3.PUT("/baseImages", controllers.UpdateBaseImages)
+		v3.PUT("/baseImages/:id", controllers.UpdateBaseImages)
 		v3.DELETE("/baseImages/:id", controllers.DeletBaseImages)
 		v3.POST("/kickStart", controllers.AddKickStart)
 		v3.GET("/kickStart/list", controllers.ListKickStart)

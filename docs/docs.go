@@ -820,6 +820,9 @@ const docTemplate = `{
                 "kickStartContent": {
                     "type": "string"
                 },
+                "kickStartName": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 }

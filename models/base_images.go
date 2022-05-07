@@ -12,6 +12,7 @@ type BaseImagesKickStart struct {
 	Desc             string ` description:"desc"`
 	BaseImageID      string ` description:"BaseImages ID"`
 	KickStartContent string ` description:"KickStart Content"`
+	KickStartName    string ` description:"KickStart name"`
 }
 
 type BaseImages struct {
@@ -50,8 +51,8 @@ func GetBaseImagesByID(id int) (v *BaseImages, err error) {
 func GetMyBaseImages(userid int, offset int, limit int) (total int64, ml []*BaseImages, err error) {
 	o := util.GetDB()
 	baseImages := new(BaseImages)
-	baseImages.UserId = userid
-	tx := o.Model(baseImages)
+
+	tx := o.Model(baseImages).Where("user_id", userid)
 	tx.Count(&total)
 	tx.Limit(limit).Offset(offset).Order("id desc").Scan(&ml)
 	return

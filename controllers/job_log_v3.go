@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -34,7 +35,7 @@ func ImportBaseImages(c *gin.Context) {
 		sd.State = "failed"
 		sd.StateMessage = err.Error()
 		util.StatisticsLog(&sd)
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, sd.StateMessage))
 		return
 	}
 	imageInputData.CreateTime = time.Now().In(util.CnTime)
@@ -63,8 +64,8 @@ func ImportBaseImages(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
 		return
 	}
-	if resp.StatusCode != 200 {
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusServerError, "ReadAll err", respBody))
+	if resp.StatusCode > 400 {
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusServerError, "ReadAll err", string(respBody)))
 		return
 	}
 	imageInputData.Status = "downloading"
@@ -78,7 +79,7 @@ func ImportBaseImages(c *gin.Context) {
 	}
 	sd.Body = imageInputData
 	util.StatisticsLog(&sd)
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", string(respBody)))
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", imageInputData))
 
 }
 
@@ -143,20 +144,12 @@ func UpdateBaseImages(c *gin.Context) {
 		sd.State = "failed"
 		sd.StateMessage = err.Error()
 		util.StatisticsLog(&sd)
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "ShouldBindJSON", sd.StateMessage))
 		return
 	}
 	imageInputData.ID, _ = strconv.Atoi(c.Param("id"))
 	if imageInputData.ID <= 0 {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "   id must be fill:", nil))
-		return
-	}
-	userid, _ := strconv.Atoi(c.Keys["id"].(string))
-	if userid != imageInputData.UserId {
-		sd.State = "failed"
-		sd.StateMessage = fmt.Sprintf("this one:[%d] is not auther[%d]", userid, imageInputData.UserId)
-		util.StatisticsLog(&sd)
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
 		return
 	}
 
@@ -165,7 +158,7 @@ func UpdateBaseImages(c *gin.Context) {
 		sd.State = "failed"
 		sd.StateMessage = err.Error()
 		util.StatisticsLog(&sd)
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "UpdateBaseImages", sd.StateMessage))
 		return
 	}
 	sd.Body = imageInputData
@@ -250,6 +243,55 @@ func BuildFromISO(c *gin.Context) {
 		return
 	}
 	var insertData models.JobLog
+
+	// {
+	// 	"service": "build",
+	// 	"domain": "default",
+	// 	"userID": "tommylike",
+	// 	"task": "buildimagefromiso",
+	// 	"engine": "kubernetes",
+	// 	"spec": {
+	// 		"kickStart": {"content": "kickstart_content", "name": "kickstart_filename"},
+	// 		"image": {"name": "openEuler-20.03-LTS-aarch64-dvd.iso", "url": "address to download iso",
+	// "checksum": "iso sha256sum", "architecture": "x86_64"}
+	// 	}
+	// }
+	kickStartMap := make(map[string]interface{})
+	kickStartMap["content"] = imageInputData.KickStartContent
+	kickStartMap["name"] = imageInputData.KickStartName
+
+	imageMap := make(map[string]interface{})
+	imageMap["name"] = baseimage.Name
+	imageMap["url"] = baseimage.Url
+	imageMap["checksum"] = baseimage.Checksum
+	imageMap["architecture"] = baseimage.Arch
+
+	specMap := make(map[string]interface{})
+	specMap["kickStart"] = kickStartMap
+	specMap["image"] = imageMap
+	param := make(map[string]interface{})
+	param["service"] = "build"
+	param["domain"] = "omni-build"
+	param["task"] = models.BuildImageFromISO
+	param["engine"] = "kubernetes"
+	param["userID"] = strconv.Itoa(insertData.UserId)
+	param["spec"] = specMap
+	paramBytes, _ := json.Marshal(param)
+
+	result, err := util.HTTPPost(util.GetConfig().BuildServer.ApiUrl+"/v1/jobs", string(paramBytes))
+	if err != nil {
+		sd.State = "failed"
+		sd.StateMessage = err.Error()
+		util.StatisticsLog(&sd)
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "HTTPPost Error", err.Error()))
+		return
+	}
+	fmt.Println("------------result:--", result)
+	insertData.JobName = result["id"].(string)
+	outputName := fmt.Sprintf(`openEuler-%s.iso`, result["id"])
+	insertData.Status = result["state"].(string)
+	insertData.StartTime, _ = time.Parse(time.RFC3339, result["startTime"].(string))
+	insertData.EndTime, _ = time.Parse(time.RFC3339, result["endTime"].(string))
 	insertData.UserName = c.Keys["nm"].(string)
 	insertData.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
 	insertData.BuildType = models.BuildImageFromISO
@@ -257,7 +299,7 @@ func BuildFromISO(c *gin.Context) {
 	insertData.JobLabel = imageInputData.Name
 	insertData.JobDesc = imageInputData.Desc
 	insertData.Arch = baseimage.Arch
-	insertData.DownloadUrl = "" // fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, baseimage.Name, time.Now().In(util.CnTime).Format("2006-01-02"), outputName)
+	insertData.DownloadUrl = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, baseimage.Name, time.Now().In(util.CnTime).Format("2006-01-02"), outputName)
 	insertData.Status = models.JOB_STATUS_START
 	err = models.AddJobLog(&insertData)
 	if err != nil {
