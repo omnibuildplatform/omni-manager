@@ -1,10 +1,16 @@
 package models
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/omnibuildplatform/omni-manager/util"
+)
+
+const (
+	ImageStatusStart       string = "start"
+	ImageStatusDownloading string = "downloading"
+	ImageStatusDone        string = "done"
+	ImageStatusFailed      string = "failed"
 )
 
 type BaseImagesKickStart struct {
@@ -18,9 +24,10 @@ type BaseImagesKickStart struct {
 type BaseImages struct {
 	ID         int       ` description:"id" gorm:"primaryKey"`
 	Name       string    ` description:"name"`
+	ExtName    string    ` description:"ext name"`
 	Desc       string    ` description:"desc"`
 	Checksum   string    ` description:"checksum"`
-	Url        string    ` description:"url"`
+	Url        string    ` description:"url" gorm:"-"`
 	Arch       string    ` description:"arch"`
 	Status     string    ` description:"status"`
 	UserId     int       ` description:"user id"`
@@ -41,9 +48,13 @@ func AddBaseImages(m *BaseImages) (err error) {
 
 func GetBaseImagesByID(id int) (v *BaseImages, err error) {
 	o := util.GetDB()
+
 	v = new(BaseImages)
-	sql := fmt.Sprintf("select * from %s where id = %d ", v.TableName(), id)
-	tx := o.Raw(sql).Scan(v)
+	v.ID = id
+	tx := o.Model(v).Find(v)
+	if tx.RowsAffected == 0 {
+		return nil, tx.Error
+	}
 	return v, tx.Error
 }
 
@@ -51,7 +62,6 @@ func GetBaseImagesByID(id int) (v *BaseImages, err error) {
 func GetMyBaseImages(userid int, offset int, limit int) (total int64, ml []*BaseImages, err error) {
 	o := util.GetDB()
 	baseImages := new(BaseImages)
-
 	tx := o.Model(baseImages).Where("user_id", userid)
 	tx.Count(&total)
 	tx.Limit(limit).Offset(offset).Order("id desc").Scan(&ml)
@@ -75,5 +85,15 @@ func UpdateBaseImages(m *BaseImages) (err error) {
 		return result.Error
 	}
 	result = o.Find(m)
+	return result.Error
+}
+
+// UpdateBaseImagesStatus
+func UpdateBaseImagesStatus(m *BaseImages) (err error) {
+	o := util.GetDB()
+	result := o.Debug().Model(m).Select("status").Updates(m)
+	if result.Error != nil {
+		return result.Error
+	}
 	return result.Error
 }

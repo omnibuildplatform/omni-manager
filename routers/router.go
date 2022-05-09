@@ -53,6 +53,7 @@ func InitRouter() *gin.Engine {
 	//version 3.
 	v3 := r.Group(docs.SwaggerInfo.BasePath + "/v3")
 	{
+		v3.GET("/baseImages/repoCallback/:id", controllers.RepoSavedCallBack)
 		v3.Use(models.Authorize()) //
 		v3.POST("/images/buildFromIso", controllers.BuildFromISO)
 		v3.POST("/baseImages/import", controllers.ImportBaseImages)
@@ -65,6 +66,7 @@ func InitRouter() *gin.Engine {
 		v3.GET("/kickStart/:id", controllers.GetKickStartByID)
 		v3.DELETE("/kickStart/:id", controllers.DeleteKickStart)
 		v3.GET("/getImagesAndKickStart", controllers.GetImagesAndKickStart)
+
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	return r
