@@ -183,6 +183,9 @@ func CreateTables() (err error) {
 	if !o.Migrator().HasColumn(&BaseImages{}, "status") {
 		err = o.Migrator().AddColumn(&BaseImages{}, "status")
 	}
+	if !o.Migrator().HasColumn(&BaseImages{}, "ext_name") {
+		err = o.Migrator().AddColumn(&BaseImages{}, "ext_name")
+	}
 
 	return
 }
