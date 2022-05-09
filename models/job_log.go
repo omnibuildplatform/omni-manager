@@ -172,25 +172,41 @@ func CreateTables() (err error) {
 	o := util.GetDB()
 	if !o.Migrator().HasTable(&JobLog{}) {
 		err = o.Migrator().CreateTable(&JobLog{})
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
 	}
 	if !o.Migrator().HasTable(&BaseImages{}) {
 		err = o.Migrator().CreateTable(&BaseImages{})
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
 	}
 	if !o.Migrator().HasTable(&KickStart{}) {
 		err = o.Migrator().CreateTable(&KickStart{})
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
 	}
 
 	if !o.Migrator().HasColumn(&BaseImages{}, "status") {
 		err = o.Migrator().AddColumn(&BaseImages{}, "status")
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
 	}
 	if !o.Migrator().HasColumn(&BaseImages{}, "ext_name") {
 		err = o.Migrator().AddColumn(&BaseImages{}, "ext_name")
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
 	}
-	if !o.Migrator().HasColumn(&BaseImages{}, "ext_name") {
-		err = o.Migrator().AddColumn(&BaseImages{}, "ext_name")
-	}
+
 	if !o.Migrator().HasColumn(&BaseImages{}, "checksum") {
 		err = o.Migrator().AddColumn(&BaseImages{}, "checksum")
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
 	}
 
 	return
