@@ -180,6 +180,10 @@ func CreateTables() (err error) {
 		err = o.Migrator().CreateTable(&KickStart{})
 	}
 
+	if !o.Migrator().HasColumn(&BaseImages{}, "status") {
+		err = o.Migrator().AddColumn(&BaseImages{}, "status")
+	}
+
 	return
 }
 
