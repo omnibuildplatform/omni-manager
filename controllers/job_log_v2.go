@@ -133,7 +133,7 @@ func CreateJob(c *gin.Context) {
 	insertData.Status = result["state"].(string)
 	insertData.StartTime, _ = time.Parse(time.RFC3339, result["startTime"].(string))
 	insertData.EndTime, _ = time.Parse(time.RFC3339, result["endTime"].(string))
-	insertData.DownloadUrl = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, insertData.Release, time.Now().In(util.CnTime).Format("2006-01-02"), outputName)
+	insertData.DownloadUrl = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + insertData.Release + "/" + time.Now().In(util.CnTime).Format("2006-01-02") + "/" + outputName
 	insertData.Status = models.JOB_STATUS_START
 	err = models.AddJobLog(&insertData)
 	if err != nil {

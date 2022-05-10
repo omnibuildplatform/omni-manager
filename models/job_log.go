@@ -195,6 +195,7 @@ func CreateTables() (err error) {
 			util.Log.Errorf("CreateTables Error:%s ", err)
 		}
 	}
+
 	if !o.Migrator().HasColumn(&BaseImages{}, "ext_name") {
 		err = o.Migrator().AddColumn(&BaseImages{}, "ext_name")
 		if err != nil {
@@ -284,7 +285,7 @@ func MakeJob(cm *v1.ConfigMap, buildtype, release string) (job *batchv1.Job, out
 	if err != nil {
 		return
 	}
-	omniImager := `omni-imager --package-list /conf/totalrpms.json --config-file /conf/conf.yaml --build-type ` + buildtype + ` --output-file ` + outputName + ` && curl -vvv -Ffile=@/opt/omni-workspace/` + outputName + ` -Fproject=` + release + `  -FfileType=image '` + util.GetConfig().K8sConfig.FfileType + `/data/upload?token=316462d0c029ba707ad2'`
+	omniImager := `omni-imager --package-list /conf/totalrpms.json --config-file /conf/conf.yaml --build-type ` + buildtype + ` --output-file ` + outputName + ` && curl -vvv -Ffile=@/opt/omni-workspace/` + outputName + ` -Fproject=` + release + `  -FfileType=image '` + util.GetConfig().BuildServer.OmniRepoAPI + `/data/upload?token=316462d0c029ba707ad2'`
 	jobInterface := clientset.BatchV1().Jobs(util.GetConfig().K8sConfig.Namespace)
 	var backOffLimit int32 = 0
 	var tTLSecondsAfterFinished int32 = 1800

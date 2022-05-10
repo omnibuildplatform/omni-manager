@@ -45,8 +45,7 @@
     },
     "k8s": {
         "namespace": "omni-manager",
-        "image": "luonancom/omni-worker:0.2.3",
-        "ffileType": "http://omni-repository.omni-repository.svc.cluster.local"
+        "image": "luonancom/omni-worker:0.2.3" 
     },
     "authing": {
         "userPoolID": "6219de6ce6b********1",

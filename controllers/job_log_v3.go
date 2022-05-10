@@ -259,8 +259,8 @@ func BuildFromISO(c *gin.Context) {
 	kickStartMap["name"] = imageInputData.KickStartName
 
 	imageMap := make(map[string]interface{})
-	imageMap["name"] = baseimage.Name
-	imageMap["url"] = util.GetConfig().K8sConfig.FfileType + "/data/browse/" + baseimage.ExtName + "/" + baseimage.Checksum + "." + baseimage.ExtName
+	imageMap["name"] = baseimage.Name + "." + baseimage.ExtName
+	imageMap["url"] = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + baseimage.ExtName + "/" + baseimage.Checksum + "." + baseimage.ExtName
 	// baseimage.Url
 	imageMap["checksum"] = baseimage.Checksum
 	imageMap["architecture"] = baseimage.Arch
@@ -300,7 +300,7 @@ func BuildFromISO(c *gin.Context) {
 	insertData.JobLabel = imageInputData.Name
 	insertData.JobDesc = imageInputData.Desc
 	insertData.Arch = baseimage.Arch
-	insertData.DownloadUrl = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, baseimage.ExtName, outputName)
+	insertData.DownloadUrl = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + baseimage.ExtName + "/" + outputName
 	insertData.Status = models.JOB_STATUS_START
 	err = models.AddJobLog(&insertData)
 	if err != nil {

@@ -66,7 +66,7 @@ type BuildParam struct {
 	OpeneulerMinimal string   `json:"openeulerMinimal"`
 	CustomRpmAPI     string   `json:"customRpmAPI"`
 	PackageName      string   `json:"packageName"`
-	DownloadIsoUrl   string   `json:"downloadIsoUrl"`
+	// DownloadIsoUrl   string   `json:"downloadIsoUrl"`
 }
 type PkgList struct {
 	Packages []string `json:"packages"`
