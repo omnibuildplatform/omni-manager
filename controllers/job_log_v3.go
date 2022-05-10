@@ -87,17 +87,17 @@ func ImportBaseImages(c *gin.Context) {
 		sd.State = "failed"
 		sd.StateMessage = err.Error()
 		util.StatisticsLog(&sd)
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusServerError, err, nil))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusServerError, "DefaultClient", err.Error()))
 		return
 	}
 	defer resp.Body.Close()
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "ReadAll", err))
 		return
 	}
 	if resp.StatusCode >= 400 {
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusServerError, "ReadAll err", string(respBody)))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "ReadAll StatusCode err", string(respBody)))
 		return
 	}
 
