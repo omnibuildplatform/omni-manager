@@ -28,6 +28,8 @@ definitions:
         type: string
       kickStartContent:
         type: string
+      kickStartName:
+        type: string
       name:
         type: string
     type: object
@@ -536,6 +538,28 @@ paths:
       - application/json
       responses: {}
       summary: ListBaseImages
+      tags:
+      - v3 version
+  /v3/baseImages/repoCallback/{id}:
+    put:
+      consumes:
+      - application/json
+      description: callback after repo loaded from source url
+      parameters:
+      - description: id for image item
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: status for image item
+        in: query
+        name: status
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: RepoSavedCallBack
       tags:
       - v3 version
   /v3/getImagesAndKickStart:

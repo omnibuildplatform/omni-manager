@@ -41,12 +41,11 @@
         ],
         "openeulerMinimal": "https://raw.githubusercontent.com/omnibuildplatform/omni-imager/main/etc/%s.json",
         "customRpmAPI": "http://119.8.161.105:6666",
-        "downloadIsoUrl": "https://repo.test.osinfra.cn/data/browse/%s/%s/%s"
+        "downloadIsoUrl": "https://repo.test.osinfra.cn/data/browse/%s/%s"
     },
     "k8s": {
         "namespace": "omni-manager",
-        "image": "luonancom/omni-worker:0.2.3",
-        "ffileType": "http://omni-repository.omni-repository.svc.cluster.local/data/upload?token=316462d0c029ba707ad2"
+        "image": "luonancom/omni-worker:0.2.3" 
     },
     "authing": {
         "userPoolID": "6219de6ce6b********1",
@@ -60,7 +59,7 @@
     },
     "buildServer": {
         "apiUrl": "https://log.test.osinfra.cn",
-        "imagesRepoAPI":"http://127.0.0.1:8500"
+        "omniRepoAPI":"http://127.0.0.1:8500"
     },
     "statistic": {
         "dir": "/var/logs/omni-manager",

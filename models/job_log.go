@@ -52,6 +52,7 @@ type JobLog struct {
 	JobDesc       string    ` description:"job description"`
 	StartTime     time.Time ` description:"create time"`
 	EndTime       time.Time ` description:"create time"`
+	JobType       string    ` description:"job type"`
 }
 type SummaryStatus struct {
 	Succeed int `json:"succeed"`
@@ -172,12 +173,48 @@ func CreateTables() (err error) {
 	o := util.GetDB()
 	if !o.Migrator().HasTable(&JobLog{}) {
 		err = o.Migrator().CreateTable(&JobLog{})
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
 	}
 	if !o.Migrator().HasTable(&BaseImages{}) {
 		err = o.Migrator().CreateTable(&BaseImages{})
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
 	}
 	if !o.Migrator().HasTable(&KickStart{}) {
 		err = o.Migrator().CreateTable(&KickStart{})
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
+	}
+
+	if !o.Migrator().HasColumn(&BaseImages{}, "status") {
+		err = o.Migrator().AddColumn(&BaseImages{}, "status")
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
+	}
+
+	if !o.Migrator().HasColumn(&BaseImages{}, "ext_name") {
+		err = o.Migrator().AddColumn(&BaseImages{}, "ext_name")
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
+	}
+
+	if !o.Migrator().HasColumn(&BaseImages{}, "checksum") {
+		err = o.Migrator().AddColumn(&BaseImages{}, "checksum")
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
+	}
+	if !o.Migrator().HasColumn(&JobLog{}, "job_type") {
+		err = o.Migrator().AddColumn(&JobLog{}, "job_type")
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
 	}
 
 	return
@@ -255,7 +292,7 @@ func MakeJob(cm *v1.ConfigMap, buildtype, release string) (job *batchv1.Job, out
 	if err != nil {
 		return
 	}
-	omniImager := `omni-imager --package-list /conf/totalrpms.json --config-file /conf/conf.yaml --build-type ` + buildtype + ` --output-file ` + outputName + ` && curl -vvv -Ffile=@/opt/omni-workspace/` + outputName + ` -Fproject=` + release + `  -FfileType=image '` + util.GetConfig().K8sConfig.FfileType + `'`
+	omniImager := `omni-imager --package-list /conf/totalrpms.json --config-file /conf/conf.yaml --build-type ` + buildtype + ` --output-file ` + outputName + ` && curl -vvv -Ffile=@/opt/omni-workspace/` + outputName + ` -Fproject=` + release + `  -FfileType=image '` + util.GetConfig().BuildServer.OmniRepoAPI + `/data/upload?token=316462d0c029ba707ad2'`
 	jobInterface := clientset.BatchV1().Jobs(util.GetConfig().K8sConfig.Namespace)
 	var backOffLimit int32 = 0
 	var tTLSecondsAfterFinished int32 = 1800
