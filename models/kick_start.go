@@ -69,7 +69,7 @@ func DeleteKickStartById(userid int, id int) (deleteNum int, err error) {
 	o := util.GetDB()
 	m := new(KickStart)
 	m.ID = id
-	result := o.Debug().Model(m).Where("user_id", userid).Delete(m)
+	result := o.Model(m).Where("user_id", userid).Delete(m)
 	result = o.Delete(m)
 	deleteNum = int(result.RowsAffected)
 	err = result.Error

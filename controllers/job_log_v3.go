@@ -1,17 +1,21 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"path"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/omnibuildplatform/omni-manager/models"
 	"github.com/omnibuildplatform/omni-manager/util"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 )
 
 // @Summary ImportBaseImages
@@ -34,40 +38,30 @@ func ImportBaseImages(c *gin.Context) {
 		sd.State = "failed"
 		sd.StateMessage = err.Error()
 		util.StatisticsLog(&sd)
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, sd.StateMessage))
 		return
+	}
+	_, filename := path.Split(imageInputData.Url)
+	extName := "iso"
+	if strings.Contains(filename, ".") {
+		splitList := strings.Split(filename, ".")
+		extName = splitList[len(splitList)-1]
+		if strings.Contains(extName, "?") {
+			extName = strings.Split(extName, "?")[0]
+		}
+		if strings.Contains(extName, "#") {
+			extName = strings.Split(extName, "#")[0]
+		}
+		if strings.Contains(extName, "&") {
+			extName = strings.Split(extName, "&")[0]
+		}
+	} else {
+		extName = "binary"
 	}
 	imageInputData.CreateTime = time.Now().In(util.CnTime)
 	imageInputData.UserId, _ = strconv.Atoi(c.Keys["id"].(string))
-	req, _ := http.NewRequest(http.MethodPost, util.GetConfig().BuildServer.ImagesRepoAPI+"/data/loadfrom", nil)
-	param := url.Values{}
-	param.Add("url", imageInputData.Url)
-	param.Add("userid", strconv.Itoa(imageInputData.UserId))
-	param.Add("username", c.GetString("username"))
-	param.Add("desc", c.GetString("desc"))
-	param.Add("checksum", imageInputData.Checksum)
-	param.Add("token", "316462d0c029ba707ad1")
-	req.URL.RawQuery = param.Encode()
-	var resp *http.Response
-	resp, err = http.DefaultClient.Do(req)
-	if err != nil {
-		sd.State = "failed"
-		sd.StateMessage = err.Error()
-		util.StatisticsLog(&sd)
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusServerError, err, nil))
-		return
-	}
-	defer resp.Body.Close()
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
-		return
-	}
-	if resp.StatusCode != 200 {
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusServerError, "ReadAll err", respBody))
-		return
-	}
-	imageInputData.Status = "downloading"
+	imageInputData.Status = models.ImageStatusStart
+	imageInputData.ExtName = extName
 	err = models.AddBaseImages(&imageInputData)
 	if err != nil {
 		sd.State = "failed"
@@ -76,50 +70,69 @@ func ImportBaseImages(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
 		return
 	}
+	//
+	req, _ := http.NewRequest(http.MethodPost, util.GetConfig().BuildServer.OmniRepoAPI+"/data/loadfrom", nil)
+	param := url.Values{}
+	param.Add("url", imageInputData.Url)
+	param.Add("userid", strconv.Itoa(imageInputData.UserId))
+	param.Add("username", c.GetString("username"))
+	param.Add("desc", imageInputData.Desc)
+	param.Add("checksum", imageInputData.Checksum)
+	param.Add("token", "316462d0c029ba707ad1")
+	param.Add("externalID", strconv.Itoa(imageInputData.ID))
+	param.Add("name", imageInputData.Name)
+	req.URL.RawQuery = param.Encode()
+	var resp *http.Response
+	resp, err = http.DefaultClient.Do(req)
+	if err != nil {
+		sd.State = "failed"
+		sd.StateMessage = err.Error()
+		util.StatisticsLog(&sd)
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusServerError, "DefaultClient", err.Error()))
+		return
+	}
+	defer resp.Body.Close()
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "ReadAll", err))
+		return
+	}
+	if resp.StatusCode >= 400 {
+		c.Data(http.StatusBadRequest, binding.MIMEJSON, respBody)
+		return
+	}
+
 	sd.Body = imageInputData
 	util.StatisticsLog(&sd)
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", string(respBody)))
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", imageInputData))
 
 }
 
-// // @Summary AddBaseImages
-// // @Description add  a image meta data
-// // @Tags  v3 version
-// // @Param	body		body 	models.BaseImages	true		"body for BaseImages content"
-// // @Accept json
-// // @Produce json
-// // @Router /v3/baseImages/add [post]
-// func AddBaseImages(c *gin.Context) {
-// 	sd := util.StatisticsData{}
-// 	sd.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
-// 	sd.EventType = "添加BaseImages 数据"
-// 	if c.Keys["p"] != nil {
-// 		sd.UserProvider = (c.Keys["p"]).(string)
-// 	}
-// 	var imageInputData models.BaseImages
-// 	err := c.ShouldBindJSON(&imageInputData)
-// 	if err != nil {
-// 		sd.State = "failed"
-// 		sd.StateMessage = err.Error()
-// 		util.StatisticsLog(&sd)
-// 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
-// 		return
-// 	}
-// 	imageInputData.CreateTime = time.Now().In(util.CnTime)
-// 	imageInputData.UserId, _ = strconv.Atoi(c.Keys["id"].(string))
-// 	err = models.AddBaseImages(&imageInputData)
-// 	if err != nil {
-// 		sd.State = "failed"
-// 		sd.StateMessage = err.Error()
-// 		util.StatisticsLog(&sd)
-// 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
-// 		return
-// 	}
-// 	sd.Body = imageInputData
-// 	util.StatisticsLog(&sd)
-// 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, 0, nil))
+// @Summary RepoSavedCallBack
+// @Description callback after repo loaded from source url
+// @Tags  v3 version
+// @Param	id		path 	int	true		"id for image item"
+// @Param	status		query 	string	true		"status for image item"
+// @Accept json
+// @Produce json
+// @Router /v3/baseImages/repoCallback/{id} [get]
+func RepoSavedCallBack(c *gin.Context) {
+	var imageInputData models.BaseImages
+	imageInputData.Status = c.Query("status")
+	imageInputData.ID, _ = strconv.Atoi(c.Param("id"))
+	if imageInputData.ID <= 0 {
+		util.Log.Errorf("RepoSavedCallBack Error, callback id is %v", c.Param("id"))
+		return
+	}
 
-// }
+	err := models.UpdateBaseImagesStatus(&imageInputData)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
+		return
+	}
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, 0, nil))
+
+}
 
 // @Summary UpdateBaseImages
 // @Description update  a base  images data
@@ -143,20 +156,12 @@ func UpdateBaseImages(c *gin.Context) {
 		sd.State = "failed"
 		sd.StateMessage = err.Error()
 		util.StatisticsLog(&sd)
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "ShouldBindJSON", sd.StateMessage))
 		return
 	}
 	imageInputData.ID, _ = strconv.Atoi(c.Param("id"))
 	if imageInputData.ID <= 0 {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "   id must be fill:", nil))
-		return
-	}
-	userid, _ := strconv.Atoi(c.Keys["id"].(string))
-	if userid != imageInputData.UserId {
-		sd.State = "failed"
-		sd.StateMessage = fmt.Sprintf("this one:[%d] is not auther[%d]", userid, imageInputData.UserId)
-		util.StatisticsLog(&sd)
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
 		return
 	}
 
@@ -165,7 +170,7 @@ func UpdateBaseImages(c *gin.Context) {
 		sd.State = "failed"
 		sd.StateMessage = err.Error()
 		util.StatisticsLog(&sd)
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "UpdateBaseImages", sd.StateMessage))
 		return
 	}
 	sd.Body = imageInputData
@@ -250,14 +255,56 @@ func BuildFromISO(c *gin.Context) {
 		return
 	}
 	var insertData models.JobLog
+	kickStartMap := make(map[string]interface{})
+
+	imageInputData.KickStartContent = strings.ReplaceAll(imageInputData.KickStartContent, "\n", "")
+	kickStartMap["content"] = imageInputData.KickStartContent
+	kickStartMap["name"] = imageInputData.KickStartName
+
+	imageMap := make(map[string]interface{})
+	imageMap["name"] = baseimage.Name + "." + baseimage.ExtName
+	imageMap["url"] = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + baseimage.ExtName + "/" + baseimage.Checksum + "." + baseimage.ExtName
+	// baseimage.Url
+	imageMap["checksum"] = baseimage.Checksum
+	imageMap["architecture"] = baseimage.Arch
+
+	specMap := make(map[string]interface{})
+	specMap["kickStart"] = kickStartMap
+	specMap["image"] = imageMap
+	param := make(map[string]interface{})
+	param["service"] = "build"
+	param["domain"] = "omni-build"
+	param["task"] = models.BuildImageFromISO
+	param["engine"] = "kubernetes"
+	param["userID"] = strconv.Itoa(insertData.UserId)
+	param["spec"] = specMap
+	paramBytes, _ := json.Marshal(param)
+	result, err := util.HTTPPost(util.GetConfig().BuildServer.ApiUrl+"/v1/jobs", string(paramBytes))
+	if err != nil {
+		sd.State = "failed"
+		sd.StateMessage = err.Error()
+		util.StatisticsLog(&sd)
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "HTTPPost Error", err.Error()))
+		return
+	}
+
+	paramBytes, _ = json.Marshal(result)
+	fmt.Println("\n-------------------:", string(paramBytes))
+
+	insertData.JobName = result["id"].(string)
+	outputName := fmt.Sprintf(`%s.%s`, insertData.JobName, baseimage.ExtName)
+	insertData.Status = result["state"].(string)
+	insertData.StartTime, _ = time.Parse(time.RFC3339, result["startTime"].(string))
+	insertData.EndTime, _ = time.Parse(time.RFC3339, result["endTime"].(string))
 	insertData.UserName = c.Keys["nm"].(string)
 	insertData.UserId, _ = strconv.Atoi((c.Keys["id"]).(string))
-	insertData.BuildType = models.BuildImageFromISO
+	insertData.BuildType = "installer-iso"
 	insertData.CreateTime = time.Now().In(util.CnTime)
-	insertData.JobLabel = imageInputData.Name
+	insertData.JobLabel = imageInputData.Label
 	insertData.JobDesc = imageInputData.Desc
+	insertData.JobType = models.BuildImageFromISO
 	insertData.Arch = baseimage.Arch
-	insertData.DownloadUrl = "" // fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, baseimage.Name, time.Now().In(util.CnTime).Format("2006-01-02"), outputName)
+	insertData.DownloadUrl = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + baseimage.ExtName + "/" + outputName
 	insertData.Status = models.JOB_STATUS_START
 	err = models.AddJobLog(&insertData)
 	if err != nil {

@@ -525,6 +525,38 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/v3/baseImages/repoCallback/{id}": {
+            "put": {
+                "description": "callback after repo loaded from source url",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 version"
+                ],
+                "summary": "RepoSavedCallBack",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id for image item",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "status for image item",
+                        "name": "status",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/v3/baseImages/{id}": {
             "put": {
                 "description": "update  a base  images data",
@@ -818,6 +850,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "kickStartContent": {
+                    "type": "string"
+                },
+                "kickStartName": {
                     "type": "string"
                 },
                 "name": {
