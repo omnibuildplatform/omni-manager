@@ -184,6 +184,7 @@ func GetJobParam(c *gin.Context) {
 // @Description get single job detail
 // @Tags  v2 version
 // @Param	id		path 	string	true		"job id"
+// @Param	jobtype		query 	string	true		"job type"
 // @Accept json
 // @Produce json
 // @Router /v2/images/getOne/{id} [get]
@@ -196,7 +197,11 @@ func GetOne(c *gin.Context) {
 	param := url.Values{}
 	param.Add("service", "omni")
 	param.Add("domain", "omni-build")
-	param.Add("task", "buildimagefromrelease")
+	jobtype := c.Query("jobtype")
+	if len(jobtype) == 0 {
+		jobtype = "buildimagefromrelease"
+	}
+	param.Add("task", jobtype)
 	param.Add("ID", id)
 	result, err := util.HTTPGet(util.GetConfig().BuildServer.ApiUrl+"/v1/jobs", param)
 	if err != nil {
