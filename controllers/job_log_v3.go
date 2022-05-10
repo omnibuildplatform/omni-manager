@@ -315,7 +315,7 @@ func BuildFromISO(c *gin.Context) {
 	}
 
 	util.StatisticsLog(&sd)
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", insertData))
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", insertData, param))
 
 }
 
