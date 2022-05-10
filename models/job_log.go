@@ -52,6 +52,7 @@ type JobLog struct {
 	JobDesc       string    ` description:"job description"`
 	StartTime     time.Time ` description:"create time"`
 	EndTime       time.Time ` description:"create time"`
+	JobType       string    ` description:"job type"`
 }
 type SummaryStatus struct {
 	Succeed int `json:"succeed"`
@@ -205,6 +206,12 @@ func CreateTables() (err error) {
 
 	if !o.Migrator().HasColumn(&BaseImages{}, "checksum") {
 		err = o.Migrator().AddColumn(&BaseImages{}, "checksum")
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
+	}
+	if !o.Migrator().HasColumn(&JobLog{}, "job_type") {
+		err = o.Migrator().AddColumn(&JobLog{}, "job_type")
 		if err != nil {
 			util.Log.Errorf("CreateTables Error:%s ", err)
 		}
