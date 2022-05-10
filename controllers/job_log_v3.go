@@ -264,7 +264,6 @@ func BuildFromISO(c *gin.Context) {
 	imageMap := make(map[string]interface{})
 	imageMap["name"] = baseimage.Name + "." + baseimage.ExtName
 	imageMap["url"] = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + baseimage.ExtName + "/" + baseimage.Checksum + "." + baseimage.ExtName
-	// baseimage.Url
 	imageMap["checksum"] = baseimage.Checksum
 	imageMap["architecture"] = baseimage.Arch
 
@@ -289,7 +288,7 @@ func BuildFromISO(c *gin.Context) {
 	}
 
 	paramBytes, _ = json.Marshal(result)
-	fmt.Println("\n-------------------:", string(paramBytes))
+	util.Log.Errorln("\n-------------------:", string(paramBytes))
 
 	insertData.JobName = result["id"].(string)
 	outputName := fmt.Sprintf(`%s.%s`, insertData.JobName, baseimage.ExtName)

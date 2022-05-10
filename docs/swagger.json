@@ -385,6 +385,13 @@
                         "description": "uuid",
                         "name": "uuid",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "job type",
+                        "name": "jobtype",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {}
@@ -426,6 +433,13 @@
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "job type",
+                        "name": "jobtype",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {}
@@ -450,6 +464,13 @@
                         "description": "job id",
                         "name": "id",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "job type",
+                        "name": "jobtype",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -514,7 +535,7 @@
             }
         },
         "/v3/baseImages/repoCallback/{id}": {
-            "put": {
+            "get": {
                 "description": "callback after repo loaded from source url",
                 "consumes": [
                     "application/json"
@@ -811,6 +832,9 @@
                 "desc": {
                     "type": "string"
                 },
+                "extName": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -843,7 +867,7 @@
                 "kickStartName": {
                     "type": "string"
                 },
-                "name": {
+                "label": {
                     "type": "string"
                 }
             }

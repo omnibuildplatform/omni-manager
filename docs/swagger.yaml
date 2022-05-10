@@ -9,6 +9,8 @@ definitions:
         type: string
       desc:
         type: string
+      extName:
+        type: string
       id:
         type: integer
       name:
@@ -30,7 +32,7 @@ definitions:
         type: string
       kickStartName:
         type: string
-      name:
+      label:
         type: string
     type: object
   models.BuildParam:
@@ -412,6 +414,11 @@ paths:
         in: query
         name: uuid
         type: string
+      - description: job type
+        in: query
+        name: jobtype
+        required: true
+        type: string
       produces:
       - application/json
       responses: {}
@@ -440,6 +447,11 @@ paths:
         name: id
         required: true
         type: string
+      - description: job type
+        in: query
+        name: jobtype
+        required: true
+        type: string
       produces:
       - application/json
       responses: {}
@@ -455,6 +467,11 @@ paths:
       - description: job id
         in: path
         name: id
+        required: true
+        type: string
+      - description: job type
+        in: query
+        name: jobtype
         required: true
         type: string
       produces:
@@ -541,7 +558,7 @@ paths:
       tags:
       - v3 version
   /v3/baseImages/repoCallback/{id}:
-    put:
+    get:
       consumes:
       - application/json
       description: callback after repo loaded from source url

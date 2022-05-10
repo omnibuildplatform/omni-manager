@@ -397,6 +397,13 @@ const docTemplate = `{
                         "description": "uuid",
                         "name": "uuid",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "job type",
+                        "name": "jobtype",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {}
@@ -438,6 +445,13 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "job type",
+                        "name": "jobtype",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {}
@@ -462,6 +476,13 @@ const docTemplate = `{
                         "description": "job id",
                         "name": "id",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "job type",
+                        "name": "jobtype",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -526,7 +547,7 @@ const docTemplate = `{
             }
         },
         "/v3/baseImages/repoCallback/{id}": {
-            "put": {
+            "get": {
                 "description": "callback after repo loaded from source url",
                 "consumes": [
                     "application/json"
@@ -823,6 +844,9 @@ const docTemplate = `{
                 "desc": {
                     "type": "string"
                 },
+                "extName": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -855,7 +879,7 @@ const docTemplate = `{
                 "kickStartName": {
                     "type": "string"
                 },
-                "name": {
+                "label": {
                     "type": "string"
                 }
             }

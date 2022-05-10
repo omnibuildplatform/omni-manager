@@ -199,7 +199,7 @@ func GetOne(c *gin.Context) {
 	param.Add("domain", "omni-build")
 	jobtype := c.Query("jobtype")
 	if len(jobtype) == 0 {
-		jobtype = "buildimagefromrelease"
+		jobtype = models.BuildImageFromRelease
 	}
 	param.Add("task", jobtype)
 	param.Add("ID", id)
@@ -219,6 +219,7 @@ func GetOne(c *gin.Context) {
 // @Param	id		path 	string	true		"job id"
 // @Param	stepID		query 	string	true		"step id"
 // @Param	uuid		query 	string	false		"uuid"
+// @Param	jobtype		query 	string	true		"job type"
 // @Accept json
 // @Produce json
 // @Router /v2/images/getLogsOf/{id} [get]
@@ -233,7 +234,11 @@ func GetJobLogs(c *gin.Context) {
 	param := url.Values{}
 	param.Set("service", "omni")
 	param.Set("domain", "omni-build")
-	param.Set("task", "buildimagefromrelease")
+	jobtype := c.Query("jobtype")
+	if len(jobtype) == 0 {
+		jobtype = models.BuildImageFromRelease
+	}
+	param.Set("task", jobtype)
 	param.Set("ID", id)
 	param.Set("stepID", strconv.Itoa(stepID))
 	if len(uuid) > 0 {
@@ -285,6 +290,7 @@ func GetJobLogs(c *gin.Context) {
 // @Description Stop Job Build
 // @Tags  v2 version
 // @Param	id		path 	string	true		"job id"
+// @Param	jobtype		query 	string	true		"job type"
 // @Accept json
 // @Produce json
 // @Router /v2/images/stopJob/{id} [delete]
@@ -298,7 +304,11 @@ func StopJobBuild(c *gin.Context) {
 	param := url.Values{}
 	param.Set("service", "omni")
 	param.Set("domain", "omni-build")
-	param.Set("task", "buildimagefromrelease")
+	jobtype := c.Query("jobtype")
+	if len(jobtype) == 0 {
+		jobtype = models.BuildImageFromRelease
+	}
+	param.Set("task", jobtype)
 	param.Set("ID", id)
 	var req *http.Request
 	var err error
