@@ -271,7 +271,7 @@ func BuildFromISO(c *gin.Context) {
 	specMap["kickStart"] = kickStartMap
 	specMap["image"] = imageMap
 	param := make(map[string]interface{})
-	param["service"] = "build"
+	param["service"] = "omni"
 	param["domain"] = "omni-build"
 	param["task"] = models.BuildImageFromISO
 	param["engine"] = "kubernetes"
