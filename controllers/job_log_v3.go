@@ -255,6 +255,8 @@ func BuildFromISO(c *gin.Context) {
 	}
 	var insertData models.JobLog
 	kickStartMap := make(map[string]interface{})
+
+	imageInputData.KickStartContent = strings.ReplaceAll(imageInputData.KickStartContent, "\n", "")
 	kickStartMap["content"] = imageInputData.KickStartContent
 	kickStartMap["name"] = imageInputData.KickStartName
 
