@@ -280,7 +280,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "v2 job"
+                    "v2 version"
                 ],
                 "summary": "Create Job",
                 "parameters": [
@@ -385,6 +385,13 @@
                         "description": "uuid",
                         "name": "uuid",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "job type",
+                        "name": "jobtype",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {}
@@ -426,6 +433,13 @@
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "job type",
+                        "name": "jobtype",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {}
@@ -451,57 +465,12 @@
                         "name": "id",
                         "in": "path",
                         "required": true
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/v3/baseImages/add": {
-            "post": {
-                "description": "add  a image meta data",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "v3 version"
-                ],
-                "summary": "AddBaseImages",
-                "parameters": [
+                    },
                     {
-                        "description": "body for BaseImages content",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.BaseImages"
-                        }
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/v3/baseImages/delete/{id}": {
-            "delete": {
-                "description": "delete  a base  images data",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "v3 version"
-                ],
-                "summary": "DeletBaseImages",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "id for BaseImages content",
-                        "name": "id",
-                        "in": "path",
+                        "type": "string",
+                        "description": "job type",
+                        "name": "jobtype",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -565,7 +534,39 @@
                 "responses": {}
             }
         },
-        "/v3/baseImages/update": {
+        "/v3/baseImages/repoCallback/{id}": {
+            "get": {
+                "description": "callback after repo loaded from source url",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 version"
+                ],
+                "summary": "RepoSavedCallBack",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id for image item",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "status for image item",
+                        "name": "status",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v3/baseImages/{id}": {
             "put": {
                 "description": "update  a base  images data",
                 "consumes": [
@@ -580,6 +581,13 @@
                 "summary": "UpdateBaseImages",
                 "parameters": [
                     {
+                        "type": "integer",
+                        "description": "id for  content",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "body for BaseImages content",
                         "name": "body",
                         "in": "body",
@@ -589,6 +597,45 @@
                         }
                     }
                 ],
+                "responses": {}
+            },
+            "delete": {
+                "description": "delete  a base  images data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 version"
+                ],
+                "summary": "DeletBaseImages",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id for BaseImages content",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/v3/getImagesAndKickStart": {
+            "get": {
+                "description": "GetImagesAndKickStart",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 version"
+                ],
+                "summary": "GetImagesAndKickStart",
                 "responses": {}
             }
         },
@@ -602,7 +649,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "v2 version"
+                    "v3 version"
                 ],
                 "summary": "BuildFromISO",
                 "parameters": [
@@ -619,7 +666,7 @@
                 "responses": {}
             }
         },
-        "/v3/kickStart/add": {
+        "/v3/kickStart": {
             "post": {
                 "description": "add  a KickStart data",
                 "consumes": [
@@ -634,37 +681,24 @@
                 "summary": "AddKickStart",
                 "parameters": [
                     {
-                        "description": "body for BaseImages content",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.KickStart"
-                        }
-                    }
-                ],
-                "responses": {}
-            }
-        },
-        "/v3/kickStart/delete/{id}": {
-            "delete": {
-                "description": "delete  a KickStart data",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "v3 version"
-                ],
-                "summary": "DeleteKickStart",
-                "parameters": [
+                        "type": "file",
+                        "description": "kickstart file",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
                     {
-                        "type": "integer",
-                        "description": "id for KickStart content",
-                        "name": "id",
-                        "in": "path",
+                        "type": "string",
+                        "description": "  name",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "  desc",
+                        "name": "desc",
+                        "in": "formData",
                         "required": true
                     }
                 ],
@@ -701,7 +735,30 @@
                 "responses": {}
             }
         },
-        "/v3/kickStart/update": {
+        "/v3/kickStart/{id}": {
+            "get": {
+                "description": "GetKickStartByID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 version"
+                ],
+                "summary": "GetKickStartByID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id for  content",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
             "put": {
                 "description": "update  a kick start data",
                 "consumes": [
@@ -716,6 +773,13 @@
                 "summary": "UpdateKickStart",
                 "parameters": [
                     {
+                        "type": "integer",
+                        "description": "id for  content",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "body for KickStart content",
                         "name": "body",
                         "in": "body",
@@ -723,6 +787,29 @@
                         "schema": {
                             "$ref": "#/definitions/models.KickStart"
                         }
+                    }
+                ],
+                "responses": {}
+            },
+            "delete": {
+                "description": "delete  a KickStart data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 version"
+                ],
+                "summary": "DeleteKickStart",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id for KickStart content",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {}
@@ -745,10 +832,16 @@
                 "desc": {
                     "type": "string"
                 },
+                "extName": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "string"
                 },
                 "url": {
@@ -763,9 +856,18 @@
             "type": "object",
             "properties": {
                 "baseImageID": {
-                    "type": "integer"
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
                 },
                 "kickStartContent": {
+                    "type": "string"
+                },
+                "kickStartName": {
+                    "type": "string"
+                },
+                "label": {
                     "type": "string"
                 }
             }

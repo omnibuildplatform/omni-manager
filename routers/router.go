@@ -17,7 +17,7 @@ func InitRouter() *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(util.LoggerToFile())
-	docs.SwaggerInfo.BasePath = "/api" 
+	docs.SwaggerInfo.BasePath = "/api"
 	docs.SwaggerInfo.Title = util.GetConfig().AppName
 	docs.SwaggerInfo.Description = "set token name: 'Authorization' at header "
 	auth := r.Group(docs.SwaggerInfo.BasePath)
@@ -53,18 +53,21 @@ func InitRouter() *gin.Engine {
 	//version 3.
 	v3 := r.Group(docs.SwaggerInfo.BasePath + "/v3")
 	{
+		v3.GET("/baseImages/repoCallback/:id", controllers.RepoSavedCallBack)
 		v3.Use(models.Authorize()) //
 		v3.POST("/images/buildFromIso", controllers.BuildFromISO)
 		v3.POST("/baseImages/import", controllers.ImportBaseImages)
-		v3.POST("/baseImages/add", controllers.AddBaseImages)
-		v3.GET("/baseImages/list", controllers.ListBaseImages)
-		v3.PUT("/baseImages/update", controllers.UpdateBaseImages)
-		v3.DELETE("/baseImages/delete", controllers.DeletBaseImages)
-		v3.POST("/kickStart/add", controllers.AddKickStart)
+		v3.GET("/baseImages/:id", controllers.ListBaseImages)
+		v3.PUT("/baseImages/:id", controllers.UpdateBaseImages)
+		v3.DELETE("/baseImages/:id", controllers.DeletBaseImages)
+		v3.POST("/kickStart", controllers.AddKickStart)
 		v3.GET("/kickStart/list", controllers.ListKickStart)
-		v3.PUT("/kickStart/update", controllers.UpdateKickStart)
-		v3.DELETE("/kickStart/delete", controllers.DeleteKickStart)
- 
+		v3.PUT("/kickStart/:id", controllers.UpdateKickStart)
+		v3.GET("/kickStart/:id", controllers.GetKickStartByID)
+		v3.DELETE("/kickStart/:id", controllers.DeleteKickStart)
+		v3.GET("/getImagesAndKickStart", controllers.GetImagesAndKickStart)
+
+	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	return r
 }

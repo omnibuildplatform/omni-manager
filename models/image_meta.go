@@ -2,8 +2,9 @@ package models
 
 import (
 	"fmt"
-	"omni-manager/util"
 	"time"
+
+	"github.com/omnibuildplatform/omni-manager/util"
 )
 
 //post this body to backend

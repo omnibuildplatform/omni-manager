@@ -18,7 +18,7 @@ import (
 
 // @Summary Create Job
 // @Description start a image build job
-// @Tags  v2 job
+// @Tags  v2 version
 // @Param	body		body 	models.BuildParam	true		"body for ImageMeta content"
 // @Accept json
 // @Produce json
@@ -47,6 +47,7 @@ func CreateJob(c *gin.Context) {
 	insertData.Release = imageInputData.Release
 	insertData.BuildType = imageInputData.BuildType
 	insertData.JobLabel = imageInputData.Label
+	insertData.JobType = models.BuildImageFromRelease
 	insertData.JobDesc = imageInputData.Desc
 	if insertData.JobLabel == "" {
 		insertData.JobLabel = insertData.UserName + "_" + insertData.Arch + "_" + insertData.Release
@@ -113,7 +114,7 @@ func CreateJob(c *gin.Context) {
 	param := make(map[string]interface{})
 	param["service"] = "omni"
 	param["domain"] = "omni-build"
-	param["task"] = "buildimagefromrelease"
+	param["task"] = models.BuildImageFromRelease
 	param["engine"] = "kubernetes"
 	param["userID"] = strconv.Itoa(insertData.UserId)
 	param["spec"] = specMap
@@ -133,7 +134,7 @@ func CreateJob(c *gin.Context) {
 	insertData.Status = result["state"].(string)
 	insertData.StartTime, _ = time.Parse(time.RFC3339, result["startTime"].(string))
 	insertData.EndTime, _ = time.Parse(time.RFC3339, result["endTime"].(string))
-	insertData.DownloadUrl = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, insertData.Release, time.Now().In(util.CnTime).Format("2006-01-02"), outputName)
+	insertData.DownloadUrl = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + insertData.Release + "/" + time.Now().In(util.CnTime).Format("2006-01-02") + "/" + outputName
 	insertData.Status = models.JOB_STATUS_START
 	err = models.AddJobLog(&insertData)
 	if err != nil {
@@ -183,6 +184,7 @@ func GetJobParam(c *gin.Context) {
 // @Description get single job detail
 // @Tags  v2 version
 // @Param	id		path 	string	true		"job id"
+// @Param	jobtype		query 	string	true		"job type"
 // @Accept json
 // @Produce json
 // @Router /v2/images/getOne/{id} [get]
@@ -195,7 +197,11 @@ func GetOne(c *gin.Context) {
 	param := url.Values{}
 	param.Add("service", "omni")
 	param.Add("domain", "omni-build")
-	param.Add("task", "buildimagefromrelease")
+	jobtype := c.Query("jobtype")
+	if len(jobtype) == 0 {
+		jobtype = models.BuildImageFromRelease
+	}
+	param.Add("task", jobtype)
 	param.Add("ID", id)
 	result, err := util.HTTPGet(util.GetConfig().BuildServer.ApiUrl+"/v1/jobs", param)
 	if err != nil {
@@ -203,7 +209,18 @@ func GetOne(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
+	if result["state"] == models.JOB_BUILD_STATUS_SUCCEED {
+		if result["task"] == models.BuildImageFromISO {
+			downloadURL := util.GetConfig().BuildServer.OmniRepoAPI + "/data/query?externalID=" + result["id"].(string)
+
+			c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result, downloadURL))
+
+		} else {
+			c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
+		}
+	} else {
+		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
+	}
 
 }
 
@@ -213,6 +230,7 @@ func GetOne(c *gin.Context) {
 // @Param	id		path 	string	true		"job id"
 // @Param	stepID		query 	string	true		"step id"
 // @Param	uuid		query 	string	false		"uuid"
+// @Param	jobtype		query 	string	true		"job type"
 // @Accept json
 // @Produce json
 // @Router /v2/images/getLogsOf/{id} [get]
@@ -227,7 +245,11 @@ func GetJobLogs(c *gin.Context) {
 	param := url.Values{}
 	param.Set("service", "omni")
 	param.Set("domain", "omni-build")
-	param.Set("task", "buildimagefromrelease")
+	jobtype := c.Query("jobtype")
+	if len(jobtype) == 0 {
+		jobtype = models.BuildImageFromRelease
+	}
+	param.Set("task", jobtype)
 	param.Set("ID", id)
 	param.Set("stepID", strconv.Itoa(stepID))
 	if len(uuid) > 0 {
@@ -279,6 +301,7 @@ func GetJobLogs(c *gin.Context) {
 // @Description Stop Job Build
 // @Tags  v2 version
 // @Param	id		path 	string	true		"job id"
+// @Param	jobtype		query 	string	true		"job type"
 // @Accept json
 // @Produce json
 // @Router /v2/images/stopJob/{id} [delete]
@@ -292,7 +315,11 @@ func StopJobBuild(c *gin.Context) {
 	param := url.Values{}
 	param.Set("service", "omni")
 	param.Set("domain", "omni-build")
-	param.Set("task", "buildimagefromrelease")
+	jobtype := c.Query("jobtype")
+	if len(jobtype) == 0 {
+		jobtype = models.BuildImageFromRelease
+	}
+	param.Set("task", jobtype)
 	param.Set("ID", id)
 	var req *http.Request
 	var err error

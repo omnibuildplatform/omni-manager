@@ -20,6 +20,11 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
+const (
+	BuildImageFromRelease string = "buildimagefromrelease"
+	BuildImageFromISO     string = "buildimagefromiso"
+)
+
 //post this body to backend
 type BuildParam struct {
 	// Id        int      `gorm:"primaryKey"`
@@ -47,6 +52,7 @@ type JobLog struct {
 	JobDesc       string    ` description:"job description"`
 	StartTime     time.Time ` description:"create time"`
 	EndTime       time.Time ` description:"create time"`
+	JobType       string    ` description:"job type"`
 }
 type SummaryStatus struct {
 	Succeed int `json:"succeed"`
@@ -82,7 +88,7 @@ func (t *JobLog) ToString() string {
 // last inserted Id on success.
 func AddJobLog(m *JobLog) (err error) {
 	o := util.GetDB()
-	result := o.FirstOrCreate(m)
+	result := o.Create(m)
 	return result.Error
 }
 
@@ -167,12 +173,48 @@ func CreateTables() (err error) {
 	o := util.GetDB()
 	if !o.Migrator().HasTable(&JobLog{}) {
 		err = o.Migrator().CreateTable(&JobLog{})
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
 	}
 	if !o.Migrator().HasTable(&BaseImages{}) {
 		err = o.Migrator().CreateTable(&BaseImages{})
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
 	}
 	if !o.Migrator().HasTable(&KickStart{}) {
 		err = o.Migrator().CreateTable(&KickStart{})
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
+	}
+
+	if !o.Migrator().HasColumn(&BaseImages{}, "status") {
+		err = o.Migrator().AddColumn(&BaseImages{}, "status")
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
+	}
+
+	if !o.Migrator().HasColumn(&BaseImages{}, "ext_name") {
+		err = o.Migrator().AddColumn(&BaseImages{}, "ext_name")
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
+	}
+
+	if !o.Migrator().HasColumn(&BaseImages{}, "checksum") {
+		err = o.Migrator().AddColumn(&BaseImages{}, "checksum")
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
+	}
+	if !o.Migrator().HasColumn(&JobLog{}, "job_type") {
+		err = o.Migrator().AddColumn(&JobLog{}, "job_type")
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
 	}
 
 	return
@@ -250,7 +292,7 @@ func MakeJob(cm *v1.ConfigMap, buildtype, release string) (job *batchv1.Job, out
 	if err != nil {
 		return
 	}
-	omniImager := `omni-imager --package-list /conf/totalrpms.json --config-file /conf/conf.yaml --build-type ` + buildtype + ` --output-file ` + outputName + ` && curl -vvv -Ffile=@/opt/omni-workspace/` + outputName + ` -Fproject=` + release + `  -FfileType=image '` + util.GetConfig().K8sConfig.FfileType + `'`
+	omniImager := `omni-imager --package-list /conf/totalrpms.json --config-file /conf/conf.yaml --build-type ` + buildtype + ` --output-file ` + outputName + ` && curl -vvv -Ffile=@/opt/omni-workspace/` + outputName + ` -Fproject=` + release + `  -FfileType=image '` + util.GetConfig().BuildServer.OmniRepoAPI + `/data/upload?token=316462d0c029ba707ad2'`
 	jobInterface := clientset.BatchV1().Jobs(util.GetConfig().K8sConfig.Namespace)
 	var backOffLimit int32 = 0
 	var tTLSecondsAfterFinished int32 = 1800
@@ -387,7 +429,7 @@ func SyncJobStatus() {
 	param := make(map[string]interface{})
 	param["service"] = "omni"
 	param["domain"] = "omni-build"
-	param["task"] = "buildimagefromrelease"
+	param["task"] = "buildimage"
 
 	o := util.GetDB()
 	for {
@@ -441,16 +483,16 @@ func SyncJobStatus() {
 			jobStatus.StartTime = string([]byte(jobStatus.StartTime)[:19])
 			jobStatus.EndTime = string([]byte(jobStatus.EndTime)[:19])
 			switch jobStatus.State {
-			case "JobFailed":
-				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN  'failed' ", jobStatus.Id)
-			case "JobSucceed":
-				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   'succeed' ", jobStatus.Id)
-			case "JobCreated":
-				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   'created' ", jobStatus.Id)
-			case "JobStopped":
-				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   'stopped' ", jobStatus.Id)
-			case "JobRunning":
-				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   'running' ", jobStatus.Id)
+			case JOB_BUILD_STATUS_FAILED:
+				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN  '%s' ", jobStatus.Id, JOB_STATUS_FAILED)
+			case JOB_BUILD_STATUS_SUCCEED:
+				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   '%s' ", jobStatus.Id, JOB_STATUS_SUCCEED)
+			case JOB_BUILD_STATUS_CREATED:
+				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   '%s' ", jobStatus.Id, JOB_STATUS_CREATED)
+			case JOB_BUILD_STATUS_STOPPED:
+				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   '%s' ", jobStatus.Id, JOB_STATUS_STOPPED)
+			case JOB_BUILD_STATUS_RUNNING:
+				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   '%s' ", jobStatus.Id, JOB_STATUS_RUNNING)
 			}
 			starttimeSql = starttimeSql + fmt.Sprintf(" WHEN job_name = '%s' THEN  STR_TO_DATE('%v','%s') ", jobStatus.Id, jobStatus.StartTime, dateformatStr)
 			endtimeSql = endtimeSql + fmt.Sprintf(" WHEN job_name = '%s' THEN  STR_TO_DATE('%v','%s') ", jobStatus.Id, jobStatus.EndTime, dateformatStr)
@@ -473,4 +515,37 @@ func SyncJobStatus() {
 		}
 		time.Sleep(time.Second * 30)
 	}
+
+}
+
+type miniBaseImage struct {
+	ID   int    ` description:"id" gorm:"primaryKey"`
+	Name string ` description:"name"`
+}
+type miniKickstart struct {
+	ID   int    ` description:"id" gorm:"primaryKey"`
+	Name string ` description:"name"`
+}
+
+func GetImagesAndKickStart(userid int) (result map[string]interface{}, err error) {
+	baseImages := new(BaseImages)
+	kickStart := new(KickStart)
+	result = make(map[string]interface{})
+	baseImagesList := make([]*miniBaseImage, 0)
+	kickStartList := make([]*miniKickstart, 0)
+	o := util.GetDB()
+	sql := fmt.Sprintf("select name,id from %s where  user_id = %d and status='%s'", baseImages.TableName(), userid, ImageStatusDone)
+	tx := o.Raw(sql).Find(&baseImagesList)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	sql = fmt.Sprintf("select name,id from %s where  user_id = %d ", kickStart.TableName(), userid)
+	tx = o.Raw(sql).Find(&kickStartList)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	result["images"] = baseImagesList
+	result["kickstart"] = kickStartList
+
+	return
 }
