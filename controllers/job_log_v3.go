@@ -261,10 +261,10 @@ func BuildFromISO(c *gin.Context) {
 	imageInputData.KickStartContent = strings.ReplaceAll(imageInputData.KickStartContent, "\n", "")
 	kickStartMap["content"] = imageInputData.KickStartContent
 	kickStartMap["name"] = imageInputData.KickStartName
-
+	folderName := baseimage.Checksum[0:3]
 	imageMap := make(map[string]interface{})
 	imageMap["name"] = baseimage.Name + "." + baseimage.ExtName
-	imageMap["url"] = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + baseimage.ExtName + "/" + baseimage.Checksum + "." + baseimage.ExtName
+	imageMap["url"] = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + folderName + "/" + baseimage.Checksum + "." + baseimage.ExtName
 	imageMap["checksum"] = baseimage.Checksum
 	imageMap["architecture"] = baseimage.Arch
 
@@ -304,7 +304,7 @@ func BuildFromISO(c *gin.Context) {
 	insertData.JobDesc = imageInputData.Desc
 	insertData.JobType = models.BuildImageFromISO
 	insertData.Arch = baseimage.Arch
-	insertData.DownloadUrl = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + baseimage.ExtName + "/" + outputName
+	insertData.DownloadUrl = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + folderName + "/" + outputName
 	insertData.Status = models.JOB_STATUS_START
 	err = models.AddJobLog(&insertData)
 	if err != nil {
