@@ -20,27 +20,34 @@ type JsonData struct {
 	Title  interface{} `json:"title"`
 	Attach interface{} `json:"attach,omitempty"`
 	Data   interface{} `json:"data"`
+	Other  interface{} `json:"other,omitempty"`
 }
 
 //ExportData ExportData
 func ExportData(code int, title interface{}, data ...interface{}) *JsonData {
-
 	var resultData JsonData
 	resultData.Code = code
 	resultData.Title = title
 	resultData.Data = data[0]
+
 	if len(data) > 1 {
 		resultData.Attach = data[1]
-	}
-	if code == 500 {
-		resultData.Title = "Error Information"
-		resultData.Data = ""
-		if err, ok := data[0].(error); ok {
-			Log.Error(err.Error())
-		} else {
-			Log.Error(data)
+		if len(data) > 2 {
+			resultData.Other = data[2]
 		}
 
+	}
+	if code == 500 {
+		// if GetConfig().AppModel == "release" {
+		// 	Log.Errorf("code:%d,title:%s,data:%v", resultData.Code, resultData.Title, resultData.Data)
+		// 	resultData.Title = "Error Information"
+		// 	resultData.Data = ""
+		// }
+		if err, ok := data[0].(error); ok {
+			Log.Warnln(err.Error())
+		} else {
+			Log.Warnln(data)
+		}
 	}
 	return &resultData
 }

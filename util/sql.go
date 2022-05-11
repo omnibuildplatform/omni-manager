@@ -14,8 +14,9 @@ func GetDB() *gorm.DB {
 	return db
 }
 
+//connect to database
 func InitDB() (err error) {
-	sqlStr := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", GetConfig().Database.User, GetConfig().Database.Password, GetConfig().Database.Host, GetConfig().Database.Port, GetConfig().Database.DbName)
+	sqlStr := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", GetConfig().Database.DBUser, GetConfig().Database.Password, GetConfig().Database.DBHost, GetConfig().Database.DBPort, GetConfig().Database.DbName)
 
 	db, err = gorm.Open(mysql.New(mysql.Config{
 		DSN:                       sqlStr, // DSN data source name
@@ -28,17 +29,16 @@ func InitDB() (err error) {
 	if err != nil {
 		return err
 	}
-
+	db.Logger.LogMode(3)
 	sqlDB, err := db.DB()
 	if err != nil {
 		return err
 	}
+
 	// SetMaxIdleConns
 	sqlDB.SetMaxIdleConns(10)
-
 	// SetMaxOpenConns
 	sqlDB.SetMaxOpenConns(100)
-
 	// SetConnMaxLifetime
 	sqlDB.SetConnMaxLifetime(time.Hour)
 	return nil
