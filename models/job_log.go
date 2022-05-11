@@ -434,39 +434,18 @@ func SyncJobStatus() {
 	param := make(map[string]interface{})
 	param["service"] = "omni"
 	param["domain"] = "omni-build"
+	param["task"] = "buildimage"
 
 	o := util.GetDB()
 	for {
-		jobIdList = make([]jobNameType, 0)
 		o.Raw(sql).Scan(&jobIdList)
 		if len(jobIdList) == 0 {
 			time.Sleep(time.Second * 30)
 			continue
 		}
+		param["IDs"] = jobIdList
+		paramBytes, _ := json.Marshal(param)
 
-		var releaseList []string
-		var isoList []string
-		for _, item := range jobIdList {
-			if item.JobType == BuildImageFromISO {
-				isoList = append(isoList, item.JobName)
-			} else if item.JobType == BuildImageFromRelease {
-				releaseList = append(releaseList, item.JobName)
-			}
-		}
-		step := 0
-	nextType:
-
-		var paramBytes []byte
-		if len(isoList) > 0 {
-			param["IDs"] = isoList
-			param["task"] = BuildImageFromISO
-			step = 1
-		} else if len(releaseList) > 0 {
-			param["IDs"] = releaseList
-			param["task"] = BuildImageFromRelease
-			step = 2
-		}
-		paramBytes, _ = json.Marshal(param)
 		var req *http.Request
 		var err error
 		req, err = http.NewRequest("POST", util.GetConfig().BuildServer.ApiUrl+"/v1/jobs/batchQuery", strings.NewReader(string(paramBytes)))
@@ -539,12 +518,9 @@ func SyncJobStatus() {
 		if tx.Error != nil {
 			util.Log.Errorln("title:UPDATE sync Error,reason:" + err.Error())
 		}
-		fmt.Println("---------------", step)
-		if step == 1 {
-			goto nextType
-		}
 		time.Sleep(time.Second * 30)
 	}
+
 }
 
 type miniBaseImage struct {
