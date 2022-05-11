@@ -209,7 +209,7 @@ func GetOne(c *gin.Context) {
 		return
 	}
 
-	if result["state"] == models.JOB_STATUS_SUCCEED {
+	if result["state"] == "JobSucceed" {
 		if result["task"] == models.BuildImageFromISO {
 			downloadURL := util.GetConfig().BuildServer.OmniRepoAPI + "/data/query?externalID=" + result["id"].(string)
 
