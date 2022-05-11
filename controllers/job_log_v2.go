@@ -211,7 +211,7 @@ func GetOne(c *gin.Context) {
 
 	if result["state"] == "JobSucceed" {
 		if result["task"] == models.BuildImageFromISO {
-			downloadURL := util.GetConfig().BuildServer.OmniRepoAPI + "/data/query?externalID=" + result["id"].(string)
+			downloadURL := util.GetConfig().BuildServer.OmniRepoAPI + "/data/query?token=316462d0c029ba707ad1&&externalID=" + result["id"].(string)
 
 			c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result, downloadURL))
 
