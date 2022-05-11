@@ -422,25 +422,51 @@ func CheckPodStatus(ns, jobname string) (result map[string]interface{}, job *bat
 	return
 }
 
+type jobNameType struct {
+	JobName string `json:"job_name"`
+	JobType string `json:"job_type"`
+}
+
 func SyncJobStatus() {
 	m := new(JobLog)
-	sql := fmt.Sprintf("select job_name from %s where status not in ('%s','%s','%s')", m.TableName(), JOB_STATUS_SUCCEED, JOB_STATUS_FAILED, JOB_STATUS_STOPPED)
-	var jobIdList []string
+	sql := fmt.Sprintf("select job_name,job_type from %s where status not in ('%s','%s','%s')", m.TableName(), JOB_STATUS_SUCCEED, JOB_STATUS_FAILED, JOB_STATUS_STOPPED)
+	var jobIdList []jobNameType
 	param := make(map[string]interface{})
 	param["service"] = "omni"
 	param["domain"] = "omni-build"
-	param["task"] = BuildImageFromRelease
 
 	o := util.GetDB()
 	for {
+		jobIdList = make([]jobNameType, 0)
 		o.Raw(sql).Scan(&jobIdList)
 		if len(jobIdList) == 0 {
 			time.Sleep(time.Second * 30)
 			continue
 		}
-		param["IDs"] = jobIdList
-		paramBytes, _ := json.Marshal(param)
 
+		var releaseList []string
+		var isoList []string
+		for _, item := range jobIdList {
+			if item.JobType == BuildImageFromISO {
+				isoList = append(isoList, item.JobName)
+			} else if item.JobType == BuildImageFromRelease {
+				releaseList = append(releaseList, item.JobName)
+			}
+		}
+		step := 0
+	nextType:
+
+		var paramBytes []byte
+		if len(isoList) > 0 {
+			param["IDs"] = isoList
+			param["task"] = BuildImageFromISO
+			step = 1
+		} else if len(releaseList) > 0 {
+			param["IDs"] = releaseList
+			param["task"] = BuildImageFromRelease
+			step = 2
+		}
+		paramBytes, _ = json.Marshal(param)
 		var req *http.Request
 		var err error
 		req, err = http.NewRequest("POST", util.GetConfig().BuildServer.ApiUrl+"/v1/jobs/batchQuery", strings.NewReader(string(paramBytes)))
@@ -512,6 +538,10 @@ func SyncJobStatus() {
 		tx := o.Exec(updateSql)
 		if tx.Error != nil {
 			util.Log.Errorln("title:UPDATE sync Error,reason:" + err.Error())
+		}
+		fmt.Println("---------------", step)
+		if step == 1 {
+			goto nextType
 		}
 		time.Sleep(time.Second * 30)
 	}
