@@ -261,7 +261,7 @@ func BuildFromISO(c *gin.Context) {
 	imageInputData.KickStartContent = strings.ReplaceAll(imageInputData.KickStartContent, "\n", "")
 	kickStartMap["content"] = imageInputData.KickStartContent
 	kickStartMap["name"] = imageInputData.KickStartName
-	folderName := baseimage.Checksum[0:3]
+
 	imageMap := make(map[string]interface{})
 	imageMap["name"] = baseimage.Name + "." + baseimage.ExtName
 	imageMap["url"] = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + folderName + "/" + baseimage.Checksum + "." + baseimage.ExtName
@@ -289,7 +289,7 @@ func BuildFromISO(c *gin.Context) {
 	}
 
 	paramBytes, _ = json.Marshal(result)
-	util.Log.Errorln("\n-------------------:", string(paramBytes))
+	util.Log.Debugln("\n-------------------:", string(paramBytes))
 
 	insertData.JobName = result["id"].(string)
 	outputName := fmt.Sprintf(`%s.%s`, insertData.JobName, baseimage.ExtName)
@@ -304,7 +304,7 @@ func BuildFromISO(c *gin.Context) {
 	insertData.JobDesc = imageInputData.Desc
 	insertData.JobType = models.BuildImageFromISO
 	insertData.Arch = baseimage.Arch
-	insertData.DownloadUrl = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + folderName + "/" + outputName
+	insertData.DownloadUrl = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + insertData.JobType + "/" + insertData.JobName[0:3] + "/" + outputName
 	insertData.Status = models.JOB_STATUS_START
 	err = models.AddJobLog(&insertData)
 	if err != nil {
