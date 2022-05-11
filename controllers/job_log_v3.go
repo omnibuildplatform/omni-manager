@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -292,7 +291,7 @@ func BuildFromISO(c *gin.Context) {
 	util.Log.Debugln("\n-------------------:", string(paramBytes))
 
 	insertData.JobName = result["id"].(string)
-	outputName := fmt.Sprintf(`%s.%s`, insertData.JobName, baseimage.ExtName)
+	// outputName := fmt.Sprintf(`%s.%s`, insertData.JobName, baseimage.ExtName)
 	insertData.Status = result["state"].(string)
 	insertData.StartTime, _ = time.Parse(time.RFC3339, result["startTime"].(string))
 	insertData.EndTime, _ = time.Parse(time.RFC3339, result["endTime"].(string))
@@ -304,7 +303,8 @@ func BuildFromISO(c *gin.Context) {
 	insertData.JobDesc = imageInputData.Desc
 	insertData.JobType = models.BuildImageFromISO
 	insertData.Arch = baseimage.Arch
-	insertData.DownloadUrl = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + insertData.JobType + "/" + insertData.JobName[0:3] + "/" + insertData.JobName + "/" + outputName
+
+	// insertData.DownloadUrl = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + insertData.JobType + "/" + insertData.JobName[0:3] + "/" + insertData.JobName + "/" + outputName
 
 	insertData.Status = models.JOB_STATUS_START
 	err = models.AddJobLog(&insertData)
