@@ -422,15 +422,10 @@ func CheckPodStatus(ns, jobname string) (result map[string]interface{}, job *bat
 	return
 }
 
-type jobNameType struct {
-	JobName string `json:"job_name"`
-	JobType string `json:"job_type"`
-}
-
 func SyncJobStatus() {
 	m := new(JobLog)
-	sql := fmt.Sprintf("select job_name,job_type from %s where status not in ('%s','%s','%s')", m.TableName(), JOB_STATUS_SUCCEED, JOB_STATUS_FAILED, JOB_STATUS_STOPPED)
-	var jobIdList []jobNameType
+	sql := fmt.Sprintf("select job_name from %s where status not in ('%s','%s','%s')", m.TableName(), JOB_STATUS_SUCCEED, JOB_STATUS_FAILED, JOB_STATUS_STOPPED)
+	var jobIdList []string
 	param := make(map[string]interface{})
 	param["service"] = "omni"
 	param["domain"] = "omni-build"
