@@ -533,7 +533,7 @@ func GetImagesAndKickStart(userid int) (result map[string]interface{}, err error
 	baseImagesList := make([]*miniBaseImage, 0)
 	kickStartList := make([]*miniKickstart, 0)
 	o := util.GetDB()
-	sql := fmt.Sprintf("select name,id from %s where  user_id = %d and status='done'", baseImages.TableName(), userid)
+	sql := fmt.Sprintf("select name,id from %s where  user_id = %d and status='%s'", baseImages.TableName(), userid, ImageStatusDone)
 	tx := o.Raw(sql).Find(&baseImagesList)
 	if tx.Error != nil {
 		return nil, tx.Error
