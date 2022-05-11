@@ -304,7 +304,8 @@ func BuildFromISO(c *gin.Context) {
 	insertData.JobDesc = imageInputData.Desc
 	insertData.JobType = models.BuildImageFromISO
 	insertData.Arch = baseimage.Arch
-	insertData.DownloadUrl = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + insertData.JobType + "/" + insertData.JobName + "/" + outputName
+	insertData.DownloadUrl = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + insertData.JobType + "/" + insertData.JobName[0:3] + "/" + insertData.JobName + "/" + outputName
+
 	insertData.Status = models.JOB_STATUS_START
 	err = models.AddJobLog(&insertData)
 	if err != nil {
