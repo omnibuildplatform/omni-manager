@@ -483,16 +483,16 @@ func SyncJobStatus() {
 			jobStatus.StartTime = string([]byte(jobStatus.StartTime)[:19])
 			jobStatus.EndTime = string([]byte(jobStatus.EndTime)[:19])
 			switch jobStatus.State {
-			case "JobFailed":
-				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN  'failed' ", jobStatus.Id)
-			case "JobSucceed":
-				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   'succeed' ", jobStatus.Id)
-			case "JobCreated":
-				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   'created' ", jobStatus.Id)
-			case "JobStopped":
-				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   'stopped' ", jobStatus.Id)
-			case "JobRunning":
-				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   'running' ", jobStatus.Id)
+			case JOB_BUILD_STATUS_FAILED:
+				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN  '%s' ", jobStatus.Id, JOB_STATUS_FAILED)
+			case JOB_BUILD_STATUS_SUCCEED:
+				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   '%s' ", jobStatus.Id, JOB_STATUS_SUCCEED)
+			case JOB_BUILD_STATUS_CREATED:
+				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   '%s' ", jobStatus.Id, JOB_STATUS_CREATED)
+			case JOB_BUILD_STATUS_STOPPED:
+				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   '%s' ", jobStatus.Id, JOB_STATUS_STOPPED)
+			case JOB_BUILD_STATUS_RUNNING:
+				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   '%s' ", jobStatus.Id, JOB_STATUS_RUNNING)
 			}
 			starttimeSql = starttimeSql + fmt.Sprintf(" WHEN job_name = '%s' THEN  STR_TO_DATE('%v','%s') ", jobStatus.Id, jobStatus.StartTime, dateformatStr)
 			endtimeSql = endtimeSql + fmt.Sprintf(" WHEN job_name = '%s' THEN  STR_TO_DATE('%v','%s') ", jobStatus.Id, jobStatus.EndTime, dateformatStr)

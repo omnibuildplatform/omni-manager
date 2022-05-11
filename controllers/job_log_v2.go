@@ -209,7 +209,18 @@ func GetOne(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
+	if result["state"] ==models.JOB_BUILD_STATUS_SUCCEED {
+		if result["task"] == models.BuildImageFromISO {
+			downloadURL := util.GetConfig().BuildServer.OmniRepoAPI + "/data/query?externalID=" + result["id"].(string)
+
+			c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result, downloadURL))
+
+		} else {
+			c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
+		}
+	} else {
+		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
+	}
 
 }
 

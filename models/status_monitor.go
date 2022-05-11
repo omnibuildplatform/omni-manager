@@ -25,6 +25,12 @@ const (
 	JOB_STATUS_FAILED  = "failed"
 	JOB_STATUS_CREATED = "created"
 	JOB_STATUS_STOPPED = "stopped"
+
+	JOB_BUILD_STATUS_SUCCEED = "JobSucceed"
+	JOB_BUILD_STATUS_FAILED  = "JobFailed"
+	JOB_BUILD_STATUS_CREATED = "JobCreated"
+	JOB_BUILD_STATUS_STOPPED = "JobStopped"
+	JOB_BUILD_STATUS_RUNNING = "JobRunning"
 )
 
 // write Message to Client
