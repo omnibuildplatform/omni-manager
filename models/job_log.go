@@ -551,7 +551,6 @@ func SyncJobStatus() {
 		if tx.Error != nil {
 			util.Log.Errorln("title:UPDATE sync Error,reason:" + err.Error())
 		}
-		fmt.Println("-----------:", updateSql)
 
 		time.Sleep(time.Second * 30)
 	}

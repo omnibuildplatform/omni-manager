@@ -4,7 +4,6 @@ WORKDIR /app
 COPY . /app
 RUN go mod download
 RUN CGO_ENABLED=0 go build -o omni-manager
-
 FROM alpine/git:v2.30.2
 ARG user=root 
 ARG group=root 
