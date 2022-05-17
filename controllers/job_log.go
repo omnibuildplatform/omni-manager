@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/omnibuildplatform/omni-manager/models"
 	"github.com/omnibuildplatform/omni-manager/util"
@@ -20,7 +19,7 @@ import (
 
 // @Summary StartBuild Job
 // @Description start a image build job
-// @Tags  v1 job
+// @Tags  v1 version
 // @Param	body		body 	models.BuildParam	true		"body for ImageMeta content"
 // @Accept json
 // @Produce json
@@ -88,7 +87,7 @@ func StartBuild(c *gin.Context) {
 	insertData.Status = models.JOB_STATUS_RUNNING
 	insertData.JobName = job.GetName()
 	insertData.CreateTime = job.GetCreationTimestamp().Time
-	insertData.DownloadUrl = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, insertData.Release, time.Now().In(util.CnTime).Format("2006-01-02"), outPutname)
+	insertData.DownloadUrl = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + insertData.Release + "/" + outPutname
 	err = models.AddJobLog(&insertData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, nil, err))
@@ -108,7 +107,7 @@ func StartBuild(c *gin.Context) {
 
 // @Summary QueryJobStatus
 // @Description QueryJobStatus for given job name
-// @Tags  v1 job
+// @Tags  v1 version
 // @Param	name		path 	string	true		"The name for job"
 // @Param	id		query 	string	false		"The id for job in database. "
 // @Param	ns		query 	string	false		"job namespace "
@@ -138,7 +137,7 @@ func QueryJobStatus(c *gin.Context) {
 
 // @Summary QueryJobLogs
 // @Description QueryJobLogs for given job name
-// @Tags  v1 job
+// @Tags  v1 version
 // @Param	name		path 	string	true		"The name for job"
 // @Accept json
 // @Produce json
@@ -177,7 +176,7 @@ func QueryJobLogs(c *gin.Context) {
 
 // @Summary GetBaseData param
 // @Description get architecture, release Version, output Format ,and default package name list
-// @Tags  v1 job
+// @Tags  v1 version
 // @Accept json
 // @Produce json
 // @Router /v1/images/param/getBaseData/ [get]
@@ -189,7 +188,7 @@ func GetBaseData(c *gin.Context) {
 
 // @Summary GetCustomePkgList param
 // @Description get custom package name list
-// @Tags  v1 job
+// @Tags  v1 version
 // @Param	arch		query 	string	true		" arch ,e g:x86_64"
 // @Param	release		query 	string	true		"release  "
 // @Param	sig		query 	string	true		"custom group  "
@@ -221,7 +220,7 @@ func GetCustomePkgList(c *gin.Context) {
 
 // @Summary QueryMyHistory
 // @Description Query My History
-// @Tags  v1 job
+// @Tags  v1 version
 // @Param	arch		query 	string	false		"arch"
 // @Param	status		query 	string	false		"status"
 // @Param	type		query 	string	false		"build type"

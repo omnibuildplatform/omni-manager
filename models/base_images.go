@@ -1,24 +1,35 @@
 package models
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/omnibuildplatform/omni-manager/util"
 )
 
+const (
+	ImageStatusStart       string = "created"
+	ImageStatusDownloading string = "downloading"
+	ImageStatusDone        string = "succeed"
+	ImageStatusFailed      string = "failed"
+)
+
 type BaseImagesKickStart struct {
-	BaseImageID      int    ` description:"id"`
+	Label            string ` description:"name"`
+	Desc             string ` description:"desc"`
+	BaseImageID      string ` description:"BaseImages ID"`
 	KickStartContent string ` description:"KickStart Content"`
+	KickStartName    string ` description:"KickStart name"`
 }
 
 type BaseImages struct {
 	ID         int       ` description:"id" gorm:"primaryKey"`
 	Name       string    ` description:"name"`
+	ExtName    string    ` description:"ext name"`
 	Desc       string    ` description:"desc"`
-	checksum   string    ` description:"checksum"`
-	Url        string    ` description:"url"`
+	Checksum   string    ` description:"checksum"`
+	Url        string    ` description:"url" gorm:"-"`
 	Arch       string    ` description:"arch"`
+	Status     string    ` description:"status"`
 	UserId     int       ` description:"user id"`
 	CreateTime time.Time ` description:"create time"`
 }
@@ -31,38 +42,58 @@ func (t *BaseImages) TableName() string {
 // last inserted Id on success.
 func AddBaseImages(m *BaseImages) (err error) {
 	o := util.GetDB()
-	result := o.FirstOrCreate(m)
+	result := o.Create(m)
 	return result.Error
 }
 
-func GetBaseImagesByJobName(jobname string) (v *BaseImages, err error) {
+func GetBaseImagesByID(id int) (v *BaseImages, err error) {
 	o := util.GetDB()
+
 	v = new(BaseImages)
-	sql := fmt.Sprintf("select * from %s where job_name = '%s' order by create_time desc limit 1", v.TableName(), jobname)
-	tx := o.Raw(sql).Scan(v)
+	v.ID = id
+	tx := o.Model(v).Find(v)
+	if tx.RowsAffected == 0 {
+		return nil, tx.Error
+	}
 	return v, tx.Error
 }
 
-// GetAllBaseImages retrieves all BaseImages matches certain condition. Returns empty list if
-// no records exist
-func GetAllBaseImages(query map[string]string, fields []string, sortby []string, order []string,
-	offset int64, limit int64) (ml []interface{}, err error) {
-	return nil, err
+// GetMyBaseImages
+func GetMyBaseImages(userid int, offset int, limit int) (total int64, ml []*BaseImages, err error) {
+	o := util.GetDB()
+	baseImages := new(BaseImages)
+	tx := o.Model(baseImages).Where("user_id", userid)
+	tx.Count(&total)
+	tx.Limit(limit).Offset(offset).Order("id desc").Scan(&ml)
+	return
 }
 
 // DeleteBaseImagesById
-func DeleteBaseImagesById(userid, id int) (err error) {
+func DeleteBaseImagesById(userid, id int) (deleteNum int, err error) {
 	o := util.GetDB()
 	m := new(BaseImages)
 	m.ID = id
-	m.UserId = userid
-	result := o.Delete(m)
-	return result.Error
+	result := o.Debug().Model(m).Where("user_id", userid).Delete(m)
+	return int(result.RowsAffected), result.Error
 }
 
 // UpdateBaseImages
 func UpdateBaseImages(m *BaseImages) (err error) {
 	o := util.GetDB()
-	result := o.Updates(m)
+	result := o.Model(m).Select("checksum", "name", "desc", "url", "arch", "status").Updates(m)
+	if result.Error != nil {
+		return result.Error
+	}
+	result = o.Find(m)
+	return result.Error
+}
+
+// UpdateBaseImagesStatus
+func UpdateBaseImagesStatus(m *BaseImages) (err error) {
+	o := util.GetDB()
+	result := o.Debug().Model(m).Select("status").Updates(m)
+	if result.Error != nil {
+		return result.Error
+	}
 	return result.Error
 }

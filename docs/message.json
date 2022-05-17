@@ -1,0 +1,28 @@
+[
+  {
+    "specversion": "1.0",
+    "type": "com.github.pull.create",
+    "source": "https://github.com/cloudevents/spec/pull",
+    "subject": "123",
+    "id": "A234-1234-1234",
+    "time": "2018-04-05T17:31:00Z",
+    "datacontenttype": "text/json",
+    "data": {}
+  },
+  {
+    "specversion": "1.0",
+    "type": "omni-imager.create",
+    "source": "github.com/omnibuildplatform/omni-manager/models",
+    "subject": "build from iso",
+    "id": "A234-1234-1234",
+    "time": "2022-04-05T17:31:00Z",
+    "datacontenttype": "text/json",
+    "data": {
+      "baseImageID": "92",
+      "desc": "使用OpenEuler 22-04构建任务",
+      "kickStartContent": " keyboard --vckeymap=us --xlayouts='us'   timezone Asia/Shanghai --isUtc --nontp  %packages --multilib @core glibc.i686  gcc gdb make %end %post grub2-set-default 1 %end",
+      "kickStartName": "带有logo 和安装分区的ks",
+      "label": "2022级学生版OpenEuler "
+    }
+  }
+]

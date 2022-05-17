@@ -66,7 +66,7 @@ type BuildParam struct {
 	OpeneulerMinimal string   `json:"openeulerMinimal"`
 	CustomRpmAPI     string   `json:"customRpmAPI"`
 	PackageName      string   `json:"packageName"`
-	DownloadIsoUrl   string   `json:"downloadIsoUrl"`
+	// DownloadIsoUrl   string   `json:"downloadIsoUrl"`
 }
 type PkgList struct {
 	Packages []string `json:"packages"`
@@ -96,7 +96,8 @@ type JwtConfig struct {
 
 //Build Server
 type BuildServer struct {
-	ApiUrl string `json:"apiUrl"`
+	ApiUrl      string `json:"apiUrl"`
+	OmniRepoAPI string `json:"omniRepoAPI"`
 }
 
 //Statistic function
@@ -186,6 +187,9 @@ func InitConfig(path string) {
 	}
 	if os.Getenv("BUILIDER_API") != "" {
 		cfg.BuildServer.ApiUrl = os.Getenv("BUILIDER_API")
+	}
+	if os.Getenv("OMNI_REPO_API") != "" {
+		cfg.BuildServer.OmniRepoAPI = os.Getenv("OMNI_REPO_API")
 	}
 
 	// load openeuler_minimal.json file from github resp, and reload and update it'data every night at 3:00 / beijing

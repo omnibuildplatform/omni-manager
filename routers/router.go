@@ -50,7 +50,24 @@ func InitRouter() *gin.Engine {
 		v2.GET("/images/getMySummary", controllers.GetMySummary)
 		v2.DELETE("/images/stopJob/:id", controllers.StopJobBuild)
 	}
+	//version 3. build from baseImage iso
+	v3 := r.Group(docs.SwaggerInfo.BasePath + "/v3")
+	{
+		v3.GET("/baseImages/repoCallback/:id", controllers.RepoSavedCallBack)
+		v3.Use(models.Authorize()) //
+		v3.POST("/images/buildFromIso", controllers.BuildFromISO)
+		v3.POST("/baseImages/import", controllers.ImportBaseImages)
+		v3.GET("/baseImages/:id", controllers.ListBaseImages)
+		v3.PUT("/baseImages/:id", controllers.UpdateBaseImages)
+		v3.DELETE("/baseImages/:id", controllers.DeletBaseImages)
+		v3.POST("/kickStart", controllers.AddKickStart)
+		v3.GET("/kickStart/list", controllers.ListKickStart)
+		v3.PUT("/kickStart/:id", controllers.UpdateKickStart)
+		v3.GET("/kickStart/:id", controllers.GetKickStartByID)
+		v3.DELETE("/kickStart/:id", controllers.DeleteKickStart)
+		v3.GET("/getImagesAndKickStart", controllers.GetImagesAndKickStart)
 
+	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	return r
 }

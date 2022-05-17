@@ -18,7 +18,7 @@ import (
 
 // @Summary Create Job
 // @Description start a image build job
-// @Tags  v2 job
+// @Tags  v2 version
 // @Param	body		body 	models.BuildParam	true		"body for ImageMeta content"
 // @Accept json
 // @Produce json
@@ -47,6 +47,7 @@ func CreateJob(c *gin.Context) {
 	insertData.Release = imageInputData.Release
 	insertData.BuildType = imageInputData.BuildType
 	insertData.JobLabel = imageInputData.Label
+	insertData.JobType = models.BuildImageFromRelease
 	insertData.JobDesc = imageInputData.Desc
 	if insertData.JobLabel == "" {
 		insertData.JobLabel = insertData.UserName + "_" + insertData.Arch + "_" + insertData.Release
@@ -113,30 +114,28 @@ func CreateJob(c *gin.Context) {
 	param := make(map[string]interface{})
 	param["service"] = "omni"
 	param["domain"] = "omni-build"
-	param["task"] = "buildImage"
+	param["task"] = models.BuildImageFromRelease
 	param["engine"] = "kubernetes"
 	param["userID"] = strconv.Itoa(insertData.UserId)
 	param["spec"] = specMap
 	paramBytes, _ := json.Marshal(param)
 	delete(specMap, "packages")
-
 	result, err := util.HTTPPost(util.GetConfig().BuildServer.ApiUrl+"/v1/jobs", string(paramBytes))
 	if err != nil {
 		sd.State = "failed"
 		sd.StateMessage = err.Error()
 		util.StatisticsLog(&sd)
-		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "HTTPPost Error", err))
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "HTTPPost Error", err.Error()))
 		return
 	}
 	// util.Log.Debug(util.GetConfig().BuildServer.ApiUrl, "v2 CreateJob:------------:", result)
 	insertData.JobName = result["id"].(string)
 	outputName := fmt.Sprintf(`openEuler-%s.iso`, result["id"])
 	insertData.Status = result["state"].(string)
-
 	insertData.StartTime, _ = time.Parse(time.RFC3339, result["startTime"].(string))
 	insertData.EndTime, _ = time.Parse(time.RFC3339, result["endTime"].(string))
-	insertData.DownloadUrl = fmt.Sprintf(util.GetConfig().BuildParam.DownloadIsoUrl, insertData.Release, time.Now().In(util.CnTime).Format("2006-01-02"), outputName)
-	insertData.Status = models.JOB_STATUS_START
+	insertData.DownloadUrl = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + insertData.Release + "/" + time.Now().In(util.CnTime).Format("2006-01-02") + "/" + outputName
+	insertData.Status = models.JOB_STATUS_CREATED
 	err = models.AddJobLog(&insertData)
 	if err != nil {
 		sd.State = "failed"
@@ -154,7 +153,7 @@ func CreateJob(c *gin.Context) {
 
 // @Summary GetJobParam
 // @Description get job build param
-// @Tags  v2 job
+// @Tags  v2 version
 // @Param	id		path 	string	true		"job id"
 // @Accept json
 // @Produce json
@@ -183,8 +182,9 @@ func GetJobParam(c *gin.Context) {
 
 // @Summary get single job detail
 // @Description get single job detail
-// @Tags  v2 job
+// @Tags  v2 version
 // @Param	id		path 	string	true		"job id"
+// @Param	jobtype		query 	string	true		"job type"
 // @Accept json
 // @Produce json
 // @Router /v2/images/getOne/{id} [get]
@@ -197,24 +197,34 @@ func GetOne(c *gin.Context) {
 	param := url.Values{}
 	param.Add("service", "omni")
 	param.Add("domain", "omni-build")
-	param.Add("task", "buildimagefromrelease")
+	jobtype := c.Query("jobtype")
+	if len(jobtype) == 0 {
+		jobtype = models.BuildImageFromRelease
+	}
+	param.Add("task", jobtype)
 	param.Add("ID", id)
 	result, err := util.HTTPGet(util.GetConfig().BuildServer.ApiUrl+"/v1/jobs", param)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, nil, err))
 		return
 	}
+	if result["state"] == models.JOB_BUILD_STATUS_SUCCEED {
+		downloadURL := util.GetConfig().BuildServer.OmniRepoAPI + "/data/query?externalID=" + result["id"].(string)
 
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
+		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result, downloadURL))
+	} else {
+		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
+	}
 
 }
 
 // @Summary get single job logs
 // @Description get single job logs
-// @Tags  v2 job
+// @Tags  v2 version
 // @Param	id		path 	string	true		"job id"
 // @Param	stepID		query 	string	true		"step id"
 // @Param	uuid		query 	string	false		"uuid"
+// @Param	jobtype		query 	string	true		"job type"
 // @Accept json
 // @Produce json
 // @Router /v2/images/getLogsOf/{id} [get]
@@ -229,7 +239,11 @@ func GetJobLogs(c *gin.Context) {
 	param := url.Values{}
 	param.Set("service", "omni")
 	param.Set("domain", "omni-build")
-	param.Set("task", "buildimagefromrelease")
+	jobtype := c.Query("jobtype")
+	if len(jobtype) == 0 {
+		jobtype = models.BuildImageFromRelease
+	}
+	param.Set("task", jobtype)
 	param.Set("ID", id)
 	param.Set("stepID", strconv.Itoa(stepID))
 	if len(uuid) > 0 {
@@ -279,8 +293,9 @@ func GetJobLogs(c *gin.Context) {
 
 // @Summary StopJobBuild
 // @Description Stop Job Build
-// @Tags  v2 job
+// @Tags  v2 version
 // @Param	id		path 	string	true		"job id"
+// @Param	jobtype		query 	string	true		"job type"
 // @Accept json
 // @Produce json
 // @Router /v2/images/stopJob/{id} [delete]
@@ -294,7 +309,11 @@ func StopJobBuild(c *gin.Context) {
 	param := url.Values{}
 	param.Set("service", "omni")
 	param.Set("domain", "omni-build")
-	param.Set("task", "buildimagefromrelease")
+	jobtype := c.Query("jobtype")
+	if len(jobtype) == 0 {
+		jobtype = models.BuildImageFromRelease
+	}
+	param.Set("task", jobtype)
 	param.Set("ID", id)
 	var req *http.Request
 	var err error
@@ -332,7 +351,7 @@ func StopJobBuild(c *gin.Context) {
 
 // @Summary deleteRecord
 // @Description delete multipule job build records
-// @Tags  v2 job
+// @Tags  v2 version
 // @Param	body		body 	[]string	true		"job id list"
 // @Accept json
 // @Produce json
@@ -379,7 +398,7 @@ func DeleteJobLogs(c *gin.Context) {
 
 // @Summary MySummary
 // @Description get my summary
-// @Tags  v2 job
+// @Tags  v2 version
 // @Accept json
 // @Produce json
 // @Router /v2/images/getMySummary [get]
