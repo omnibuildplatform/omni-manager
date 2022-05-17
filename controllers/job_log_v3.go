@@ -269,7 +269,7 @@ func BuildFromISO(c *gin.Context) {
 
 	imageMap := make(map[string]interface{})
 	imageMap["name"] = baseimage.Name + "." + baseimage.ExtName
-	imageMap["url"] = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + baseimage.Checksum[0:3] + "/" + baseimage.Checksum + "." + baseimage.ExtName
+	imageMap["url"] = util.GetConfig().BuildServer.OmniRepoAPIInternal + "/data/browse/" + baseimage.Checksum[0:3] + "/" + baseimage.Checksum + "." + baseimage.ExtName
 	imageMap["checksum"] = baseimage.Checksum
 	imageMap["architecture"] = baseimage.Arch
 

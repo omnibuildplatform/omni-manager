@@ -40,8 +40,7 @@
             "installer-iso"
         ],
         "openeulerMinimal": "https://raw.githubusercontent.com/omnibuildplatform/omni-imager/main/etc/%s.json",
-        "customRpmAPI": "http://119.8.161.105:6666",
-        "downloadIsoUrl": "https://myrepo:8500/data/browse/%s/%s"
+        "customRpmAPI": "http://119.8.161.105:6666"
     },
     "k8s": {
         "namespace": "omni-manager",
@@ -59,7 +58,8 @@
     },
     "buildServer": {
         "apiUrl": "https://log.test.osinfra.cn",
-        "omniRepoAPI":"http://myrepo:8500"
+        "omniRepoAPI":"http://myrepo:8500",
+        "omniRepoAPIInternal":"http://omni-repository.omni-repository.svc.cluster.local:8500"
     },
     "statistic": {
         "dir": "/var/logs/omni-manager",
