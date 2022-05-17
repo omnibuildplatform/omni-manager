@@ -59,7 +59,7 @@
     "buildServer": {
         "apiUrl": "https://log.test.osinfra.cn",
         "omniRepoAPI":"http://myrepo:8500",
-        "omniRepoAPIInternal":"http://omni-repository.omni-repository.svc.cluster.local:8500"
+        "omniRepoAPIInternal":"http://omni-repository.omni-repository.svc.cluster.local"
     },
     "statistic": {
         "dir": "/var/logs/omni-manager",
