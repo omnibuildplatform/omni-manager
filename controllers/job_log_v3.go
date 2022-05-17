@@ -97,14 +97,20 @@ func ImportBaseImages(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "ReadAll", err))
 		return
 	}
+	title := "ok."
 	if resp.StatusCode >= 400 {
 		c.Data(http.StatusBadRequest, binding.MIMEJSON, respBody)
 		return
-	}
+	} else if resp.StatusCode == http.StatusAlreadyReported {
+		imageInputData.Status = models.ImageStatusDone
+		title = models.ImageStatusDone
+		sd.StateMessage = "使用已经存在的image"
+		models.UpdateBaseImagesStatus(&imageInputData)
 
+	}
 	sd.Body = imageInputData
 	util.StatisticsLog(&sd)
-	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", imageInputData))
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, title, imageInputData))
 
 }
 
@@ -257,13 +263,13 @@ func BuildFromISO(c *gin.Context) {
 	var insertData models.JobLog
 	kickStartMap := make(map[string]interface{})
 
-	imageInputData.KickStartContent = strings.ReplaceAll(imageInputData.KickStartContent, "\n", "")
+	imageInputData.KickStartContent = strings.ReplaceAll(imageInputData.KickStartContent, "\n", "  ")
 	kickStartMap["content"] = imageInputData.KickStartContent
 	kickStartMap["name"] = imageInputData.KickStartName
 
 	imageMap := make(map[string]interface{})
 	imageMap["name"] = baseimage.Name + "." + baseimage.ExtName
-	imageMap["url"] = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + baseimage.Checksum[0:3] + "/" + baseimage.Checksum + "." + baseimage.ExtName
+	imageMap["url"] = util.GetConfig().BuildServer.OmniRepoAPIInternal + "/data/browse/" + baseimage.Checksum[0:3] + "/" + baseimage.Checksum + "." + baseimage.ExtName
 	imageMap["checksum"] = baseimage.Checksum
 	imageMap["architecture"] = baseimage.Arch
 
@@ -288,10 +294,8 @@ func BuildFromISO(c *gin.Context) {
 	}
 
 	paramBytes, _ = json.Marshal(result)
-	util.Log.Debugln("\n-------------------:", string(paramBytes))
 
 	insertData.JobName = result["id"].(string)
-	// outputName := fmt.Sprintf(`%s.%s`, insertData.JobName, baseimage.ExtName)
 	insertData.Status = result["state"].(string)
 	insertData.StartTime, _ = time.Parse(time.RFC3339, result["startTime"].(string))
 	insertData.EndTime, _ = time.Parse(time.RFC3339, result["endTime"].(string))
@@ -304,9 +308,14 @@ func BuildFromISO(c *gin.Context) {
 	insertData.JobType = models.BuildImageFromISO
 	insertData.Arch = baseimage.Arch
 
-	// insertData.DownloadUrl = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + insertData.JobType + "/" + insertData.JobName[0:3] + "/" + insertData.JobName + "/" + outputName
+	if insertData.JobLabel == "" {
+		insertData.JobLabel = insertData.UserName + "_" + insertData.Arch + "_" + insertData.Release
+	}
+	if insertData.JobDesc == "" {
+		insertData.JobDesc = "this image was built from baseImages "
+	}
 
-	insertData.Status = models.JOB_STATUS_START
+	insertData.Status = models.JOB_STATUS_CREATED
 	err = models.AddJobLog(&insertData)
 	if err != nil {
 		sd.State = "failed"

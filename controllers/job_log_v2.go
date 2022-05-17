@@ -135,7 +135,7 @@ func CreateJob(c *gin.Context) {
 	insertData.StartTime, _ = time.Parse(time.RFC3339, result["startTime"].(string))
 	insertData.EndTime, _ = time.Parse(time.RFC3339, result["endTime"].(string))
 	insertData.DownloadUrl = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + insertData.Release + "/" + time.Now().In(util.CnTime).Format("2006-01-02") + "/" + outputName
-	insertData.Status = models.JOB_STATUS_START
+	insertData.Status = models.JOB_STATUS_CREATED
 	err = models.AddJobLog(&insertData)
 	if err != nil {
 		sd.State = "failed"
@@ -208,16 +208,10 @@ func GetOne(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, nil, err))
 		return
 	}
-
 	if result["state"] == models.JOB_BUILD_STATUS_SUCCEED {
-		if result["task"] == models.BuildImageFromISO {
-			downloadURL := util.GetConfig().BuildServer.OmniRepoAPI + "/data/query?externalID=" + result["id"].(string)
+		downloadURL := util.GetConfig().BuildServer.OmniRepoAPI + "/data/query?externalID=" + result["id"].(string)
 
-			c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result, downloadURL))
-
-		} else {
-			c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
-		}
+		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result, downloadURL))
 	} else {
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
 	}

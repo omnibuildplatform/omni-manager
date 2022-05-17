@@ -50,7 +50,7 @@ func InitRouter() *gin.Engine {
 		v2.GET("/images/getMySummary", controllers.GetMySummary)
 		v2.DELETE("/images/stopJob/:id", controllers.StopJobBuild)
 	}
-	//version 3.
+	//version 3. build from baseImage iso
 	v3 := r.Group(docs.SwaggerInfo.BasePath + "/v3")
 	{
 		v3.GET("/baseImages/repoCallback/:id", controllers.RepoSavedCallBack)

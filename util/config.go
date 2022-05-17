@@ -66,7 +66,6 @@ type BuildParam struct {
 	OpeneulerMinimal string   `json:"openeulerMinimal"`
 	CustomRpmAPI     string   `json:"customRpmAPI"`
 	PackageName      string   `json:"packageName"`
-	// DownloadIsoUrl   string   `json:"downloadIsoUrl"`
 }
 type PkgList struct {
 	Packages []string `json:"packages"`
@@ -96,8 +95,9 @@ type JwtConfig struct {
 
 //Build Server
 type BuildServer struct {
-	ApiUrl      string `json:"apiUrl"`
-	OmniRepoAPI string `json:"omniRepoAPI"`
+	ApiUrl              string `json:"apiUrl"`
+	OmniRepoAPI         string `json:"omniRepoAPI"`
+	OmniRepoAPIInternal string `json:"omniRepoAPIInternal"`
 }
 
 //Statistic function
