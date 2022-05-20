@@ -53,6 +53,8 @@ type JobLog struct {
 	StartTime     time.Time ` description:"create time"`
 	EndTime       time.Time ` description:"create time"`
 	JobType       string    ` description:"job type"`
+	KickStartID   int       ` description:"KickStart id"  `
+	BaseImageID   int       ` description:"BaseImage id"  `
 }
 type SummaryStatus struct {
 	Succeed int `json:"succeed"`
@@ -212,6 +214,18 @@ func CreateTables() (err error) {
 	}
 	if !o.Migrator().HasColumn(&JobLog{}, "job_type") {
 		err = o.Migrator().AddColumn(&JobLog{}, "job_type")
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
+	}
+	if !o.Migrator().HasColumn(&JobLog{}, "base_image_id") {
+		err = o.Migrator().AddColumn(&JobLog{}, "base_image_id")
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
+	}
+	if !o.Migrator().HasColumn(&JobLog{}, "kick_start_id") {
+		err = o.Migrator().AddColumn(&JobLog{}, "kick_start_id")
 		if err != nil {
 			util.Log.Errorf("CreateTables Error:%s ", err)
 		}
