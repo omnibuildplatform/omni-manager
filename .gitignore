@@ -12,7 +12,7 @@
 *.dylib
 # Test binary, built with `go test -c`
 *.test
-omni-manager
+*-API
 conf/app_prod.json
 statisticslog/
 # Output of the go coverage tool, specifically when used with LiteIDE
