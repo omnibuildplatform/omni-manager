@@ -307,12 +307,13 @@ func BuildFromISO(c *gin.Context) {
 	insertData.JobDesc = imageInputData.Desc
 	insertData.JobType = models.BuildImageFromISO
 	insertData.Arch = baseimage.Arch
-
+	insertData.KickStartID = imageInputData.KickStartID
+	insertData.BaseImageID = imageInputData.BaseImageID
 	if insertData.JobLabel == "" {
 		insertData.JobLabel = insertData.UserName + "_" + insertData.Arch + "_" + insertData.Release
 	}
 	if insertData.JobDesc == "" {
-		insertData.JobDesc = "this image was built from baseImages "
+		insertData.JobDesc = "this image was built from custom baseImages "
 	}
 
 	insertData.Status = models.JOB_STATUS_CREATED
