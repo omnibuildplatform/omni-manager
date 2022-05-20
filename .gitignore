@@ -12,7 +12,7 @@
 *.dylib
 # Test binary, built with `go test -c`
 *.test
-metaAPI
+omni-manager
 conf/app_prod.json
 statisticslog/
 # Output of the go coverage tool, specifically when used with LiteIDE
@@ -20,3 +20,4 @@ statisticslog/
 # Dependency directories (remove the comment below to include it)
 # vendor/
 swagger.zip
+linux.bat

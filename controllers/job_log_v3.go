@@ -61,7 +61,7 @@ func ImportBaseImages(c *gin.Context) {
 	imageInputData.UserId, _ = strconv.Atoi(c.Keys["id"].(string))
 	imageInputData.Status = models.ImageStatusStart
 	imageInputData.ExtName = extName
-	imageInputData.Checksum = strings.ToUpper(imageInputData.Checksum)
+	imageInputData.Checksum = strings.ToLower(imageInputData.Checksum)
 	err = models.AddBaseImages(&imageInputData)
 	if err != nil {
 		sd.State = "failed"
