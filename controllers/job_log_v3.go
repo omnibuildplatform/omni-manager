@@ -260,6 +260,7 @@ func BuildFromISO(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "GetBaseImagesByID", sd.StateMessage))
 		return
 	}
+	baseimage.Checksum = strings.ToLower(baseimage.Checksum)
 	var insertData models.JobLog
 	kickStartMap := make(map[string]interface{})
 
@@ -309,6 +310,7 @@ func BuildFromISO(c *gin.Context) {
 	insertData.Arch = baseimage.Arch
 	insertData.KickStartID = imageInputData.KickStartID
 	insertData.BaseImageID = imageInputData.BaseImageID
+	insertData.KickStartContent = imageInputData.KickStartContent
 	if insertData.JobLabel == "" {
 		insertData.JobLabel = insertData.UserName + "_" + insertData.Arch + "_" + insertData.Release
 	}

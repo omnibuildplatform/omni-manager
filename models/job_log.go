@@ -36,25 +36,26 @@ type BuildParam struct {
 	Desc      string   ` description:"description"`
 }
 type JobLog struct {
-	JobName       string    ` description:"pod name" gorm:"primaryKey"`
-	Arch          string    ` description:"architecture"`
-	Release       string    ` description:"release openEuler Version"`
-	BuildType     string    ` description:"iso , zip ...."`
-	BasePkg       string    ` gorm:"size:5055"  description:"default package"`
-	CustomPkg     string    ` gorm:"size:5055" description:"custom"`
-	UserId        int       ` description:"user id"  gorm:"index:"`
-	UserName      string    ` description:"user name"`
-	CreateTime    time.Time ` description:"create time"`
-	Status        string    ` description:"current status :running ,success, failed" gorm:"index"`
-	DownloadUrl   string    ` description:"download the result of build iso file"`
-	ConfigMapName string    ` description:"configMap name"`
-	JobLabel      string    ` description:"job label"`
-	JobDesc       string    ` description:"job description"`
-	StartTime     time.Time ` description:"create time"`
-	EndTime       time.Time ` description:"create time"`
-	JobType       string    ` description:"job type"`
-	KickStartID   string    ` description:"KickStart id"  `
-	BaseImageID   string    ` description:"BaseImage id"  `
+	JobName          string    ` description:"pod name" gorm:"primaryKey"`
+	Arch             string    ` description:"architecture"`
+	Release          string    ` description:"release openEuler Version"`
+	BuildType        string    ` description:"iso , zip ...."`
+	BasePkg          string    ` gorm:"size:5055"  description:"default package"`
+	CustomPkg        string    ` gorm:"size:5055" description:"custom"`
+	UserId           int       ` description:"user id"  gorm:"index:"`
+	UserName         string    ` description:"user name"`
+	CreateTime       time.Time ` description:"create time"`
+	Status           string    ` description:"current status :running ,success, failed" gorm:"index"`
+	DownloadUrl      string    ` description:"download the result of build iso file"`
+	ConfigMapName    string    ` description:"configMap name"`
+	JobLabel         string    ` description:"job label"`
+	JobDesc          string    ` description:"job description"`
+	StartTime        time.Time ` description:"create time"`
+	EndTime          time.Time ` description:"create time"`
+	JobType          string    ` description:"job type"`
+	KickStartID      string    ` description:"KickStart id"  `
+	BaseImageID      string    ` description:"BaseImage id"  `
+	KickStartContent string    ` description:"kick_start_content"  `
 }
 type SummaryStatus struct {
 	Succeed int `json:"succeed"`
@@ -226,6 +227,12 @@ func CreateTables() (err error) {
 	}
 	if !o.Migrator().HasColumn(&JobLog{}, "kick_start_id") {
 		err = o.Migrator().AddColumn(&JobLog{}, "kick_start_id")
+		if err != nil {
+			util.Log.Errorf("CreateTables Error:%s ", err)
+		}
+	}
+	if !o.Migrator().HasColumn(&JobLog{}, "kick_start_content") {
+		err = o.Migrator().AddColumn(&JobLog{}, "kick_start_content")
 		if err != nil {
 			util.Log.Errorf("CreateTables Error:%s ", err)
 		}
