@@ -53,8 +53,8 @@ type JobLog struct {
 	StartTime     time.Time ` description:"create time"`
 	EndTime       time.Time ` description:"create time"`
 	JobType       string    ` description:"job type"`
-	KickStartID   int       ` description:"KickStart id"  `
-	BaseImageID   int       ` description:"BaseImage id"  `
+	KickStartID   string    ` description:"KickStart id"  `
+	BaseImageID   string    ` description:"BaseImage id"  `
 }
 type SummaryStatus struct {
 	Succeed int `json:"succeed"`
