@@ -61,7 +61,7 @@ func ImportBaseImages(c *gin.Context) {
 	imageInputData.UserId, _ = strconv.Atoi(c.Keys["id"].(string))
 	imageInputData.Status = models.ImageStatusStart
 	imageInputData.ExtName = extName
-	imageInputData.Checksum = strings.ToUpper(imageInputData.Checksum)
+	imageInputData.Checksum = strings.ToLower(imageInputData.Checksum)
 	err = models.AddBaseImages(&imageInputData)
 	if err != nil {
 		sd.State = "failed"
@@ -260,6 +260,7 @@ func BuildFromISO(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "GetBaseImagesByID", sd.StateMessage))
 		return
 	}
+	baseimage.Checksum = strings.ToLower(baseimage.Checksum)
 	var insertData models.JobLog
 	kickStartMap := make(map[string]interface{})
 
@@ -307,12 +308,14 @@ func BuildFromISO(c *gin.Context) {
 	insertData.JobDesc = imageInputData.Desc
 	insertData.JobType = models.BuildImageFromISO
 	insertData.Arch = baseimage.Arch
-
+	insertData.KickStartID = imageInputData.KickStartID
+	insertData.BaseImageID = imageInputData.BaseImageID
+	insertData.KickStartContent = imageInputData.KickStartContent
 	if insertData.JobLabel == "" {
 		insertData.JobLabel = insertData.UserName + "_" + insertData.Arch + "_" + insertData.Release
 	}
 	if insertData.JobDesc == "" {
-		insertData.JobDesc = "this image was built from baseImages "
+		insertData.JobDesc = "this image was built from custom baseImages "
 	}
 
 	insertData.Status = models.JOB_STATUS_CREATED

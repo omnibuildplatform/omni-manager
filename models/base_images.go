@@ -17,6 +17,7 @@ type BaseImagesKickStart struct {
 	Label            string ` description:"name"`
 	Desc             string ` description:"desc"`
 	BaseImageID      string ` description:"BaseImages ID"`
+	KickStartID      string ` description:"KickStart ID"`
 	KickStartContent string ` description:"KickStart Content"`
 	KickStartName    string ` description:"KickStart name"`
 }
