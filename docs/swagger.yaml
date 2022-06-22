@@ -1,123 +1,739 @@
 definitions:
-  models.ImageInputData:
+  models.BaseImages:
     properties:
-      architecture:
+      algorithm:
         type: string
-      basePkg:
-        items:
-          $ref: '#/definitions/models.pkgData'
-        type: array
-      customPkg:
-        items:
-          $ref: '#/definitions/models.pkgData'
-        type: array
-      eulerVersion:
+      arch:
+        type: string
+      checksum:
+        type: string
+      createTime:
+        type: string
+      desc:
+        type: string
+      extName:
         type: string
       id:
         type: integer
-      outFormat:
+      name:
+        type: string
+      status:
+        type: string
+      url:
+        type: string
+      userId:
+        type: integer
+    required:
+    - algorithm
+    - checksum
+    - desc
+    - name
+    type: object
+  models.BaseImagesKickStart:
+    properties:
+      baseImageID:
+        type: string
+      desc:
+        type: string
+      kickStartContent:
+        type: string
+      kickStartID:
+        type: string
+      kickStartName:
+        type: string
+      label:
         type: string
     type: object
-  models.pkgData:
+  models.BuildParam:
     properties:
-      pkgMd5:
+      arch:
+        description: Id        int      `gorm:"primaryKey"`
         type: string
-      pkgName:
+      buildType:
         type: string
+      customPkg:
+        items:
+          type: string
+        type: array
+      desc:
+        type: string
+      label:
+        type: string
+      release:
+        type: string
+    type: object
+  models.CreateUserInput:
+    properties:
+      address:
+        type: string
+      birthdate:
+        type: string
+      blocked:
+        type: boolean
+      browser:
+        type: string
+      company:
+        type: string
+      country:
+        type: string
+      device:
+        type: string
+      email:
+        type: string
+      emailVerified:
+        type: boolean
+      externalId:
+        type: string
+      familyName:
+        type: string
+      formatted:
+        type: string
+      gender:
+        type: string
+      givenName:
+        type: string
+      isDeleted:
+        type: boolean
+      lastIP:
+        type: string
+      lastLogin:
+        type: string
+      locale:
+        type: string
+      locality:
+        type: string
+      loginsCount:
+        type: integer
+      middleName:
+        type: string
+      name:
+        type: string
+      nickname:
+        type: string
+      oauth:
+        type: string
+      openid:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      phoneVerified:
+        type: boolean
+      photo:
+        type: string
+      postalCode:
+        type: string
+      preferredUsername:
+        type: string
+      profile:
+        type: string
+      region:
+        type: string
+      registerSource:
+        items:
+          type: string
+        type: array
+      signedUp:
+        type: string
+      streetAddress:
+        type: string
+      unionid:
+        type: string
+      username:
+        type: string
+      website:
+        type: string
+      zoneinfo:
+        type: string
+    type: object
+  models.KickStart:
+    properties:
+      content:
+        type: string
+      createTime:
+        type: string
+      desc:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      updateTime:
+        type: string
+      userId:
+        type: integer
     type: object
 info:
   contact: {}
 paths:
-  /images/delete/:id:
-    delete:
-      consumes:
-      - application/json
-      description: update single data
-      parameters:
-      - description: The key for staticblock
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      summary: delete
-      tags:
-      - meta Manager
-  /images/get/{id}:
-    get:
-      consumes:
-      - application/json
-      description: get single one
-      parameters:
-      - description: The key for staticblock
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      summary: get
-      tags:
-      - meta Manager
-  /images/insert:
+  /v1/auth/createUser:
     post:
       consumes:
       - application/json
-      description: insert single data
+      description: AuthingCreateUser
       parameters:
-      - description: body for Metadata content
+      - description: body for user info
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/models.ImageInputData'
+          $ref: '#/definitions/models.CreateUserInput'
       produces:
       - application/json
       responses: {}
-      summary: create
+      summary: AuthingCreateUser
       tags:
-      - meta Manager
-  /images/query:
+      - Authing
+  /v1/auth/getDetail/{authingUserId}:
     get:
       consumes:
       - application/json
-      description: use param to query multi datas
+      description: AuthingGetToken
       parameters:
-      - description: project name
-        in: query
-        name: project_name
-        required: true
-        type: string
-      - description: package name
-        in: query
-        name: pkg_name
+      - description: The key for staticblock
+        in: path
+        name: authingUserId
         required: true
         type: string
       produces:
       - application/json
       responses: {}
-      summary: query multi datas
+      summary: AuthingGetToken
       tags:
-      - meta Manager
-  /images/update:
-    put:
+      - Authing
+  /v1/auth/loginok:
+    get:
       consumes:
       - application/json
-      description: update single data
+      description: login success redirect url
+      produces:
+      - application/json
+      responses: {}
+      summary: login success redirect url
+      tags:
+      - Authing
+  /v1/images/param/getBaseData/:
+    get:
+      consumes:
+      - application/json
+      description: get architecture, release Version, output Format ,and default package
+        name list
+      produces:
+      - application/json
+      responses: {}
+      summary: GetBaseData param
+      tags:
+      - v1 version
+  /v1/images/param/getCustomePkgList/:
+    get:
+      consumes:
+      - application/json
+      description: get custom package name list
       parameters:
-      - description: body for Metadata content
+      - description: ' arch ,e g:x86_64'
+        in: query
+        name: arch
+        required: true
+        type: string
+      - description: 'release  '
+        in: query
+        name: release
+        required: true
+        type: string
+      - description: 'custom group  '
+        in: query
+        name: sig
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: GetCustomePkgList param
+      tags:
+      - v1 version
+  /v1/images/queryHistory/mine:
+    get:
+      consumes:
+      - application/json
+      description: Query My History
+      parameters:
+      - description: arch
+        in: query
+        name: arch
+        type: string
+      - description: status
+        in: query
+        name: status
+        type: string
+      - description: build type
+        in: query
+        name: type
+        type: string
+      - description: name or desc
+        in: query
+        name: nameordesc
+        type: string
+      - description: 'offset '
+        in: query
+        name: offset
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      summary: QueryMyHistory
+      tags:
+      - v1 version
+  /v1/images/queryJobLogs/{name}:
+    get:
+      consumes:
+      - application/json
+      description: QueryJobLogs for given job name
+      parameters:
+      - description: The name for job
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: QueryJobLogs
+      tags:
+      - v1 version
+  /v1/images/queryJobStatus/{name}:
+    get:
+      consumes:
+      - application/json
+      description: QueryJobStatus for given job name
+      parameters:
+      - description: The name for job
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: 'The id for job in database. '
+        in: query
+        name: id
+        type: string
+      - description: 'job namespace '
+        in: query
+        name: ns
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: QueryJobStatus
+      tags:
+      - v1 version
+  /v1/images/startBuild:
+    post:
+      consumes:
+      - application/json
+      description: start a image build job
+      parameters:
+      - description: body for ImageMeta content
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/models.ImageInputData'
+          $ref: '#/definitions/models.BuildParam'
       produces:
       - application/json
       responses: {}
-      summary: update
+      summary: StartBuild Job
       tags:
-      - meta Manager
+      - v1 version
+  /v2/images/createJob:
+    post:
+      consumes:
+      - application/json
+      description: start a image build job
+      parameters:
+      - description: body for ImageMeta content
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.BuildParam'
+      produces:
+      - application/json
+      responses: {}
+      summary: Create Job
+      tags:
+      - v2 version
+  /v2/images/deleteJob:
+    post:
+      consumes:
+      - application/json
+      description: delete multipule job build records
+      parameters:
+      - description: job id list
+        in: body
+        name: body
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
+      produces:
+      - application/json
+      responses: {}
+      summary: deleteRecord
+      tags:
+      - v2 version
+  /v2/images/getJobParam/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get job build param
+      parameters:
+      - description: job id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: GetJobParam
+      tags:
+      - v2 version
+  /v2/images/getLogsOf/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get single job logs
+      parameters:
+      - description: job id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: step id
+        in: query
+        name: stepID
+        required: true
+        type: string
+      - description: uuid
+        in: query
+        name: uuid
+        type: string
+      - description: job type
+        in: query
+        name: jobtype
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: get single job logs
+      tags:
+      - v2 version
+  /v2/images/getMySummary:
+    get:
+      consumes:
+      - application/json
+      description: get my summary
+      produces:
+      - application/json
+      responses: {}
+      summary: MySummary
+      tags:
+      - v2 version
+  /v2/images/getOne/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get single job detail
+      parameters:
+      - description: job id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: job type
+        in: query
+        name: jobtype
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: get single job detail
+      tags:
+      - v2 version
+  /v2/images/stopJob/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Stop Job Build
+      parameters:
+      - description: job id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: job type
+        in: query
+        name: jobtype
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: StopJobBuild
+      tags:
+      - v2 version
+  /v3/baseImages/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete  a base  images data
+      parameters:
+      - description: id for BaseImages content
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      summary: DeletBaseImages
+      tags:
+      - v3 version
+    put:
+      consumes:
+      - application/json
+      description: update  a base  images data
+      parameters:
+      - description: id for  content
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: body for BaseImages content
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.BaseImages'
+      produces:
+      - application/json
+      responses: {}
+      summary: UpdateBaseImages
+      tags:
+      - v3 version
+  /v3/baseImages/import:
+    post:
+      consumes:
+      - application/json
+      description: import  a image meta data
+      parameters:
+      - description: body for BaseImages content
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.BaseImages'
+      produces:
+      - application/json
+      responses: {}
+      summary: ImportBaseImages
+      tags:
+      - v3 version
+  /v3/baseImages/list:
+    get:
+      consumes:
+      - application/json
+      description: get my base image list order by id desc
+      parameters:
+      - description: 'offset '
+        in: query
+        name: offset
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      summary: ListBaseImages
+      tags:
+      - v3 version
+  /v3/baseImages/repoCallback/{id}:
+    get:
+      consumes:
+      - application/json
+      description: callback after repo loaded from source url
+      parameters:
+      - description: id for image item
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: status for image item
+        in: query
+        name: status
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: RepoSavedCallBack
+      tags:
+      - v3 version
+  /v3/getImagesAndKickStart:
+    get:
+      consumes:
+      - application/json
+      description: GetImagesAndKickStart
+      produces:
+      - application/json
+      responses: {}
+      summary: GetImagesAndKickStart
+      tags:
+      - v3 version
+  /v3/getRepositoryDownlad/{id}:
+    get:
+      consumes:
+      - application/json
+      description: GetRepositoryDownlad
+      parameters:
+      - description: id for  content
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      summary: GetRepositoryDownlad
+      tags:
+      - v3 version
+  /v3/images/buildFromIso:
+    post:
+      consumes:
+      - application/json
+      description: build a image from iso
+      parameters:
+      - description: body for ImageMeta content
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.BaseImagesKickStart'
+      produces:
+      - application/json
+      responses: {}
+      summary: BuildFromISO
+      tags:
+      - v3 version
+  /v3/kickStart:
+    post:
+      consumes:
+      - application/json
+      description: add  a KickStart data
+      parameters:
+      - description: kickstart file
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: '  name'
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: '  desc'
+        in: formData
+        name: desc
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      summary: AddKickStart
+      tags:
+      - v3 version
+  /v3/kickStart/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete  a KickStart data
+      parameters:
+      - description: id for KickStart content
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      summary: DeleteKickStart
+      tags:
+      - v3 version
+    get:
+      consumes:
+      - application/json
+      description: GetKickStartByID
+      parameters:
+      - description: id for  content
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      summary: GetKickStartByID
+      tags:
+      - v3 version
+    put:
+      consumes:
+      - application/json
+      description: update  a kick start data
+      parameters:
+      - description: id for  content
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: body for KickStart content
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.KickStart'
+      produces:
+      - application/json
+      responses: {}
+      summary: UpdateKickStart
+      tags:
+      - v3 version
+  /v3/kickStart/list:
+    get:
+      consumes:
+      - application/json
+      description: get my kick start file list order by id desc
+      parameters:
+      - description: 'offset '
+        in: query
+        name: offset
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      summary: ListKickStart
+      tags:
+      - v3 version
 swagger: "2.0"
