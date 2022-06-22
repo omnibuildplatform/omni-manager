@@ -161,7 +161,6 @@ func handleDownloadStatusEvent(ctx context.Context, event cloudevents.Event) {
 		//for parallel
 		imageStatusLock.Lock()
 		finifshSize, _ := util.GetFloat(key)
-
 		tempInt := math.Ceil(finifshSize)
 		tempInt += float64(imageStatusEvent.BlockSize)
 		finifshSize = tempInt + (tempInt)/float64(imageStatusEvent.ImageSize)
