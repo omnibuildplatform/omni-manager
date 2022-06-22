@@ -52,6 +52,8 @@ func main() {
 	util.InitStatisticsLog()
 	//sync
 	go models.SyncJobStatus()
+
+	models.RegisterEventLinstener()
 	//startup a webscoket server to wait client ws
 	// go models.StartWebSocket()
 	gin.SetMode(util.GetConfig().AppModel)

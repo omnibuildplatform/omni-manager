@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -130,11 +129,11 @@ func CreateJob(c *gin.Context) {
 	}
 	// util.Log.Debug(util.GetConfig().BuildServer.ApiUrl, "v2 CreateJob:------------:", result)
 	insertData.JobName = result["id"].(string)
-	outputName := fmt.Sprintf(`openEuler-%s.iso`, result["id"])
+	// outputName := fmt.Sprintf(`openEuler-%s.iso`, result["id"])
 	insertData.Status = result["state"].(string)
 	insertData.StartTime, _ = time.Parse(time.RFC3339, result["startTime"].(string))
 	insertData.EndTime, _ = time.Parse(time.RFC3339, result["endTime"].(string))
-	insertData.DownloadUrl = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + insertData.Release + "/" + time.Now().In(util.CnTime).Format("2006-01-02") + "/" + outputName
+	insertData.DownloadUrl = util.GetConfig().BuildServer.OmniRepoAPIInternal + "/images/query?externalID=" + insertData.JobName
 	insertData.Status = models.JOB_STATUS_CREATED
 	err = models.AddJobLog(&insertData)
 	if err != nil {
@@ -209,7 +208,7 @@ func GetOne(c *gin.Context) {
 		return
 	}
 	if result["state"] == models.JOB_BUILD_STATUS_SUCCEED {
-		downloadURL := util.GetConfig().BuildServer.OmniRepoAPI + "/data/query?externalID=" + result["id"].(string)
+		downloadURL := util.GetConfig().BuildServer.OmniRepoAPI + "/image/query?externalID=" + result["id"].(string)
 
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result, downloadURL))
 	} else {

@@ -30,6 +30,7 @@ type Config struct {
 	JwtConfig      JwtConfig     `json:"jwt"`
 	BuildServer    BuildServer   `json:"buildServer"`
 	Statistic      Statistic     `json:"statistic"`
+	MQ             MessageQueue  `json:"mq"`
 }
 
 type K8sConfig struct {
@@ -106,6 +107,11 @@ type Statistic struct {
 	LogFile       string `json:"log_file"`
 	LogFileSize   int64  `json:"log_file_size"`
 	LogFileSuffix string `json:"log_file_suffix"`
+}
+
+//MessageQueue
+type MessageQueue struct {
+	KafkaServer string `json:"kafka_server"`
 }
 
 func InitConfig(path string) {
@@ -211,6 +217,7 @@ func InitConfig(path string) {
 	err = json.Unmarshal(defaultPkg, &(GetConfig().DefaultPkgList))
 	if err != nil {
 		Log.Errorf("config default package list is not json format :%s", err)
+		Log.Errorln(minimalPath)
 		os.Exit(1)
 		return
 	}

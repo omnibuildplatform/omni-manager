@@ -222,6 +222,6 @@ func StartWebSocket() {
 	addr := fmt.Sprintf(":%d", util.GetConfig().WSConfig.Port)
 	util.Log.Infof("websocket Listening and serving at %s port ", addr)
 	if err := http.ListenAndServe(addr, nil); err != nil {
-		util.Log.Fatalf("websocket startup failed ,error: %s", err)
+		util.Log.Printf("websocket startup failed ,error: %s", err)
 	}
 }

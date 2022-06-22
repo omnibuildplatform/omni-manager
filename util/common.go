@@ -8,10 +8,12 @@ import (
 	"time"
 	"unicode"
 
+	validator "github.com/go-playground/validator/v10"
 	"k8s.io/client-go/rest"
 )
 
 var GlobK8sConfig *rest.Config
+var RequiredValidator validator.Validate
 
 func Catchs() {
 	if err := recover(); err != nil {

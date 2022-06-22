@@ -259,6 +259,18 @@ func GetInt(k string) (int, error) {
 	return result, nil
 }
 
+//GetFloat 获取数字
+func GetFloat(k string) (float64, error) {
+
+	c := redisPool.Get()
+	defer c.Close()
+	result, err := redis.Float64(c.Do("GET", k))
+	if err != nil {
+		return 0, err
+	}
+	return result, nil
+}
+
 //Rpush 插入多个
 func Rpush(k string, data int) error {
 

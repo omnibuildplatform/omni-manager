@@ -651,6 +651,31 @@ const docTemplate = `{
                 "responses": {}
             }
         },
+        "/v3/getRepositoryDownlad/{id}": {
+            "get": {
+                "description": "GetRepositoryDownlad",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v3 version"
+                ],
+                "summary": "GetRepositoryDownlad",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "id for  content",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
         "/v3/images/buildFromIso": {
             "post": {
                 "description": "build a image from iso",
@@ -831,7 +856,16 @@ const docTemplate = `{
     "definitions": {
         "models.BaseImages": {
             "type": "object",
+            "required": [
+                "algorithm",
+                "checksum",
+                "desc",
+                "name"
+            ],
             "properties": {
+                "algorithm": {
+                    "type": "string"
+                },
                 "arch": {
                     "type": "string"
                 },
@@ -874,6 +908,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "kickStartContent": {
+                    "type": "string"
+                },
+                "kickStartID": {
                     "type": "string"
                 },
                 "kickStartName": {

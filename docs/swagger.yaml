@@ -1,6 +1,8 @@
 definitions:
   models.BaseImages:
     properties:
+      algorithm:
+        type: string
       arch:
         type: string
       checksum:
@@ -21,6 +23,11 @@ definitions:
         type: string
       userId:
         type: integer
+    required:
+    - algorithm
+    - checksum
+    - desc
+    - name
     type: object
   models.BaseImagesKickStart:
     properties:
@@ -29,6 +36,8 @@ definitions:
       desc:
         type: string
       kickStartContent:
+        type: string
+      kickStartID:
         type: string
       kickStartName:
         type: string
@@ -588,6 +597,23 @@ paths:
       - application/json
       responses: {}
       summary: GetImagesAndKickStart
+      tags:
+      - v3 version
+  /v3/getRepositoryDownlad/{id}:
+    get:
+      consumes:
+      - application/json
+      description: GetRepositoryDownlad
+      parameters:
+      - description: id for  content
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses: {}
+      summary: GetRepositoryDownlad
       tags:
       - v3 version
   /v3/images/buildFromIso:

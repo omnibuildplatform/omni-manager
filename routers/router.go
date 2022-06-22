@@ -66,6 +66,7 @@ func InitRouter() *gin.Engine {
 		v3.GET("/kickStart/:id", controllers.GetKickStartByID)
 		v3.DELETE("/kickStart/:id", controllers.DeleteKickStart)
 		v3.GET("/getImagesAndKickStart", controllers.GetImagesAndKickStart)
+		v3.GET("/getRepositoryDownlad/:id", controllers.GetRepositoryDownlad)
 
 	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))

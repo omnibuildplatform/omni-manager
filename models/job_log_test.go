@@ -22,7 +22,7 @@ func TestAddJobLog(t *testing.T) {
 	item.UserName = "陈其"
 	item.CreateTime = time.Now().In(util.CnTime)
 	item.Status = "running"
-	item.DownloadUrl = "https://repo.test.osinfra.cn/data/browse/openEuler2109/2022-04-01/openEuler-a6fbd713-dbf6-4243-9a7b-f2d05a8e1609.iso"
+	// item.DownloadUrl = "https://repo.test.osinfra.cn/data/browse/openEuler2109/2022-04-01/openEuler-a6fbd713-dbf6-4243-9a7b-f2d05a8e1609.iso"
 	item.ConfigMapName = "cmname1648800396444616"
 
 	err := AddJobLog(&item)

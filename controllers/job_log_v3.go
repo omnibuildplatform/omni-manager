@@ -1,10 +1,11 @@
 package controllers
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"path"
 	"strconv"
 	"strings"
@@ -14,7 +15,6 @@ import (
 	"github.com/omnibuildplatform/omni-manager/util"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
 )
 
 // @Summary ImportBaseImages
@@ -40,6 +40,10 @@ func ImportBaseImages(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, sd.StateMessage))
 		return
 	}
+	if imageInputData.Algorithm == "" || imageInputData.Checksum == "" || imageInputData.Url == "" {
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "err", "input param is not allowed be empty"))
+		return
+	}
 	_, filename := path.Split(imageInputData.Url)
 	extName := "iso"
 	if strings.Contains(filename, ".") {
@@ -62,6 +66,9 @@ func ImportBaseImages(c *gin.Context) {
 	imageInputData.Status = models.ImageStatusStart
 	imageInputData.ExtName = extName
 	imageInputData.Checksum = strings.ToLower(imageInputData.Checksum)
+	if imageInputData.Algorithm == "" {
+		imageInputData.Algorithm = "sha256"
+	}
 	err = models.AddBaseImages(&imageInputData)
 	if err != nil {
 		sd.State = "failed"
@@ -70,24 +77,43 @@ func ImportBaseImages(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
 		return
 	}
-	//
-	req, _ := http.NewRequest(http.MethodPost, util.GetConfig().BuildServer.OmniRepoAPI+"/data/loadfrom", nil)
-	param := url.Values{}
-	param.Add("url", imageInputData.Url)
-	param.Add("userid", strconv.Itoa(imageInputData.UserId))
-	param.Add("username", c.GetString("username"))
-	param.Add("desc", imageInputData.Desc)
-	param.Add("checksum", imageInputData.Checksum)
-	param.Add("token", "316462d0c029ba707ad1")
-	param.Add("externalID", strconv.Itoa(imageInputData.ID))
-	param.Add("name", imageInputData.Name)
-	req.URL.RawQuery = param.Encode()
+
+	param := make(map[string]interface{})
+	param["sourceUrl"] = imageInputData.Url
+	param["userID"] = imageInputData.UserId
+	param["fileName"] = filename
+	param["desc"] = imageInputData.Desc
+	param["checksum"] = imageInputData.Checksum
+	param["algorithm"] = imageInputData.Algorithm
+	param["externalID"] = strconv.Itoa(imageInputData.ID)
+	param["name"] = imageInputData.Name
+	param["publish"] = false
+	param["externalComponent"] = util.GetConfig().AppName
+
+	bodyBytes, _ := json.Marshal(param)
+	requestURL := util.GetConfig().BuildServer.OmniRepoAPIInternal + "/images/load"
+	req, err := http.NewRequest(http.MethodPost, requestURL, bytes.NewBuffer(bodyBytes))
+	if err != nil {
+		sd.State = "failed"
+		sd.StateMessage = err.Error()
+		util.StatisticsLog(&sd)
+		imageInputData.Status = models.ImageStatusFailed
+		sd.StateMessage = "使用repo下载失败原因是:" + err.Error()
+		models.UpdateBaseImagesStatus(&imageInputData)
+
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
+		return
+	}
+
 	var resp *http.Response
 	resp, err = http.DefaultClient.Do(req)
 	if err != nil {
 		sd.State = "failed"
 		sd.StateMessage = err.Error()
 		util.StatisticsLog(&sd)
+		imageInputData.Status = models.ImageStatusFailed
+		sd.StateMessage = "使用repo下载失败原因是:" + err.Error()
+		models.UpdateBaseImagesStatus(&imageInputData)
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusServerError, "DefaultClient", err.Error()))
 		return
 	}
@@ -97,9 +123,11 @@ func ImportBaseImages(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "ReadAll", err))
 		return
 	}
-	title := "ok."
+
+	title := "ok"
 	if resp.StatusCode >= 400 {
-		c.Data(http.StatusBadRequest, binding.MIMEJSON, respBody)
+		fmt.Println("req:", req)
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "error,url:"+requestURL, string(respBody)))
 		return
 	} else if resp.StatusCode == http.StatusAlreadyReported {
 		imageInputData.Status = models.ImageStatusDone
@@ -205,6 +233,44 @@ func DeletBaseImages(c *gin.Context) {
 	if c.Keys["p"] != nil {
 		sd.UserProvider = (c.Keys["p"]).(string)
 	}
+	//------------------delete image file from omni-repository
+	baseImages, err := models.GetBaseImagesByID(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "GetBaseImagesByID error", err))
+		return
+	}
+
+	req, err := http.NewRequest(http.MethodDelete, util.GetConfig().BuildServer.OmniRepoAPIInternal+"/images", nil)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
+		return
+	}
+	q := req.URL.Query()
+	q.Add("userID", strconv.Itoa(baseImages.UserId))
+	q.Add("checksum", baseImages.Checksum)
+	req.URL.RawQuery = q.Encode()
+	var resp *http.Response
+	resp, err = http.DefaultClient.Do(req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusServerError, "DefaultClient", err.Error()))
+		return
+	}
+	defer resp.Body.Close()
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "ReadAll", err))
+		return
+	}
+
+	if resp.StatusCode >= 400 {
+		// go on to delete it if 404
+		if resp.StatusCode != 404 {
+			c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "error,url:"+req.URL.RawQuery, string(respBody)))
+			return
+		}
+	}
+
+	//-------------------------------delte record from database
 	deleteNum, err := models.DeleteBaseImagesById(sd.UserId, id)
 	if err != nil {
 		sd.State = "failed"
@@ -260,18 +326,42 @@ func BuildFromISO(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "GetBaseImagesByID", sd.StateMessage))
 		return
 	}
+
+	//--------------------------------
+	//query really baseImage url before call build API.
+	var req *http.Request
+	req, _ = http.NewRequest("GET", util.GetConfig().BuildServer.OmniRepoAPI+"/images/query?externalID="+strconv.Itoa(baseimage.ID), nil)
+
+	resp, err := http.DefaultClient.Do(req) //http.Get(url)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "GetRepositoryDownload", err))
+		return
+	}
+	defer resp.Body.Close()
+	resultBytes, _ := ioutil.ReadAll(resp.Body)
+	if resp.StatusCode > 400 {
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "qeury respository", string(resultBytes)))
+		return
+	}
+	var imageResp models.ImageResponse
+	err = json.Unmarshal(resultBytes, &imageResp)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "json.Unmarshal error ", err))
+		return
+	}
+	//-------------------------------
 	baseimage.Checksum = strings.ToLower(baseimage.Checksum)
 	var insertData models.JobLog
 	kickStartMap := make(map[string]interface{})
 
-	imageInputData.KickStartContent = strings.ReplaceAll(imageInputData.KickStartContent, "\n", "  ")
-	kickStartMap["content"] = imageInputData.KickStartContent
+	// imageInputData.KickStartContent = strings.ReplaceAll(imageInputData.KickStartContent, "\n", "  ")
+	kickStartMap["content"] = strings.ReplaceAll(imageInputData.KickStartContent, "\n", "  ") // imageInputData.KickStartContent
 	kickStartMap["name"] = imageInputData.KickStartName
 
 	imageMap := make(map[string]interface{})
-	imageMap["name"] = baseimage.Name + "." + baseimage.ExtName
-	imageMap["url"] = util.GetConfig().BuildServer.OmniRepoAPIInternal + "/data/browse/" + baseimage.Checksum[0:3] + "/" + baseimage.Checksum + "." + baseimage.ExtName
-	imageMap["checksum"] = baseimage.Checksum
+	imageMap["name"] = imageResp.Name
+	imageMap["url"] = util.GetConfig().BuildServer.OmniRepoAPIInternal + imageResp.ImagePath //util.GetConfig().BuildServer.OmniRepoAPIInternal + "/images/query?externalID=" + strconv.Itoa(baseimage.ID)
+	imageMap["checksum"] = imageResp.Checksum
 	imageMap["architecture"] = baseimage.Arch
 
 	specMap := make(map[string]interface{})
@@ -282,7 +372,7 @@ func BuildFromISO(c *gin.Context) {
 	param["domain"] = "omni-build"
 	param["task"] = models.BuildImageFromISO
 	param["engine"] = "kubernetes"
-	param["userID"] = strconv.Itoa(insertData.UserId)
+	param["userID"] = (c.Keys["id"]).(string)
 	param["spec"] = specMap
 	paramBytes, _ := json.Marshal(param)
 	result, err := util.HTTPPost(util.GetConfig().BuildServer.ApiUrl+"/v1/jobs", string(paramBytes))
@@ -293,8 +383,6 @@ func BuildFromISO(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "HTTPPost Error", err.Error()))
 		return
 	}
-
-	paramBytes, _ = json.Marshal(result)
 
 	insertData.JobName = result["id"].(string)
 	insertData.Status = result["state"].(string)
@@ -358,6 +446,17 @@ func ListBaseImages(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
 		return
 	}
+
+	var unVerfiyImageList []*models.BaseImages
+	for _, image := range imageList {
+		if image.Status == string(models.ImageCreated) {
+			// key := fmt.Sprintf("imageStatus:%s:%s", , externalItems[1])
+			// util.GetFloat(key)
+
+			unVerfiyImageList = append(unVerfiyImageList, image)
+		}
+	}
+
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", imageList, total))
 }
 
@@ -569,4 +668,32 @@ func GetKickStartByID(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result))
+}
+
+// @Summary GetRepositoryDownlad
+// @Description GetRepositoryDownlad
+// @Tags  v3 version
+// @Param	id		path 	int	true		"id for  content"
+// @Accept json
+// @Produce json
+// @Router /v3/getRepositoryDownlad/{id} [get]
+func GetRepositoryDownlad(c *gin.Context) {
+
+	jobname := c.Param("id")
+	if len(jobname) == 0 {
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusClientError, "externalid must fill in", jobname))
+		return
+	}
+	var req *http.Request
+	req, _ = http.NewRequest("GET", util.GetConfig().BuildServer.OmniRepoAPI+"/images/query?externalID="+jobname, nil)
+
+	resp, err := http.DefaultClient.Do(req) //http.Get(url)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "GetRepositoryDownlad", err))
+		return
+	}
+	defer resp.Body.Close()
+	resultBytes, _ := ioutil.ReadAll(resp.Body)
+
+	c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, util.GetConfig().BuildServer.OmniRepoAPI, string(resultBytes)))
 }

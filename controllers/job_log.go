@@ -76,7 +76,7 @@ func StartBuild(c *gin.Context) {
 	//-------- make custom rpms config first
 	cm := models.MakeConfigMap(insertData.Release, imageInputData.CustomPkg)
 	// //----------create job
-	job, outPutname, err := models.MakeJob(cm, insertData.BuildType, insertData.Release)
+	job, err := models.MakeJob(cm, insertData.BuildType, insertData.Release)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, "Create job Error", err))
 		return
@@ -87,7 +87,7 @@ func StartBuild(c *gin.Context) {
 	insertData.Status = models.JOB_STATUS_RUNNING
 	insertData.JobName = job.GetName()
 	insertData.CreateTime = job.GetCreationTimestamp().Time
-	insertData.DownloadUrl = util.GetConfig().BuildServer.OmniRepoAPI + "/data/browse/" + insertData.Release + "/" + outPutname
+	insertData.DownloadUrl = "/api/v3/getRepositoryDownlad/" + insertData.JobName
 	err = models.AddJobLog(&insertData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, util.ExportData(util.CodeStatusServerError, nil, err))
@@ -270,6 +270,9 @@ func QueryMyHistory(c *gin.Context) {
 	if len(result) == 0 {
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", []interface{}{}, 0))
 	} else {
+		for _, item := range result {
+			item.DownloadUrl = util.GetConfig().BuildServer.OmniRepoAPI + "/images/query?externalID=" + item.JobName
+		}
 		c.JSON(http.StatusOK, util.ExportData(util.CodeStatusNormal, "ok", result, total))
 	}
 

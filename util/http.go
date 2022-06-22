@@ -33,8 +33,7 @@ func HTTPPost(url string, requestBody string) (map[string]interface{}, error) {
 		return nil, err
 	}
 	if resp.StatusCode > 300 {
-		err = fmt.Errorf("Post request failed, err:%v ", string(body))
-		Log.Errorln(err)
+		err = fmt.Errorf("%v", string(body))
 		return nil, err
 	}
 
@@ -69,7 +68,6 @@ func HTTPGet(urlpath string, query url.Values) (result map[string]interface{}, e
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil || body == nil {
-		logs.Error("err: ", err)
 		return nil, err
 	}
 	err = json.Unmarshal(body, &result)

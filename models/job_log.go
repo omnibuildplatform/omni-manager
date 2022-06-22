@@ -174,70 +174,9 @@ func CountSummaryStatus(userid int) (result *SummaryStatus, err error) {
 // CreateTables
 func CreateTables() (err error) {
 	o := util.GetDB()
-	if !o.Migrator().HasTable(&JobLog{}) {
-		err = o.Migrator().CreateTable(&JobLog{})
-		if err != nil {
-			util.Log.Errorf("CreateTables Error:%s ", err)
-		}
-	}
-	if !o.Migrator().HasTable(&BaseImages{}) {
-		err = o.Migrator().CreateTable(&BaseImages{})
-		if err != nil {
-			util.Log.Errorf("CreateTables Error:%s ", err)
-		}
-	}
-	if !o.Migrator().HasTable(&KickStart{}) {
-		err = o.Migrator().CreateTable(&KickStart{})
-		if err != nil {
-			util.Log.Errorf("CreateTables Error:%s ", err)
-		}
-	}
-
-	if !o.Migrator().HasColumn(&BaseImages{}, "status") {
-		err = o.Migrator().AddColumn(&BaseImages{}, "status")
-		if err != nil {
-			util.Log.Errorf("CreateTables Error:%s ", err)
-		}
-	}
-
-	if !o.Migrator().HasColumn(&BaseImages{}, "ext_name") {
-		err = o.Migrator().AddColumn(&BaseImages{}, "ext_name")
-		if err != nil {
-			util.Log.Errorf("CreateTables Error:%s ", err)
-		}
-	}
-
-	if !o.Migrator().HasColumn(&BaseImages{}, "checksum") {
-		err = o.Migrator().AddColumn(&BaseImages{}, "checksum")
-		if err != nil {
-			util.Log.Errorf("CreateTables Error:%s ", err)
-		}
-	}
-	if !o.Migrator().HasColumn(&JobLog{}, "job_type") {
-		err = o.Migrator().AddColumn(&JobLog{}, "job_type")
-		if err != nil {
-			util.Log.Errorf("CreateTables Error:%s ", err)
-		}
-	}
-	if !o.Migrator().HasColumn(&JobLog{}, "base_image_id") {
-		err = o.Migrator().AddColumn(&JobLog{}, "base_image_id")
-		if err != nil {
-			util.Log.Errorf("CreateTables Error:%s ", err)
-		}
-	}
-	if !o.Migrator().HasColumn(&JobLog{}, "kick_start_id") {
-		err = o.Migrator().AddColumn(&JobLog{}, "kick_start_id")
-		if err != nil {
-			util.Log.Errorf("CreateTables Error:%s ", err)
-		}
-	}
-	if !o.Migrator().HasColumn(&JobLog{}, "kick_start_content") {
-		err = o.Migrator().AddColumn(&JobLog{}, "kick_start_content")
-		if err != nil {
-			util.Log.Errorf("CreateTables Error:%s ", err)
-		}
-	}
-
+	o.Migrator().AutoMigrate(&JobLog{})
+	o.Migrator().AutoMigrate(&BaseImages{})
+	o.Migrator().AutoMigrate(&KickStart{})
 	return
 }
 
@@ -305,15 +244,15 @@ func MakeConfigMap(release string, customRpms []string) (cm *v1.ConfigMap) {
 }
 
 //make job yaml and start job
-func MakeJob(cm *v1.ConfigMap, buildtype, release string) (job *batchv1.Job, outputName string, err error) {
+func MakeJob(cm *v1.ConfigMap, buildtype, release string) (job *batchv1.Job, err error) {
 	controllerID := uuid.NewV4().String()
 	var jobName = fmt.Sprintf(`omni-image-%s`, controllerID)
-	outputName = fmt.Sprintf(`openEuler-%s.iso`, controllerID)
+	outputName := fmt.Sprintf(`openEuler-%s.iso`, controllerID)
 	clientset, err := kubernetes.NewForConfig(GetK8sConfig())
 	if err != nil {
 		return
 	}
-	omniImager := `omni-imager --package-list /conf/totalrpms.json --config-file /conf/conf.yaml --build-type ` + buildtype + ` --output-file ` + outputName + ` && curl -vvv -Ffile=@/opt/omni-workspace/` + outputName + ` -Fproject=` + release + `  -FfileType=image '` + util.GetConfig().BuildServer.OmniRepoAPI + `/data/upload?token=316462d0c029ba707ad2'`
+	omniImager := `omni-imager --package-list /conf/totalrpms.json --config-file /conf/conf.yaml --build-type ` + buildtype + ` --output-file ` + outputName + ` && curl -vvv -Ffile=@/opt/omni-workspace/` + outputName + ` -Fproject=` + release + `  -FfileType=image '` + util.GetConfig().BuildServer.OmniRepoAPIInternal + `/images/upload'`
 	jobInterface := clientset.BatchV1().Jobs(util.GetConfig().K8sConfig.Namespace)
 	var backOffLimit int32 = 0
 	var tTLSecondsAfterFinished int32 = 1800
@@ -461,7 +400,7 @@ func SyncJobStatus() {
 		jobIdList = make([]jobNameType, 0)
 		o.Raw(sql).Scan(&jobIdList)
 		if len(jobIdList) == 0 {
-			time.Sleep(time.Second * 30)
+			time.Sleep(time.Second * 60)
 			continue
 		}
 
@@ -501,7 +440,6 @@ func SyncJobStatus() {
 			time.Sleep(time.Second * 30)
 			continue
 		}
-		defer resp.Body.Close()
 
 		resultBytes, _ := ioutil.ReadAll(resp.Body)
 		if resp.StatusCode != 200 {
@@ -509,7 +447,7 @@ func SyncJobStatus() {
 			time.Sleep(time.Second * 30)
 			continue
 		}
-
+		resp.Body.Close()
 		var jobStatusList []JobStatuItem
 		err = json.Unmarshal(resultBytes, &jobStatusList)
 		if err != nil {
@@ -541,7 +479,7 @@ func SyncJobStatus() {
 				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN  '%s' ", jobStatus.Id, JOB_STATUS_FAILED)
 			case JOB_BUILD_STATUS_SUCCEED:
 				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   '%s' ", jobStatus.Id, JOB_STATUS_SUCCEED)
-				downloadURL := util.GetConfig().BuildServer.OmniRepoAPI + "/data/query?externalID=" + jobStatus.Id
+				downloadURL := util.GetConfig().BuildServer.OmniRepoAPI + "/images/query?externalID=" + jobStatus.Id
 				downloadSql = downloadSql + fmt.Sprintf(" WHEN job_name = '%s' THEN  '%s' ", jobStatus.Id, downloadURL)
 			case JOB_BUILD_STATUS_CREATED:
 				statuSql = statuSql + fmt.Sprintf(" WHEN job_name = '%s' THEN   '%s' ", jobStatus.Id, JOB_STATUS_CREATED)
