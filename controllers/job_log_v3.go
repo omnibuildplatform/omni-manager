@@ -37,9 +37,10 @@ func ImportBaseImages(c *gin.Context) {
 		sd.State = "failed"
 		sd.StateMessage = err.Error()
 		util.StatisticsLog(&sd)
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, sd.StateMessage))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err.Error(), sd.StateMessage))
 		return
 	}
+	imageInputData.Checksum = strings.Trim(imageInputData.Checksum, " ")
 	if imageInputData.Algorithm == "" || imageInputData.Checksum == "" || imageInputData.Url == "" {
 		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "err", "input param is not allowed be empty"))
 		return
@@ -74,7 +75,7 @@ func ImportBaseImages(c *gin.Context) {
 		sd.State = "failed"
 		sd.StateMessage = err.Error()
 		util.StatisticsLog(&sd)
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err.Error(), nil))
 		return
 	}
 
@@ -101,7 +102,7 @@ func ImportBaseImages(c *gin.Context) {
 		sd.StateMessage = "使用repo下载失败原因是:" + err.Error()
 		models.UpdateBaseImagesStatus(&imageInputData)
 
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err, nil))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, err.Error(), nil))
 		return
 	}
 
@@ -127,7 +128,7 @@ func ImportBaseImages(c *gin.Context) {
 	title := "ok"
 	if resp.StatusCode >= 400 {
 		fmt.Println("req:", req)
-		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, "error,url:"+requestURL, string(respBody)))
+		c.JSON(http.StatusBadRequest, util.ExportData(util.CodeStatusClientError, string(respBody), "error,url:"+requestURL))
 		return
 	} else if resp.StatusCode == http.StatusAlreadyReported {
 		imageInputData.Status = models.ImageStatusDone

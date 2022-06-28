@@ -199,7 +199,7 @@ func MakeConfigMap(release string, customRpms []string) (cm *v1.ConfigMap) {
 		return
 	}
 
-	configMapName := fmt.Sprintf("cmname%d", time.Now().In(util.CnTime).UnixMicro())
+	configMapName := fmt.Sprintf("cmname%d", time.Now().In(util.CnTime).Unix())
 	tempdata := make(map[string]string)
 	tempdata["working_dir"] = "/opt/omni-workspace"
 	tempdata["debug"] = "True"
